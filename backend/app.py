@@ -12,8 +12,29 @@ from . import core, store, workflow, llm, rag, screening, tables, feedback, coi
 from .llm import LLMError
 from .workflow import WorkflowError
 
-app = FastAPI(title="GrantLens", version="2.0")
+app = FastAPI(title="GrantLens", version="2.2")
 FRONTEND = Path(__file__).resolve().parent.parent / "frontend" / "index.html"
+
+# --- khóa truy cập cho bản demo public: đặt GRANTLENS_ACCESS_KEY thì mọi request phải có key ---
+import os
+ACCESS_KEY = os.environ.get("GRANTLENS_ACCESS_KEY", "")
+
+
+@app.middleware("http")
+async def access_gate(request, call_next):
+    if ACCESS_KEY:
+        from fastapi.responses import HTMLResponse
+        supplied = request.query_params.get("key") or request.cookies.get("gl_key")
+        if supplied != ACCESS_KEY:
+            return HTMLResponse(
+                "<div style='font-family:sans-serif;max-width:420px;margin:15vh auto;text-align:center'>"
+                "<h2>GrantLens — bản demo riêng tư</h2><p>Cần khóa truy cập. Mở lại đường dẫn dạng:</p>"
+                "<code>…/?key=KHÓA-ĐƯỢC-CẤP</code></div>", status_code=401)
+        resp = await call_next(request)
+        if request.query_params.get("key") == ACCESS_KEY:
+            resp.set_cookie("gl_key", ACCESS_KEY, httponly=True, max_age=86400 * 7)
+        return resp
+    return await call_next(request)
 
 
 @app.on_event("startup")
