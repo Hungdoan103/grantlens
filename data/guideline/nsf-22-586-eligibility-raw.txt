@@ -1,0 +1,48 @@
+SOURCE: NSF 22-586 — Faculty Early Career Development Program (CAREER)
+URL: https://www.nsf.gov/funding/opportunities/career-faculty-early-career-development-program/nsf22-586/solicitation
+Retrieved: 2026-08-30 (official U.S. National Science Foundation website; U.S. Government work, public domain)
+Status on retrieval date: "Active funding opportunity — This document is the current version."
+
+=== IV. ELIGIBILITY INFORMATION (verbatim excerpts) ===
+
+Who May Submit Proposals:
+Proposals may only be submitted by the following:
+- Institutions of Higher Education (IHEs) - Two- and four-year IHEs (including community colleges) accredited in, and having a campus located in the US, acting on behalf of their faculty members.
+- Non-profit, non-academic organizations: Independent museums, observatories, research labs, professional societies and similar organizations in the U.S. associated with educational or research activities.
+
+Who May Serve as PI:
+A Principal Investigator (PI) may submit only one CAREER proposal per annual competition. In addition, a Principal Investigator may not participate in more than three CAREER competitions. Proposals that are not reviewed (i.e., are withdrawn before review or are returned without review) do not count toward the three-competition limit.
+
+Limit on Number of Proposals per PI or co-PI: 1
+An eligible Principal Investigator may submit only one CAREER proposal per annual competition. No co-PIs are permitted.
+
+Additional Eligibility Info:
+Proposers must meet all of the following eligibility requirements as of the annual deadline:
+- Hold a doctoral degree in a field supported by NSF;
+- Be engaged in research in an area of science, engineering, or education supported by NSF;
+- Hold at least a 50% tenure-track (or tenure-track-equivalent) position as an assistant professor (or equivalent title);
+- Be untenured; and
+- Have not previously received a CAREER award. (Prior or concurrent Federal support for other types of awards for non-duplicative research does not preclude eligibility.)
+
+Tenure-Track Equivalency - For a position to be considered a tenure-track-equivalent position, it must meet all of the following requirements: (1) the employee has a continuing appointment that is expected to last the five years of a CAREER grant; (2) the appointment has substantial research and educational responsibilities; and (3) the proposed project relates to the employee's career goals and job responsibilities as well as to the mission of the department or organization.
+
+Faculty members who are Associate Professors or in equivalent appointments, with or without tenure, are not eligible for the CAREER program. Faculty members who hold Adjunct Faculty or equivalent appointments are not eligible for the CAREER program.
+
+NO EXEMPTIONS FROM THESE ELIGIBILITY CRITERIA WILL BE GRANTED.
+
+=== V.A. SUPPLEMENTARY DOCUMENTS (verbatim excerpts) ===
+
+1. Departmental Letter (a proposal submitted without this Letter will be returned without review) - the proposal must include one (and only one) letter from the PI's department head (or equivalent organizational official). The Departmental Letter should be no more than 2 pages in length and include the department head's name and title below the signature.
+
+=== PROJECT DESCRIPTION (verbatim excerpts) ===
+
+The Project Description may not exceed 15 pages.
+The Project Description should include: a description of the proposed research project; a description of the proposed educational activities and their intended impact; a description of how the research and educational activities are integrated or synergistic.
+
+=== III. AWARD INFORMATION / V.B. BUDGETARY INFORMATION (verbatim excerpts) ===
+
+The CAREER award, including indirect costs, is expected to total a minimum of $400,000 for the 5-year duration, with the following exceptions: Awards for proposals to the Directorate for Biological Sciences (BIO), the Directorate for Engineering (ENG), or the Office of Polar Programs (OPP) are expected to total a minimum of $500,000 for the 5-year duration.
+
+Cost Sharing: Inclusion of voluntary committed cost sharing is prohibited.
+
+Compliance: Proposals that are non-compliant with the CAREER solicitation for the following reasons will be returned without review: Co-principal investigator(s) listed on the cover page; Departmental Letter is missing.

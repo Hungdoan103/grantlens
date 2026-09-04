@@ -1,0 +1,31 @@
+[MẪU THƯ CỦA ĐƠN VỊ — thay file này bằng mẫu thật khách gửi; xoá file để dùng thư mặc định]
+
+OFFICE OF SPONSORED PROGRAMS
+{ORGANIZATION_LETTERHEAD}
+
+Date: {DATE}
+Ref: {CASE_ID}
+
+Dear {APPLICANT_NAME},
+
+RE: OUTCOME OF ELIGIBILITY REVIEW — {CASE_ID}
+
+1. DECISION
+   (State clearly: eligible / not eligible / additional information required.)
+
+2. FINDINGS
+   (One numbered paragraph per criterion that is not met or needs information.
+    Each paragraph MUST contain: the criterion in plain words; the exact rule text
+    in quotation marks; the exact application text in quotation marks; one plain
+    sentence explaining the gap. Reflect the reviewing officer's reason where given.)
+
+3. WHAT YOU CAN DO
+   (Bullet list of concrete fixes or documents to send, with the submission channel.)
+
+4. YOUR RIGHT TO APPEAL
+   You may appeal this decision in writing within 30 days to the Review Board.
+   You may request the full assessment record for this application.
+
+Sincerely,
+{OFFICER_NAME}
+Grants Officer, on behalf of the Review Board

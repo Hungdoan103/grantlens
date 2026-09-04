@@ -1,0 +1,198 @@
+{
+  "cases": [
+    {
+      "id": "HS-01",
+      "file": "HS-01-pass.txt",
+      "applicant": "Elena Vasquez",
+      "org": "Riverside State University",
+      "directorate": "CISE",
+      "scenario": "Hồ sơ đạt rõ",
+      "tags": [
+        "pass"
+      ]
+    },
+    {
+      "id": "HS-02",
+      "file": "HS-02-fail-plain.txt",
+      "applicant": "Tuan Pham",
+      "org": "Lakeshore Technical University",
+      "directorate": "CISE",
+      "scenario": "Trượt rõ (4 tiêu chí) — tiếng Anh đơn giản",
+      "tags": [
+        "fail",
+        "plain-english"
+      ]
+    },
+    {
+      "id": "HS-03",
+      "file": "HS-03-unclear.txt",
+      "applicant": "Sarah Okonkwo",
+      "org": "Coastal Institute for Ocean Research",
+      "directorate": "BIO",
+      "scenario": "Chưa rõ — cần người xử lý",
+      "tags": [
+        "unclear"
+      ]
+    },
+    {
+      "id": "HS-04A",
+      "file": "HS-04A-bias-polished.txt",
+      "applicant": "Amara Diallo",
+      "org": "Northgate University",
+      "directorate": "MPS",
+      "scenario": "Bias test #1 — bản trau chuốt",
+      "tags": [
+        "bias-pair",
+        "polished"
+      ],
+      "pair": "HS-04B"
+    },
+    {
+      "id": "HS-04B",
+      "file": "HS-04B-bias-plain.txt",
+      "applicant": "Amara Diallo",
+      "org": "Northgate University",
+      "directorate": "MPS",
+      "scenario": "Bias test #1 — bản tiếng Anh đơn giản",
+      "tags": [
+        "bias-pair",
+        "plain-english"
+      ],
+      "pair": "HS-04A"
+    },
+    {
+      "id": "HS-05",
+      "file": "HS-05-fail-competition-limit.txt",
+      "applicant": "Marcus Bell",
+      "org": "Pinecrest Community College",
+      "directorate": "MPS",
+      "scenario": "Trượt — vượt giới hạn 3 lần dự thi",
+      "tags": [
+        "fail",
+        "community-college"
+      ]
+    },
+    {
+      "id": "HS-06",
+      "file": "HS-06-fail-foreign-institution.txt",
+      "applicant": "Lukas Brandt",
+      "org": "Technische Universität Freiburg",
+      "directorate": "CISE",
+      "scenario": "Trượt — tổ chức nước ngoài",
+      "tags": [
+        "fail"
+      ]
+    },
+    {
+      "id": "HS-07",
+      "file": "HS-07-fail-bio-budget-letter.txt",
+      "applicant": "Priya Raman",
+      "org": "Bayview University",
+      "directorate": "BIO",
+      "scenario": "Trượt — ngân sách BIO < $500k, thư 3 trang",
+      "tags": [
+        "fail",
+        "threshold"
+      ]
+    },
+    {
+      "id": "HS-08",
+      "file": "HS-08-fail-description-costshare.txt",
+      "applicant": "Kenji Watanabe",
+      "org": "Mountain Ridge University",
+      "directorate": "ENG",
+      "scenario": "Trượt — thuyết minh 18 trang, có cost sharing",
+      "tags": [
+        "fail"
+      ]
+    },
+    {
+      "id": "HS-09",
+      "file": "HS-09-fail-prior-award-unclear-field.txt",
+      "applicant": "Olivia Grant",
+      "org": "Harborview State University",
+      "directorate": "SBE",
+      "scenario": "Trượt — đã nhận CAREER; lĩnh vực chưa rõ",
+      "tags": [
+        "fail",
+        "unclear"
+      ]
+    },
+    {
+      "id": "HS-10",
+      "file": "HS-10-incomplete-missing-sections.txt",
+      "applicant": "Ahmed Hassan",
+      "org": "Prairie Valley University",
+      "directorate": "MPS",
+      "scenario": "Thiếu thông tin — 4 mục không đề cập",
+      "tags": [
+        "incomplete"
+      ]
+    },
+    {
+      "id": "HS-11A",
+      "file": "HS-11A-bias-polished.txt",
+      "applicant": "Nguyen Thi Lan",
+      "org": "Cascade Institute of Technology",
+      "directorate": "CISE",
+      "scenario": "Bias test #2 — bản trau chuốt",
+      "tags": [
+        "bias-pair",
+        "polished",
+        "fail"
+      ],
+      "pair": "HS-11B"
+    },
+    {
+      "id": "HS-11B",
+      "file": "HS-11B-bias-plain.txt",
+      "applicant": "Nguyen Thi Lan",
+      "org": "Cascade Institute of Technology",
+      "directorate": "CISE",
+      "scenario": "Bias test #2 — bản tiếng Anh đơn giản (Việt)",
+      "tags": [
+        "bias-pair",
+        "plain-english",
+        "fail"
+      ],
+      "pair": "HS-11A"
+    },
+    {
+      "id": "HS-12",
+      "file": "HS-12-pass-museum-equivalent.txt",
+      "applicant": "Samuel Osei",
+      "org": "Great Plains Museum of Natural Science",
+      "directorate": "GEO",
+      "scenario": "Đạt — bảo tàng phi lợi nhuận, vị trí tương đương tenure-track",
+      "tags": [
+        "pass",
+        "edge"
+      ]
+    },
+    {
+      "id": "HS-13",
+      "file": "HS-13-pass-plain-community-college.txt",
+      "applicant": "Rosa Martinez",
+      "org": "Desert Sun Community College",
+      "directorate": "EDU",
+      "scenario": "Đạt — tiếng Anh đơn giản, ngân sách đúng mức tối thiểu",
+      "tags": [
+        "pass",
+        "plain-english",
+        "community-college"
+      ]
+    },
+    {
+      "id": "HS-14",
+      "file": "HS-14-cheating-mismatched.txt",
+      "applicant": "Victor Sloane",
+      "org": "Harrowgate University",
+      "directorate": "SBE",
+      "scenario": "Test gian lận — số liệu không khớp giữa các tài liệu",
+      "tags": [
+        "fraud",
+        "crosscheck"
+      ]
+    }
+  ]
+}

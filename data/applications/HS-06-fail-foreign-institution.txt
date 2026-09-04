@@ -1,0 +1,20 @@
+APPLICATION HS-06 — CAREER PROPOSAL COVER INFORMATION AND ELIGIBILITY SUMMARY
+
+Principal Investigator: Dr. Lukas Brandt
+Submitting Organization: Technische Universität Freiburg, a public research university located in Freiburg, Germany, accredited under the German higher-education system. The university submits this proposal on behalf of its faculty member. The university has no campus in the United States.
+
+Appointment: Dr. Brandt holds a 100% tenure-track appointment as a Juniorprofessor (the German equivalent of an Assistant Professor) in the Department of Computer Science. He is untenured; his tenure evaluation is scheduled for 2029.
+
+Degree: Dr. Brandt earned his Ph.D. in Computer Science from ETH Zürich in 2020, a field supported by NSF.
+
+Current research: He is engaged in research on verified compilers for safety-critical embedded systems, an area of computer and information science supported by the NSF CISE directorate, with five peer-reviewed publications in the past three years.
+
+Prior CAREER history: This is Dr. Brandt's first submission to the CAREER competition. He has never received a CAREER award and has not participated in any prior CAREER competitions. He is submitting only this one CAREER proposal in the current competition.
+
+Team: Dr. Brandt is the sole Principal Investigator. No co-PIs are listed on the cover page. One doctoral student is budgeted as project personnel.
+
+Project Description: The Project Description is 15 pages. It presents the research plan on proof-carrying compilation for automotive controllers, an education plan creating a formal-methods laboratory course and a secondary-school coding outreach series, and a section explaining how student verification exercises produce the benchmark suite used to evaluate the research prototypes, integrating the research and educational activities.
+
+Budget: The total requested budget, including indirect costs, is $420,000 over the 5-year duration, submitted to the CISE directorate. No voluntary committed cost sharing is included.
+
+Departmental Letter: A single 2-page letter from Prof. Anna Keller, Head of the Department of Computer Science, is included in Supplementary Documents. The letter confirms Dr. Brandt's appointment, describes the department's mentoring commitment, and explains how the project advances the department's research and teaching mission.

@@ -1,0 +1,2388 @@
+{
+  "llm": {
+    "backend": "ollama",
+    "model": "qwen3:4b",
+    "local": true,
+    "is_mock": false
+  },
+  "n_cases": 4,
+  "accuracy": {
+    "total": "40/48",
+    "pct": 0.8333,
+    "by_type": {
+      "quantitative": "14/20",
+      "qualitative": "26/28"
+    },
+    "by_confidence": {
+      "high": "40/48",
+      "medium": "0/0",
+      "low": "0/0"
+    }
+  },
+  "confusion": {
+    "met->met": 39,
+    "not_met->not_met": 1,
+    "not_met->met": 5,
+    "unclear->met": 2,
+    "not_addressed->met": 1
+  },
+  "citation_match": {
+    "ok": 48,
+    "total": 48
+  },
+  "bias": [
+    {
+      "pair": "HS-04A/HS-04B",
+      "match": 12,
+      "total": 12,
+      "diff": []
+    }
+  ],
+  "false_pass": {
+    "n": 5,
+    "of": 6
+  },
+  "errors": [
+    {
+      "case": "HS-02",
+      "rule": "R05",
+      "pred": "met",
+      "truth": "not_met",
+      "confidence": "high",
+      "facts": [
+        "Appointment is 100% full time",
+        "I received tenure in 2:2024"
+      ],
+      "note": "Fact 2: 'I received tenure in 2:2024' cho thấy đã có bằng cấp tenure, do đó đáp ứng quy tắc 'Be untenured' (chưa có tenure)"
+    },
+    {
+      "case": "HS-02",
+      "rule": "R08",
+      "pred": "met",
+      "truth": "not_met",
+      "confidence": "high",
+      "facts": [
+        "Cover page lists a co-PI"
+      ],
+      "note": "Facts 1: Cover page lists a co-PI, which violates rule R08 that no co-PIs are permitted."
+    },
+    {
+      "case": "HS-02",
+      "rule": "R11",
+      "pred": "met",
+      "truth": "not_met",
+      "confidence": "high",
+      "facts": [
+        "Total budget with indirect costs is $350,000 for  5 years",
+        "We send the proposal to the CISE directorate",
+        "I did not receive CAREER award before",
+        "I submitted CAREER proposal one time in 2023 but it was not funded"
+      ],
+      "note": "Số 1 cho thấy tổng ngân sách với chi phí gián tiếp là $350,000 trong 5 năm, thấp hơn $400,000 yêu cầu cho CISE, nhưng quy tắc R11 chỉ áp dụng cho BIO/ENG/OPP, nên không áp dụng cho CISE."
+    },
+    {
+      "case": "HS-03",
+      "rule": "R04",
+      "pred": "met",
+      "truth": "unclear",
+      "confidence": "high",
+      "facts": [
+        "Appointment is full-time Research Scientist",
+        "Appointment is continuing",
+        "Duties include leading a research group and supervising the Institute's summer education program",
+        "Team: Dr. Okonkwo is the sole Principal Investigator"
+      ],
+      "note": "Fact 1: Appointment is full-time Research Scientist, which is equivalent to assistant professor role per rule R04."
+    },
+    {
+      "case": "HS-03",
+      "rule": "R07",
+      "pred": "met",
+      "truth": "not_addressed",
+      "confidence": "high",
+      "facts": [
+        "Dr. Okonkwo has never received a CAREER award",
+        "Her application materials do not state whether she has participated in previous CAREER competitions",
+        "Dr. Okonkwo is the sole Principal Investigator"
+      ],
+      "note": "Facts 1 và 3 được sử dụng để xác định PI không có lịch sử tham gia CAREER và là PI duy nhất, do đó không vi phạm quy tắc R07."
+    },
+    {
+      "case": "HS-03",
+      "rule": "R09",
+      "pred": "met",
+      "truth": "unclear",
+      "confidence": "high",
+      "facts": [
+        "Departmental Letter is 2 pages",
+        "Departmental Letter from Institute's Director of Research",
+        "Departmental Letter does not describe mentoring arrangements",
+        "Departmental Letter does not explain educational responsibilities"
+      ],
+      "note": "Số 1: Thư có độ dài 2 trang, thỏa mãn yêu cầu tối đa 2 trang."
+    },
+    {
+      "case": "HS-04A",
+      "rule": "R11",
+      "pred": "met",
+      "truth": "not_met",
+      "confidence": "high",
+      "facts": [
+        "Budget is $380,00:00 across 5-year duration",
+        "No voluntary committed cost sharing is contemplated",
+        "Prior CAREER history: Dr. Diallo has neither previously received a CAREER award nor participated in any earlier CAREER competition",
+        "Departmental Letter: A single 2-page letter from Prof. Helen Zhang, Chair of the Department of Statistics, accompanies the proposal"
+      ],
+      "note": "Facts 1 (budget $380,000) và quy định tối thiểu $400,000 cho CAREER không thỏa mãn do số tiền thấp hơn, nhưng quy định chỉ áp dụng cho CAREER thông thường, không áp dụng cho BIO/ENG/OPP. Tuy nhiên, trong trường hợp này, không có thông tin về directorate (BIO/ENG/OPP), nên quy định tối thiểu $400,000 được áp dụng."
+    },
+    {
+      "case": "HS-04B",
+      "rule": "R11",
+      "pred": "met",
+      "truth": "not_met",
+      "confidence": "high",
+      "facts": [
+        "Total budget with indirect costs is $380,000 for the 5-year duration",
+        "Directorate is Mathematical and Physical Sciences"
+      ],
+      "note": "Số 1 cho thấy tổng ngân sách với chi phí gián tiếp là $380,000 trong 5 năm, nhưng quy tắc yêu cầu tối thiểu $400,00: không đáp ứng, nhưng quy tắc chỉ áp dụng cho BIO/ENG/OPP, và số 2 cho thấy bộ phận là Toán và Khoa học Vật lý (không phải BIO/ENG/OPP), nên quy tắc $500,000 không áp dụng."
+    }
+  ],
+  "elapsed_sec": 1104,
+  "raw": {
+    "HS-02": [
+      {
+        "r": "R01",
+        "title": "Tổ chức nộp hồ sơ hợp lệ",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Submitting Organization is Lakeshore Technical University",
+            "chunk_id": 1,
+            "key_phrase": "We are Lakeshore Technical University"
+          },
+          {
+            "fact": "Submitting Organization is a four-year university in the United States",
+            "chunk_id": 1,
+            "key_phrase": "It is a four-year university in the United States"
+          },
+          {
+            "fact": "Submitting Organization is accredited",
+            "chunk_id": 1,
+            "key_phrase": "It is accredited"
+          },
+          {
+            "fact": "Submitting Organization campus is in Wisconsin, USA",
+            "chunk_id": 1,
+            "key_phrase": "the campus is in Wisconsin, USA"
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 2,
+        "rq": "Proposals may only be submitted by: Institutions of Higher Education (IHEs) - Two- and four-year IHEs (including community colleges) accredited in, and having a campus located in the US; or Non-profit, non-academic organizations: Independent museums, observatories, research labs, professional societies and similar organizations in the ...",
+        "aq": "It is a four-year university in the United States.",
+        "chunk_id": 1,
+        "retrieval_scores": [
+          {
+            "chunk": 1,
+            "score": 0.2222
+          },
+          {
+            "chunk": 7,
+            "score": 0.1775
+          },
+          {
+            "chunk": 2,
+            "score": 0.1257
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Đơn vị nộp đơn là trường đại học hai năm, bốn năm tại Mỹ, có cơ sở ở Wisconsin, Mỹ, được công nhận."
+      },
+      {
+        "r": "R02",
+        "title": "PI có bằng tiến sĩ trong lĩnh vực NSF hỗ trợ",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Degree is Ph.D. in Electrical Engineering",
+            "chunk_id": 3,
+            "key_phrase": "Degree: I finished my Ph.D. degree in Electrical Engineering at Purdue University in 2:16"
+          },
+          {
+            "fact": "Field is supported by NSF",
+            "chunk_id": 3,
+            "key_phrase": "This field is supported by NSF."
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 2,
+        "rq": "Hold a doctoral degree in a field supported by NSF",
+        "aq": "This field is supported by NSF.",
+        "chunk_id": 3,
+        "retrieval_scores": [
+          {
+            "chunk": 3,
+            "score": 0.5045
+          },
+          {
+            "chunk": 4,
+            "score": 0.0575
+          },
+          {
+            "chunk": 6,
+            "score": 0.0446
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Fact 2 (field supported by NSF) trực tiếp đáp ứng quy tắc R02 về việc có bằng tiến sĩ trong lĩnh vực được NSF hỗ trợ."
+      },
+      {
+        "r": "R03",
+        "title": "PI đang nghiên cứu trong lĩnh vực NSF hỗ trợ",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Degree: I finished my Ph.D. degree in Electrical Engineering at Purdue University in 2:16",
+            "chunk_id": 3,
+            "key_phrase": "Degree: I finished my Ph.D. degree in Electrical Engineering at Purdue University in 2016"
+          },
+          {
+            "fact": "Current research: Now I do research about fault detection for power electronics converters. This area is inside NSF engineering",
+            "chunk_id": 4,
+            "key_phrase": "Current research: Now I do research about fault detection for power electronics converters. This area is inside NSF engineering"
+          },
+          {
+            "fact": "Project Description: The Project Description is 15 pages",
+            "chunk_id": 7,
+            "key_phrase": "Project Description: The Project Description is 15 pages"
+          }
+        ],
+        "coverage": "partial",
+        "supporting_fact": 2,
+        "rq": "Be engaged in research in an area of science, engineering, or education supported by NSF",
+        "aq": "Current research: Now I do research about fault detection for power electronics converters.",
+        "chunk_id": 4,
+        "retrieval_scores": [
+          {
+            "chunk": 3,
+            "score": 0.3118
+          },
+          {
+            "chunk": 4,
+            "score": 0.1581
+          },
+          {
+            "chunk": 7,
+            "score": 0.0926
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Facts 2 chỉ ra người ứng viên đang làm nghiên cứu về phát hiện lỗi trong hệ thống điện tử chuyển đổi, lĩnh vực này thuộc phạm vi NSF kỹ thuật, đáp ứng quy tắc R03."
+      },
+      {
+        "r": "R04",
+        "title": "Vị trí tenure-track ≥50%, chức danh Assistant Professor",
+        "type": "quantitative",
+        "v": "not_met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Appointment is 100% full time",
+            "chunk_id": 2,
+            "key_phrase": "My appointment is full time (100%)"
+          },
+          {
+            "fact": "Appointment is Associate Professor",
+            "chunk_id": 2,
+            "key_phrase": "I am Associate Professor in the Department of Electrical and Computer Engineering"
+          },
+          {
+            "fact": "Appointment received tenure in 2024",
+            "chunk_id": 2,
+            "key_phrase": "I received tenure in 2024"
+          }
+        ],
+        "coverage": "partial",
+        "supporting_fact": 2,
+        "rq": "Hold at least a 50% tenure-track (or tenure-track-equivalent) position as an assistant professor (or equivalent title). Faculty members who are Associate Professors or in equivalent appointments, with or without tenure, are not eligible.",
+        "aq": "Appointment: I am Associate Professor in the Department of Electrical and Computer Engineering.",
+        "chunk_id": 2,
+        "retrieval_scores": [
+          {
+            "chunk": 2,
+            "score": 0.215
+          },
+          {
+            "chunk": 1,
+            "score": 0.0885
+          },
+          {
+            "chunk": 8,
+            "score": 0.0579
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Quy định R04 yêu cầu phải là giáo sư trợ lý hoặc tương đương, nhưng việc được bổ nhiệm là Giáo sư phó (Associate Professor) không đáp ứng tiêu chí."
+      },
+      {
+        "r": "R05",
+        "title": "PI chưa có tenure (untenured)",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Appointment is 100% full time",
+            "chunk_id": 2,
+            "key_phrase": "Appointment: I am Associate Professor in the Department of Electrical and Computer Engineering. I received tenure in 2024. My appointment is full time (100%)."
+          },
+          {
+            "fact": "I received tenure in 2:2024",
+            "chunk_id": 2,
+            "key_phrase": "Appointment: I am Associate Professor in the Department of Electrical and Computer Engineering. I received tenure in 2024. My appointment is full time (100%)."
+          }
+        ],
+        "coverage": "partial",
+        "supporting_fact": 2,
+        "rq": "Be untenured",
+        "aq": "Appointment: I am Associate Professor in the Department of Electrical and Computer Engineering.",
+        "chunk_id": 2,
+        "retrieval_scores": [
+          {
+            "chunk": 2,
+            "score": 0.095
+          },
+          {
+            "chunk": 0,
+            "score": 0.0833
+          },
+          {
+            "chunk": 6,
+            "score": 0.0825
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Fact 2: 'I received tenure in 2:2024' cho thấy đã có bằng cấp tenure, do đó đáp ứng quy tắc 'Be untenured' (chưa có tenure)"
+      },
+      {
+        "r": "R06",
+        "title": "Chưa từng nhận giải CAREER",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Prior CAREER history: I did not receive CAREER award before",
+            "chunk_id": 5,
+            "key_phrase": "Prior CAREER history: I did not receive CARE: award before"
+          },
+          {
+            "fact": "Submitted CAREER proposal one time in 2023",
+            "chunk_id": 5,
+            "key_phrase": "I submitted CAREER proposal one time in 2023"
+          },
+          {
+            "fact": "CAREER proposal was not funded",
+            "chunk_id": 5,
+            "key_phrase": "it was not funded"
+          },
+          {
+            "fact": "This year is my second time to join the competition",
+            "chunk_id": 5,
+            "key_phrase": "This year is my second time to join the competition"
+          }
+        ],
+        "coverage": "partial",
+        "supporting_fact": 1,
+        "rq": "Have not previously received a CAREER award. (Prior or concurrent Federal support for other types of awards for non-duplicative research does not preclude eligibility.)",
+        "aq": "Prior CAREER history: I did not receive CAREER award before.",
+        "chunk_id": 5,
+        "retrieval_scores": [
+          {
+            "chunk": 5,
+            "score": 0.255
+          },
+          {
+            "chunk": 0,
+            "score": 0.1613
+          },
+          {
+            "chunk": 2,
+            "score": 0.0869
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Facts 1 và 4 không liên quan đến việc đã nhận CAREER trước, nhưng fact 1 rõ ràng khẳng định không có tiền sử CAREER."
+      },
+      {
+        "r": "R07",
+        "title": "Giới hạn số lần dự thi (1/năm, tối đa 3 lần)",
+        "type": "quantitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Prior CAREER history: I did not receive CAREER award before. I submitted CAREER proposal one time in 2:23 but it was not funded. This year is my second time to join the competition. I submit only this one proposal this year.",
+            "chunk_id": 5,
+            "key_phrase": "Prior CAREER history: I did not receive CAREER award before. I submitted CAREER proposal one time in 2:23 but it was not funded. This year is my second time to join the competition. I submit only this one proposal this year."
+          }
+        ],
+        "coverage": "partial",
+        "supporting_fact": 1,
+        "rq": "A Principal Investigator (PI) may submit only one CAREER proposal per annual competition. In addition, a Principal Investigator may not participate in more than three CAREER competitions.",
+        "aq": "I submitted CAREER proposal one time in 2023 but it was not funded.",
+        "chunk_id": 5,
+        "retrieval_scores": [
+          {
+            "chunk": 5,
+            "score": 0.2872
+          },
+          {
+            "chunk": 1,
+            "score": 0.1662
+          },
+          {
+            "chunk": 0,
+            "score": 0.1064
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Số 1 cho thấy PI không có lịch sử CAREER trước đây và chỉ nộp một đề xuất trong năm nay, đáp ứng quy định về tối đa một đề xuất mỗi năm và không tham gia quá ba cuộc thi."
+      },
+      {
+        "r": "R08",
+        "title": "Không có đồng chủ nhiệm (co-PI)",
+        "type": "quantitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Cover page lists a co-PI",
+            "chunk_id": 6,
+            "key_phrase": "On the cover page there is me and also Dr. Maria Santos as co-PI"
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 1,
+        "rq": "No co-PIs are permitted. Proposals that are non-compliant: Co-principal investigator(s) listed on the cover page will be returned without review.",
+        "aq": "Team: On the cover page there is me and also Dr.",
+        "chunk_id": 6,
+        "retrieval_scores": [
+          {
+            "chunk": 6,
+            "score": 0.3492
+          },
+          {
+            "chunk": 1,
+            "score": 0.1415
+          },
+          {
+            "chunk": 0,
+            "score": 0.0559
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Facts 1: Cover page lists a co-PI, which violates rule R08 that no co-PIs are permitted."
+      },
+      {
+        "r": "R09",
+        "title": "Có thư của trưởng khoa (Departmental Letter), ≤2 trang",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Departmental Letter is 2 pages",
+            "chunk_id": 9,
+            "key_phrase": "It is 2 pages"
+          },
+          {
+            "fact": "Departmental Letter from department head Prof. James Miller",
+            "chunk_id": 9,
+            "key_phrase": "One letter from department head Prof. James Miller"
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 1,
+        "rq": "The proposal must include one (and only one) letter from the PI's department head (or equivalent organizational official). The Departmental Letter should be no more than 2 pages in length. A proposal submitted without this Letter will be returned without review.",
+        "aq": "It is 2 pages.",
+        "chunk_id": 9,
+        "retrieval_scores": [
+          {
+            "chunk": 9,
+            "score": 0.4544
+          },
+          {
+            "chunk": 5,
+            "score": 0.1458
+          },
+          {
+            "chunk": 0,
+            "score": 0.1098
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Thư trưởng khoa có độ dài 2 trang, thỏa mãn yêu cầu 1 trang (chỉ định 2 trang nhưng không vượt quá)"
+      },
+      {
+        "r": "R10",
+        "title": "Thuyết minh ≤15 trang, tích hợp nghiên cứu + giáo dục",
+        "type": "quantitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Project Description is 15 pages",
+            "chunk_id": 7,
+            "key_phrase": "Project Description: The Project Description is 15 pages"
+          },
+          {
+            "fact": "Project Description explains research plan for real-time fault detection",
+            "chunk_id": 7,
+            "key_phrase": "Project Description: The Project Description is 15 pages. It explains the research plan for real-time fault detection"
+          },
+          {
+            "fact": "Project Description explains education plan: I will make a new lab course about power electronics and do mentoring program for community college students",
+            "chunk_id": 7,
+            "key_phrase": "Project Description: The Project Description is 15 pages. It explains the research plan for real-time fault detection, and also education plan: I will make a new lab course about power electronics and do mentoring program for community college students"
+          },
+          {
+            "fact": "Project Description states research and education connect together because students in the course will test the fault detection hardware and their results go back to the research",
+            "chunk_id": 7,
+            "key_phrase": "Project Description: The Project Description is 15 pages. It explains the research plan for real-time fault detection, and also education plan: I will make a new lab course about power electronics and do mentoring program for community college students. The research and education connect together because students in the course will test the fault detection hardware and their results go back to the research."
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 1,
+        "rq": "The Project Description may not exceed 15 pages. The Project Description should include: a description of the proposed research project; a description of the proposed educational activities; a description of how the research and educational activities are integrated or synergistic.",
+        "aq": "Project Description: The Project Description is 15 pages.",
+        "chunk_id": 7,
+        "retrieval_scores": [
+          {
+            "chunk": 7,
+            "score": 0.3565
+          },
+          {
+            "chunk": 6,
+            "score": 0.1737
+          },
+          {
+            "chunk": 9,
+            "score": 0.1047
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Fact 1: Project Description is 15 pages, which meets the 15-page limit."
+      },
+      {
+        "r": "R11",
+        "title": "Ngân sách tối thiểu $400,000/5 năm ($500,000 với BIO/ENG/OPP)",
+        "type": "quantitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Total budget with indirect costs is $350,000 for  5 years",
+            "chunk_id": 8,
+            "key_phrase": "Total budget with indirect costs is $350,000 for 5 years"
+          },
+          {
+            "fact": "We send the proposal to the CISE directorate",
+            "chunk_id": 8,
+            "key_phrase": "We send the proposal to the CISE directorate"
+          },
+          {
+            "fact": "I did not receive CAREER award before",
+            "chunk_id": 5,
+            "key_phrase": "I did not receive CAREER award before"
+          },
+          {
+            "fact": "I submitted CAREER proposal one time in 2023 but it was not funded",
+            "chunk_id": 5,
+            "key_phrase": "I submitted CAREER proposal one time in 2023 but it was not funded"
+          }
+        ],
+        "coverage": "partial",
+        "supporting_fact": 1,
+        "rq": "The CAREER award, including indirect costs, is expected to total a minimum of $400,000 for the 5-year duration; Awards for proposals to BIO, ENG, or OPP are expected to total a minimum of $500,000 for the 5-year duration.",
+        "aq": "Budget: Total budget with indirect costs is $350,000 for 5 years.",
+        "chunk_id": 8,
+        "retrieval_scores": [
+          {
+            "chunk": 8,
+            "score": 0.3151
+          },
+          {
+            "chunk": 5,
+            "score": 0.1556
+          },
+          {
+            "chunk": 6,
+            "score": 0.1218
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Số 1 cho thấy tổng ngân sách với chi phí gián tiếp là $350,000 trong 5 năm, thấp hơn $400,000 yêu cầu cho CISE, nhưng quy tắc R11 chỉ áp dụng cho BIO/ENG/OPP, nên không áp dụng cho CISE."
+      },
+      {
+        "r": "R12",
+        "title": "Không có cost sharing tự nguyện",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Total budget with indirect costs is $350,000 for  5 years",
+            "chunk_id": 8,
+            "key_phrase": "Total budget with indirect costs is $350,000 for 5 years"
+          },
+          {
+            "fact": "We do not put any voluntary cost sharing in the budget",
+            "chunk_id": 8,
+            "key_phrase": "We do not put any voluntary cost sharing in the budget"
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 2,
+        "rq": "Inclusion of voluntary committed cost sharing is prohibited.",
+        "aq": "We do not put any voluntary cost sharing in the budget.",
+        "chunk_id": 8,
+        "retrieval_scores": [
+          {
+            "chunk": 8,
+            "score": 0.2645
+          },
+          {
+            "chunk": 2,
+            "score": 0.0451
+          },
+          {
+            "chunk": 6,
+            "score": 0.0391
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Fact 2 nêu rõ không có bất kỳ chia sẻ chi phí tự nguyện nào trong ngân sách, phù hợp với quy tắc R12 cấm chia sẻ chi phí tự nguyện."
+      }
+    ],
+    "HS-03": [
+      {
+        "r": "R01",
+        "title": "Tổ chức nộp hồ sơ hợp lệ",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Submitting Organization is The Coastal Institute for Ocean Research, an independent non-profit research laboratory located in California, USA",
+            "chunk_id": 1,
+            "key_phrase": "Submitting Organization: The Coastal Institute for Ocean Research, an independent non-profit research laboratory located in California, USA, associated with oceanographic research and public education activities, acting on behalf of its research faculty."
+          },
+          {
+            "fact": "Budget is $545,000 over 5 years",
+            "chunk_id": 8,
+            "key_phrase": "Budget: The total requested budget, including indirect costs, is $545,000 over the 5-year duration, submitted to the Directorate for Biological Sciences (BIO). No voluntary committed cost sharing is included."
+          },
+          {
+            "fact": "Directorate is BIO",
+            "chunk_id": 8,
+            "key_phrase": "Budget: The total requested budget, including indirect costs, is $545,000 over the 5-year duration, submitted to the Directorate for Biological Sciences (BIO). No voluntary committed cost sharing is included."
+          }
+        ],
+        "coverage": "partial",
+        "supporting_fact": 1,
+        "rq": "Proposals may only be submitted by: Institutions of Higher Education (IHEs) - Two- and four-year IHEs (including community colleges) accredited in, and having a campus located in the US; or Non-profit, non-academic organizations: Independent museums, observatories, research labs, professional societies and similar organizations in the ...",
+        "aq": "Sarah Okonkwo\nSubmitting Organization: The Coastal Institute for Ocean Research, an independent non-profit research laboratory located in California, USA, associated with oceanographic research and public education activities, acting on behalf of its research faculty.",
+        "chunk_id": 1,
+        "retrieval_scores": [
+          {
+            "chunk": 1,
+            "score": 0.3096
+          },
+          {
+            "chunk": 9,
+            "score": 0.133
+          },
+          {
+            "chunk": 8,
+            "score": 0.1221
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Facts 1: Tổ chức nộp đơn là viện nghiên cứu độc lập phi lợi nhuận tại California, Mỹ, phù hợp với quy định về tổ chức không phải học thuật."
+      },
+      {
+        "r": "R02",
+        "title": "PI có bằng tiến sĩ trong lĩnh vực NSF hỗ trợ",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Dr. Okonkwo received her Ph.D. in Marine Biology from Oregon State University in 2:020",
+            "chunk_id": 3,
+            "key_phrase": "Degree: Dr. Okonkwo received her Ph.D. in Marine Biology from Oregon State University in 2020"
+          },
+          {
+            "fact": "Marine Biology is a field supported by NSF",
+            "chunk_id": 3,
+            "key_phrase": "a field supported by NSF"
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 2,
+        "rq": "Hold a doctoral degree in a field supported by NSF",
+        "aq": "in Marine Biology from Oregon State University in 2020, a field supported by NSF.",
+        "chunk_id": 3,
+        "retrieval_scores": [
+          {
+            "chunk": 3,
+            "score": 0.4719
+          },
+          {
+            "chunk": 4,
+            "score": 0.2289
+          },
+          {
+            "chunk": 7,
+            "score": 0.0275
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Facts 1 và 2 chứng minh Dr. Okonkwo có bằng tiến sĩ và lĩnh vực được NSF hỗ trợ."
+      },
+      {
+        "r": "R03",
+        "title": "PI đang nghiên cứu trong lĩnh vực NSF hỗ trợ",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Current research: She is engaged in research on coral microbiome resilience under thermal stress, an area of biological sciences supported by NSF, with recent publications in Nature Communications and ISME Journal.",
+            "chunk_id": 4,
+            "key_phrase": "Current research: She is engaged in research on coral microbiome resilience under thermal stress, an area of biological sciences supported by NSF, with recent publications in Nature Communications and ISME Journal."
+          },
+          {
+            "fact": "Dr. Okonk: received her Ph.D. in Marine Biology from Oregon State University in 2020, a field supported by NSF.",
+            "chunk_id": 3,
+            "key_phrase": "Degree: Dr. Okonkwo received her Ph.D. in Marine Biology from Oregon State University in 2020, a field supported by NSF."
+          },
+          {
+            "fact": "Dr. Sarah Okonkwo",
+            "chunk_id": 1,
+            "key_phrase": "Principal Investigator: Dr. Sarah Okonkwo"
+          }
+        ],
+        "coverage": "partial",
+        "supporting_fact": 1,
+        "rq": "Be engaged in research in an area of science, engineering, or education supported by NSF",
+        "aq": "Current research: She is engaged in research on coral microbiome resilience under thermal stress, an area of biological sciences supported by NSF, with recent publications in Nature Communications and ISME Journal.",
+        "chunk_id": 4,
+        "retrieval_scores": [
+          {
+            "chunk": 4,
+            "score": 0.4541
+          },
+          {
+            "chunk": 3,
+            "score": 0.2392
+          },
+          {
+            "chunk": 1,
+            "score": 0.0961
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Facts 1 chỉ ra rằng bà đang tham gia nghiên cứu về microbiome của rong biển dưới áp lực nhiệt, một lĩnh vực khoa học sinh học được NSF hỗ trợ, với các bài báo gần đây ở Nature Communications và ISME Journal."
+      },
+      {
+        "r": "R04",
+        "title": "Vị trí tenure-track ≥50%, chức danh Assistant Professor",
+        "type": "quantitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Appointment is full-time Research Scientist",
+            "chunk_id": 2,
+            "key_phrase": "Appointment: Dr. Okonkwo holds a full-time position as Research Scientist at the Institute."
+          },
+          {
+            "fact": "Appointment is continuing",
+            "chunk_id": 2,
+            "key_phrase": "Her appointment is a continuing appointment."
+          },
+          {
+            "fact": "Duties include leading a research group and supervising the Institute's summer education program",
+            "chunk_id": 2,
+            "key_phrase": "Her duties include leading a research group and supervising the Institute's summer education program."
+          },
+          {
+            "fact": "Team: Dr. Okonkwo is the sole Principal Investigator",
+            "chunk_id": 6,
+            "key_phrase": "Dr. Okonkwo is the sole Principal Investigator."
+          }
+        ],
+        "coverage": "partial",
+        "supporting_fact": 1,
+        "rq": "Hold at least a 50% tenure-track (or tenure-track-equivalent) position as an assistant professor (or equivalent title). Faculty members who are Associate Professors or in equivalent appointments, with or without tenure, are not eligible.",
+        "aq": "Okonkwo holds a full-time position as Research Scientist at the Institute.",
+        "chunk_id": 2,
+        "retrieval_scores": [
+          {
+            "chunk": 9,
+            "score": 0.1811
+          },
+          {
+            "chunk": 2,
+            "score": 0.1008
+          },
+          {
+            "chunk": 6,
+            "score": 0.0596
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Fact 1: Appointment is full-time Research Scientist, which is equivalent to assistant professor role per rule R04."
+      },
+      {
+        "r": "R05",
+        "title": "PI chưa có tenure (untenured)",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Appointment is continuing",
+            "chunk_id": 2,
+            "key_phrase": "Appointment: Dr. Okon: holds a full-time position as Research Scientist at the Institute. Her appointment is a continuing appointment."
+          },
+          {
+            "fact": "Duties include leading a research group and supervising the Institute's summer education program",
+            "chunk_id": 2,
+            "key_phrase": "Her duties include leading a research group and supervising the Institute's summer education program."
+          }
+        ],
+        "coverage": "partial",
+        "supporting_fact": 1,
+        "rq": "Be untenured",
+        "aq": "Okonkwo holds a full-time position as Research Scientist at the Institute.",
+        "chunk_id": 2,
+        "retrieval_scores": [
+          {
+            "chunk": 9,
+            "score": 0.0947
+          },
+          {
+            "chunk": 0,
+            "score": 0.0
+          },
+          {
+            "chunk": 2,
+            "score": 0.0
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Fact 1 (Appointment is continuing) trực tiếp xác định việc không có hợp đồng lâu dài, phù hợp với quy tắc 'Be untenured' (không có hợp đồng lâu dài)."
+      },
+      {
+        "r": "R06",
+        "title": "Chưa từng nhận giải CAREER",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Dr. Okonkwo has never received a CAREER award",
+            "chunk_id": 5,
+            "key_phrase": "Dr. Okonkwo has never received a CAREER award"
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 1,
+        "rq": "Have not previously received a CAREER award. (Prior or concurrent Federal support for other types of awards for non-duplicative research does not preclude eligibility.)",
+        "aq": "Okonkwo has never received a CAREER award.",
+        "chunk_id": 5,
+        "retrieval_scores": [
+          {
+            "chunk": 5,
+            "score": 0.3251
+          },
+          {
+            "chunk": 9,
+            "score": 0.2149
+          },
+          {
+            "chunk": 0,
+            "score": 0.1334
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Facts 1: Dr. Okonkwo has never received a CAREER award, đáp ứng điều kiện 'have not previously received a CARE: award' của quy tắc R06."
+      },
+      {
+        "r": "R07",
+        "title": "Giới hạn số lần dự thi (1/năm, tối đa 3 lần)",
+        "type": "quantitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Dr. Okonkwo has never received a CAREER award",
+            "chunk_id": 5,
+            "key_phrase": "Dr. Okonk: has never received a CAREER award"
+          },
+          {
+            "fact": "Her application materials do not state whether she has participated in previous CAREER competitions",
+            "chunk_id": 5,
+            "key_phrase": "Her application materials do not state whether she has participated in previous CAREER competitions"
+          },
+          {
+            "fact": "Dr. Okonkwo is the sole Principal Investigator",
+            "chunk_id": 6,
+            "key_phrase": "Dr. Okonkwo is the sole Principal Investigator"
+          }
+        ],
+        "coverage": "partial",
+        "supporting_fact": 3,
+        "rq": "A Principal Investigator (PI) may submit only one CAREER proposal per annual competition. In addition, a Principal Investigator may not participate in more than three CAREER competitions.",
+        "aq": "Okonkwo is the sole Principal Investigator.",
+        "chunk_id": 6,
+        "retrieval_scores": [
+          {
+            "chunk": 5,
+            "score": 0.2395
+          },
+          {
+            "chunk": 0,
+            "score": 0.2061
+          },
+          {
+            "chunk": 6,
+            "score": 0.1903
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Facts 1 và 3 được sử dụng để xác định PI không có lịch sử tham gia CAREER và là PI duy nhất, do đó không vi phạm quy tắc R07."
+      },
+      {
+        "r": "R08",
+        "title": "Không có đồng chủ nhiệm (co-PI)",
+        "type": "quantitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Team: Dr. Okonkwo is the sole Principal Investigator",
+            "chunk_id": 6,
+            "key_phrase": "Team: Dr. Okon: the sole Principal Investigator"
+          },
+          {
+            "fact": "No co-PIs are listed on the cover page",
+            "chunk_id": 6,
+            "key_phrase": "No co-PIs are listed on the cover page"
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 2,
+        "rq": "No co-PIs are permitted. Proposals that are non-compliant: Co-principal investigator(s) listed on the cover page will be returned without review.",
+        "aq": "No co-PIs are listed on the cover page.",
+        "chunk_id": 6,
+        "retrieval_scores": [
+          {
+            "chunk": 6,
+            "score": 0.7255
+          },
+          {
+            "chunk": 1,
+            "score": 0.1002
+          },
+          {
+            "chunk": 9,
+            "score": 0.0504
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Facts 1 và 2 khẳng định không có co-PIs trên trang bìa và chỉ có một PI, do đó tuân thủ quy tắc R08."
+      },
+      {
+        "r": "R09",
+        "title": "Có thư của trưởng khoa (Departmental Letter), ≤2 trang",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Departmental Letter is 2 pages",
+            "chunk_id": 9,
+            "key_phrase": "A 2-page letter"
+          },
+          {
+            "fact": "Departmental Letter from Institute's Director of Research",
+            "chunk_id": 9,
+            "key_phrase": "Departmental Letter: A 2-page letter from the Institute's Director of Research"
+          },
+          {
+            "fact": "Departmental Letter does not describe mentoring arrangements",
+            "chunk_id": 9,
+            "key_phrase": "The letter does not describe the mentoring arrangements for Dr. Okonkwo"
+          },
+          {
+            "fact": "Departmental Letter does not explain educational responsibilities",
+            "chunk_id": 9,
+            "key_phrase": "it does not explain whether her Research Scientist appointment carries the substantial educational responsibilities"
+          }
+        ],
+        "coverage": "partial",
+        "supporting_fact": 1,
+        "rq": "The proposal must include one (and only one) letter from the PI's department head (or equivalent organizational official). The Departmental Letter should be no more than 2 pages in length. A proposal submitted without this Letter will be returned without review.",
+        "aq": "Departmental Letter: A 2-page letter from the Institute's Director of Research is included in Supplementary Documents.",
+        "chunk_id": 9,
+        "retrieval_scores": [
+          {
+            "chunk": 9,
+            "score": 0.2966
+          },
+          {
+            "chunk": 0,
+            "score": 0.0975
+          },
+          {
+            "chunk": 8,
+            "score": 0.0834
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Số 1: Thư có độ dài 2 trang, thỏa mãn yêu cầu tối đa 2 trang."
+      },
+      {
+        "r": "R10",
+        "title": "Thuyết minh ≤15 trang, tích hợp nghiên cứu + giáo dục",
+        "type": "quantitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Project Description is 15 pages",
+            "chunk_id": 7,
+            "key_phrase": "Project Description: The Project Description is 15 pages"
+          },
+          {
+            "fact": "Project Description details research plan on microbiome-assisted coral restoration",
+            "chunk_id": 7,
+            "key_phrase": "Project Description: The Project Description is 15 pages. It details the research plan on microbiome-assisted coral restoration, an education plan expanding the Institute's summer program for undergraduate interns, and a description of how intern-collected field data supports the research aims, integrating the research and educational activities."
+          },
+          {
+            "fact": "Project Description details education plan expanding the Institute's summer program for undergraduate interns",
+            "chunk_id": 7,
+            "key_phrase": "Project Description: The Project Description is 15 pages. It details the research plan on microbiome-assisted coral restoration, an education plan expanding the Institute's summer program for undergraduate interns, and a description of how intern-collected field data supports the research aims, integrating the research and educational activities."
+          },
+          {
+            "fact": "Project Description describes how intern-collected field data supports the research aims, integrating the research and educational activities",
+            "chunk_id": 7,
+            "key_phrase": "Project Description: The Project Description is 15 pages. It details the research plan on microbiome-assisted coral restoration, an education plan expanding the Institute's summer program for undergraduate interns, and a description of how intern-collected field data supports the research aims, integrating the research and educational activities."
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 1,
+        "rq": "The Project Description may not exceed 15 pages. The Project Description should include: a description of the proposed research project; a description of the proposed educational activities; a description of how the research and educational activities are integrated or synergistic.",
+        "aq": "Project Description: The Project Description is 15 pages.",
+        "chunk_id": 7,
+        "retrieval_scores": [
+          {
+            "chunk": 7,
+            "score": 0.5228
+          },
+          {
+            "chunk": 9,
+            "score": 0.135
+          },
+          {
+            "chunk": 1,
+            "score": 0.0925
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Facts 1-4 đều đáp ứng quy tắc R10: mô tả dự án không vượt quá 15 trang, bao gồm kế hoạch nghiên cứu, hoạt động giáo dục và tích hợp giữa hai hoạt động."
+      },
+      {
+        "r": "R11",
+        "title": "Ngân sách tối thiểu $400,000/5 năm ($500,000 với BIO/ENG/OPP)",
+        "type": "quantitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Total requested budget is $545,000 over 5 years",
+            "chunk_id": 8,
+            "key_phrase": "Budget: The total requested budget, including indirect costs, is $545,00:00 over the 5-year duration"
+          },
+          {
+            "fact": "Directorate is BIO",
+            "chunk_id": 8,
+            "key_phrase": "Budget: The total requested budget, including indirect costs, is $545,000 over the 5-year duration, submitted to the Directorate for Biological Sciences (BIO)"
+          }
+        ],
+        "coverage": "partial",
+        "supporting_fact": 1,
+        "rq": "The CAREER award, including indirect costs, is expected to total a minimum of $400,000 for the 5-year duration; Awards for proposals to BIO, ENG, or OPP are expected to total a minimum of $500,000 for the 5-year duration.",
+        "aq": "Budget: The total requested budget, including indirect costs, is $545,000 over the 5-year duration, submitted to the Directorate for Biological Sciences (BIO).",
+        "chunk_id": 8,
+        "retrieval_scores": [
+          {
+            "chunk": 8,
+            "score": 0.478
+          },
+          {
+            "chunk": 9,
+            "score": 0.1067
+          },
+          {
+            "chunk": 5,
+            "score": 0.0827
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Số tiền yêu cầu tổng cộng $545,000 trong 5 năm đáp ứng tiêu chuẩn tối thiểu $500,000 cho BIO."
+      },
+      {
+        "r": "R12",
+        "title": "Không có cost sharing tự nguyện",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "No voluntary committed cost sharing is included",
+            "chunk_id": 8,
+            "key_phrase": "No voluntary committed cost sharing is included"
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 1,
+        "rq": "Inclusion of voluntary committed cost sharing is prohibited.",
+        "aq": "No voluntary committed cost sharing is included.",
+        "chunk_id": 8,
+        "retrieval_scores": [
+          {
+            "chunk": 8,
+            "score": 0.3783
+          },
+          {
+            "chunk": 9,
+            "score": 0.0307
+          },
+          {
+            "chunk": 4,
+            "score": 0.0264
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Số 1 cho thấy không có chi phí chia sẻ tự nguyện được bao gồm, thỏa mãn quy tắc R12."
+      }
+    ],
+    "HS-04A": [
+      {
+        "r": "R01",
+        "title": "Tổ chức nộp hồ sơ hợp lệ",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Submitting Organization is Northgate University",
+            "chunk_id": 1,
+            "key_phrase": "Submitting Organization: Northgate University"
+          },
+          {
+            "fact": "Northgate University is a four-year institution of higher education",
+            "chunk_id": 1,
+            "key_phrase": "a distinguished four-year institution of higher education"
+          },
+          {
+            "fact": "Northgate University is fully accredited within the United States",
+            "chunk_id": 1,
+            "key_phrase": "fully accredited within the United States"
+          },
+          {
+            "fact": "Northgate University maintains its principal campus in Illinois, USA",
+            "chunk_id": 1,
+            "key_phrase": "maintaining its principal campus in Illinois, USA"
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 2,
+        "rq": "Proposals may only be submitted by: Institutions of Higher Education (IHEs) - Two- and four-year IHEs (including community colleges) accredited in, and having a campus located in the US; or Non-profit, non-academic organizations: Independent museums, observatories, research labs, professional societies and similar organizations in the ...",
+        "aq": "Amara Diallo\nSubmitting Organization: Northgate University — a distinguished four-year institution of higher education, fully accredited within the United States and maintaining its principal campus in Illinois, USA — respectfully submits this proposal on behalf of its faculty member.",
+        "chunk_id": 1,
+        "retrieval_scores": [
+          {
+            "chunk": 1,
+            "score": 0.342
+          },
+          {
+            "chunk": 7,
+            "score": 0.1219
+          },
+          {
+            "chunk": 3,
+            "score": 0.0965
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Đơn vị nộp đơn là trường đại học Northgate University, một cơ sở giáo dục đại học tư thục có 4 năm học, được công nhận đầy đủ tại Hoa Kỳ và có cơ sở chính tại Illinois, Mỹ."
+      },
+      {
+        "r": "R02",
+        "title": "PI có bằng tiến sĩ trong lĩnh vực NSF hỗ trợ",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Dr. Diallo was awarded her Ph.D. in Statistics by Carnegie Mellon University in 2:22",
+            "chunk_id": 3,
+            "key_phrase": "Dr. Diallo was awarded her Ph.D. in Statistics by Carnegie Mellon University in 2022"
+          },
+          {
+            "fact": "Current research: Her scholarly agenda centers upon causal inference methodology for observational health data, an area of mathematical and physical sciences generously supported by NSF, and has yielded five peer-reviewed publications together with an NSF-funded workshop presentation.",
+            "chunk_id": 4,
+            "key_phrase": "Current research: Her scholarly agenda centers upon causal inference methodology for observational health data, an area of mathematical and physical sciences generously supported by NSF, and has yielded five peer-reviewed publications together with an NSF-funded workshop presentation."
+          },
+          {
+            "fact": "The present submission constitutes Dr. Diallo's inaugural entry into the CAREER competition; she has neither previously received a CAREER award nor participated in any earlier CAREER competition.",
+            "chunk_id": 5,
+            "key_phrase": "Prior CAREER history: The present submission constitutes Dr. Diallo's inaugural entry into the CAREER competition; she has neither previously received a CAREER award nor participated in any earlier CAREER competition."
+          }
+        ],
+        "coverage": "partial",
+        "supporting_fact": 1,
+        "rq": "Hold a doctoral degree in a field supported by NSF",
+        "aq": "in Statistics by Carnegie Mellon University in 2022 — a discipline squarely within the Foundation's purview.",
+        "chunk_id": 3,
+        "retrieval_scores": [
+          {
+            "chunk": 4,
+            "score": 0.2774
+          },
+          {
+            "chunk": 3,
+            "score": 0.1343
+          },
+          {
+            "chunk": 5,
+            "score": 0.0141
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Fakta 1 menunjukkan bahwa Dr. Diallo memiliki gelar doktor di bidang Statistika yang didukung NSF."
+      },
+      {
+        "r": "R03",
+        "title": "PI đang nghiên cứu trong lĩnh vực NSF hỗ trợ",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Current research centers on causal inference methodology for observational health data",
+            "chunk_id": 4,
+            "key_phrase": "Current research: Her scholarly agenda centers upon causal inference methodology for observational health data"
+          },
+          {
+            "fact": "Current research is in an area of mathematical and physical sciences generously supported by NSF",
+            "chunk_id": 4,
+            "key_phrase": "Current research: Her scholarly agenda centers upon causal inference methodology for observational health data, an area of mathematical and physical sciences generously supported by NSF"
+          },
+          {
+            "fact": "Current research has yielded five peer-reviewed publications",
+            "chunk_id": 4,
+            "key_phrase": "Current research: Her scholarly agenda centers upon causal inference methodology for observational health data, an area of mathematical and physical sciences generously supported by NSF, and has yielded five peer-reviewed publications together with an NSF-funded workshop presentation."
+          },
+          {
+            "fact": "Project Description comprises 15 pages",
+            "chunk_id": 7,
+            "key_phrase": "Project Description: The Project Description, comprising 15 pages, articulates an ambitious research program in doubly-robust causal estimation, an educational initiative establishing a graduate seminar and a data-literacy partnership with Chicago public schools, and a thoughtful account of the synergy whereby seminar participants replicate and stress-test the research findings, thereby integrating the research and educational activities."
+          }
+        ],
+        "coverage": "partial",
+        "supporting_fact": 2,
+        "rq": "Be engaged in research in an area of science, engineering, or education supported by NSF",
+        "aq": "Current research: Her scholarly agenda centers upon causal inference methodology for observational health data, an area of mathematical and physical sciences generously supported by NSF, and has yielded five peer-reviewed publications together with an NSF-funded workshop presentation.",
+        "chunk_id": 4,
+        "retrieval_scores": [
+          {
+            "chunk": 4,
+            "score": 0.3844
+          },
+          {
+            "chunk": 7,
+            "score": 0.0933
+          },
+          {
+            "chunk": 3,
+            "score": 0.073
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Facts 1 và 2 cho thấy nghiên cứu thuộc lĩnh vực khoa học vật lý và toán học, được NSF hỗ trợ."
+      },
+      {
+        "r": "R04",
+        "title": "Vị trí tenure-track ≥50%, chức danh Assistant Professor",
+        "type": "quantitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Appointment is 100% tenure-track as Assistant Professor",
+            "chunk_id": 2,
+            "key_phrase": "Appointment: Dr. Diallo holds a 1:00% tenure-track appointment as Assistant Professor"
+          },
+          {
+            "fact": "Appointment has been held since 2023",
+            "chunk_id": 2,
+            "key_phrase": "Appointment: Dr. Diallo holds a 100% tenure-track appointment as Assistant Professor within the Department of Statistics, a position she has occupied since 2023."
+          },
+          {
+            "fact": "Tenure review anticipated in 2029",
+            "chunk_id": 2,
+            "key_phrase": "Appointment: Dr. Diallo holds a 100% tenure-track appointment as Assistant Professor within the Department of Statistics, a position she has occupied since 2023. She remains untenured, with her tenure review anticipated in 2029."
+          },
+          {
+            "fact": "Research has yielded five peer-reviewed publications",
+            "chunk_id": 4,
+            "key_phrase": "Her scholarly agenda centers upon causal inference methodology for observational health data, an area of mathematical and physical sciences generously supported by NSF, and has yielded five peer-reviewed publications together with an NSF-funded workshop presentation."
+          }
+        ],
+        "coverage": "partial",
+        "supporting_fact": 1,
+        "rq": "Hold at least a 50% tenure-track (or tenure-track-equivalent) position as an assistant professor (or equivalent title). Faculty members who are Associate Professors or in equivalent appointments, with or without tenure, are not eligible.",
+        "aq": "Diallo holds a 100% tenure-track appointment as Assistant Professor within the Department of Statistics, a position she has occupied since 2023.",
+        "chunk_id": 2,
+        "retrieval_scores": [
+          {
+            "chunk": 2,
+            "score": 0.4059
+          },
+          {
+            "chunk": 4,
+            "score": 0.0401
+          },
+          {
+            "chunk": 7,
+            "score": 0.0384
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Facts 1 và 3 cho thấy vị trí 100% tenure-track Assistant Professor từ 2023, đủ điều kiện R04."
+      },
+      {
+        "r": "R05",
+        "title": "PI chưa có tenure (untenured)",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Appointment is 100% tenure-track as Assistant Professor",
+            "chunk_id": 2,
+            "key_phrase": "Appointment: Dr. Diallo holds a 100% tenure-track appointment as Assistant Professor"
+          },
+          {
+            "fact": "Appointment started in 2:2023",
+            "chunk_id": 2,
+            "key_phrase": "a position she has occupied since 2023"
+          },
+          {
+            "fact": "Tenure review anticipated in 2029",
+            "chunk_id": 2,
+            "key_phrase": "with her tenure review anticipated in 2029"
+          },
+          {
+            "fact": "She remains untenured",
+            "chunk_id": 2,
+            "key_phrase": "She remains untenured"
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 4,
+        "rq": "Be untenured",
+        "aq": "She remains untenured, with her tenure review anticipated in 2029.",
+        "chunk_id": 2,
+        "retrieval_scores": [
+          {
+            "chunk": 2,
+            "score": 0.2304
+          },
+          {
+            "chunk": 0,
+            "score": 0.0
+          },
+          {
+            "chunk": 1,
+            "score": 0.0
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Facts 4 (she remains untenured) trực tiếp khẳng định điều kiện 'be untenured' của quy tắc R05."
+      },
+      {
+        "r": "R06",
+        "title": "Chưa từng nhận giải CAREER",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Dr. Diallo has not previously received a CAREER award",
+            "chunk_id": 5,
+            "key_phrase": "Prior CAREER history: The present submission constitutes Dr. Dial: has neither previously received a CAREER award"
+          },
+          {
+            "fact": "Dr. Diallo has not participated in any earlier CAREER competition",
+            "chunk_id": 5,
+            "key_phrase": "Prior CAREER history: The present submission constitutes Dr. Diallo's inaugural entry into the CAREER competition; she has neither previously received a CAREER award nor participated in any earlier CAREER competition."
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 1,
+        "rq": "Have not previously received a CAREER award. (Prior or concurrent Federal support for other types of awards for non-duplicative research does not preclude eligibility.)",
+        "aq": "Prior CAREER history: The present submission constitutes Dr.",
+        "chunk_id": 5,
+        "retrieval_scores": [
+          {
+            "chunk": 5,
+            "score": 0.3727
+          },
+          {
+            "chunk": 0,
+            "score": 0.0776
+          },
+          {
+            "chunk": 4,
+            "score": 0.0728
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Facts 1 và 2 đều khẳng định không có lịch sử nhận CAREER award hoặc tham gia cuộc thi trước đó, đáp ứng quy định R06."
+      },
+      {
+        "r": "R07",
+        "title": "Giới hạn số lần dự thi (1/năm, tối đa 3 lần)",
+        "type": "quantitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Sole Principal Investigator is Dr. Diallo",
+            "chunk_id": 6,
+            "key_phrase": "Dr. Diallo serves as sole Principal Investigator"
+          },
+          {
+            "fact": "No co-PIs appear on the cover page",
+            "chunk_id": 6,
+            "key_phrase": "no co-PIs appear on the cover page"
+          },
+          {
+            "fact": "Dr. Diallo has never received a CAREER award",
+            "chunk_id": 5,
+            "key_phrase": "she has neither previously received a CAREER award"
+          },
+          {
+            "fact": "Dr. Diallo has never participated in any earlier CAREER competition",
+            "chunk_id": 5,
+            "key_phrase": "she has neither previously participated in any earlier CAREER competition"
+          }
+        ],
+        "coverage": "partial",
+        "supporting_fact": 4,
+        "rq": "A Principal Investigator (PI) may submit only one CAREER proposal per annual competition. In addition, a Principal Investigator may not participate in more than three CAREER competitions.",
+        "aq": "Diallo's inaugural entry into the CAREER competition; she has neither previously received a CAREER award nor participated in any earlier CAREER competition.",
+        "chunk_id": 5,
+        "retrieval_scores": [
+          {
+            "chunk": 6,
+            "score": 0.2111
+          },
+          {
+            "chunk": 5,
+            "score": 0.2045
+          },
+          {
+            "chunk": 1,
+            "score": 0.1918
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Facts 1-4: PI Dr. Diallo has never participated in any earlier CAREER competition, so no prior participation violates the rule."
+      },
+      {
+        "r": "R08",
+        "title": "Không có đồng chủ nhiệm (co-PI)",
+        "type": "quantitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Team: Dr. Diallo serves as sole Principal Investigator",
+            "chunk_id": 6,
+            "key_phrase": "Dr. Diallo serves as sole Principal Investigator"
+          },
+          {
+            "fact": "No co-PIs appear on the cover page",
+            "chunk_id": 6,
+            "key_phrase": "no co-PIs appear on the cover page"
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 2,
+        "rq": "No co-PIs are permitted. Proposals that are non-compliant: Co-principal investigator(s) listed on the cover page will be returned without review.",
+        "aq": "Diallo serves as sole Principal Investigator; no co-PIs appear on the cover page.",
+        "chunk_id": 6,
+        "retrieval_scores": [
+          {
+            "chunk": 6,
+            "score": 0.6428
+          },
+          {
+            "chunk": 1,
+            "score": 0.1036
+          },
+          {
+            "chunk": 2,
+            "score": 0.0392
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Facts 1 và 2 đảm bảo không có co-PIs được liệt kê trên trang bìa, phù hợp với quy tắc R08."
+      },
+      {
+        "r": "R09",
+        "title": "Có thư của trưởng khoa (Departmental Letter), ≤2 trang",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Departmental Letter is 2 pages",
+            "chunk_id": 9,
+            "key_phrase": "A single 2-page letter"
+          },
+          {
+            "fact": "Departmental Letter from Prof. Helen Zhang",
+            "chunk_id": 1,
+            "key_phrase": "Prof. Helen Zhang"
+          },
+          {
+            "fact": "Departmental Letter from Chair of Department of Statistics",
+            "chunk_id": 9,
+            "key_phrase": "Chair of the Department of Statistics"
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 1,
+        "rq": "The proposal must include one (and only one) letter from the PI's department head (or equivalent organizational official). The Departmental Letter should be no more than 2 pages in length. A proposal submitted without this Letter will be returned without review.",
+        "aq": "Departmental Letter: A single 2-page letter from Prof.",
+        "chunk_id": 9,
+        "retrieval_scores": [
+          {
+            "chunk": 9,
+            "score": 0.3703
+          },
+          {
+            "chunk": 1,
+            "score": 0.0721
+          },
+          {
+            "chunk": 0,
+            "score": 0.0714
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Số 1: Thư có độ dài 2 trang, thỏa mãn yêu cầu không quá 2 trang."
+      },
+      {
+        "r": "R10",
+        "title": "Thuyết minh ≤15 trang, tích hợp nghiên cứu + giáo dục",
+        "type": "quantitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Project Description is 15 pages",
+            "chunk_id": 7,
+            "key_phrase": "Project Description: The Project Description, comprising 15 pages"
+          },
+          {
+            "fact": "Project Description includes a description of the proposed research project",
+            "chunk_id": 7,
+            "key_phrase": "Project Description: The Project Description, comprising 15 pages"
+          },
+          {
+            "fact": "Project Description includes a description of the proposed educational activities",
+            "chunk_id": 7,
+            "key_phrase": "Project Description: The Project Description, comprising 15 pages"
+          },
+          {
+            "fact": "Project Description includes a description of how the research and educational activities are integrated or synergistic",
+            "chunk_id": 7,
+            "key_phrase": "Project Description: The Project Description, comprising 15 pages"
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 1,
+        "rq": "The Project Description may not exceed 15 pages. The Project Description should include: a description of the proposed research project; a description of the proposed educational activities; a description of how the research and educational activities are integrated or synergistic.",
+        "aq": "Project Description: The Project Description, comprising 15 pages, articulates an ambitious research program in doubly-robust causal estimation, an educational initiative establishing a graduate seminar and a data-literacy partnership with Chicago public schools, and a thoughtful account of the synergy whereby ...",
+        "chunk_id": 7,
+        "retrieval_scores": [
+          {
+            "chunk": 7,
+            "score": 0.4883
+          },
+          {
+            "chunk": 9,
+            "score": 0.1297
+          },
+          {
+            "chunk": 4,
+            "score": 0.0414
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Fact 1: Project Description is 15 pages (trong giới hạn 15 trang)"
+      },
+      {
+        "r": "R11",
+        "title": "Ngân sách tối thiểu $400,000/5 năm ($500,000 với BIO/ENG/OPP)",
+        "type": "quantitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Budget is $380,00:00 across 5-year duration",
+            "chunk_id": 8,
+            "key_phrase": "Budget: The aggregate requested budget, inclusive of indirect costs, amounts to $380,000 across the 5-year duration, directed to the Directorate for Mathematical and Physical Sciences."
+          },
+          {
+            "fact": "No voluntary committed cost sharing is contemplated",
+            "chunk_id": 8,
+            "key_phrase": "Budget: The aggregate requested budget, inclusive of indirect costs, amounts to $380,000 across the 5-year duration, directed to the Directorate for Mathematical and Physical Sciences."
+          },
+          {
+            "fact": "Prior CAREER history: Dr. Diallo has neither previously received a CAREER award nor participated in any earlier CAREER competition",
+            "chunk_id": 5,
+            "key_phrase": "Prior CAREER history: The present submission constitutes Dr. Diallo's inaugural entry into the CAREER competition; she has neither previously received a CAREER award nor participated in any earlier CAREER competition."
+          },
+          {
+            "fact": "Departmental Letter: A single 2-page letter from Prof. Helen Zhang, Chair of the Department of Statistics, accompanies the proposal",
+            "chunk_id": 9,
+            "key_phrase": "Departmental Letter: A single 2-page letter from Prof. Helen Zhang, Chair of the Department of Statistics, accompanies the proposal, affirming Dr. Diallo's eligibility, pledging sustained mentorship throughout the award period, and situating the project within the department's mission."
+          }
+        ],
+        "coverage": "partial",
+        "supporting_fact": 1,
+        "rq": "The CAREER award, including indirect costs, is expected to total a minimum of $400,000 for the 5-year duration; Awards for proposals to BIO, ENG, or OPP are expected to total a minimum of $500,000 for the 5-year duration.",
+        "aq": "Budget: The aggregate requested budget, inclusive of indirect costs, amounts to $380,000 across the 5-year duration, directed to the Directorate for Mathematical and Physical Sciences.",
+        "chunk_id": 8,
+        "retrieval_scores": [
+          {
+            "chunk": 8,
+            "score": 0.4258
+          },
+          {
+            "chunk": 5,
+            "score": 0.1228
+          },
+          {
+            "chunk": 9,
+            "score": 0.0549
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Facts 1 (budget $380,000) và quy định tối thiểu $400,000 cho CAREER không thỏa mãn do số tiền thấp hơn, nhưng quy định chỉ áp dụng cho CAREER thông thường, không áp dụng cho BIO/ENG/OPP. Tuy nhiên, trong trường hợp này, không có thông tin về directorate (BIO/ENG/OPP), nên quy định tối thiểu $400,000 được áp dụng."
+      },
+      {
+        "r": "R12",
+        "title": "Không có cost sharing tự nguyện",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "No voluntary committed cost sharing is contemplated",
+            "chunk_id": 8,
+            "key_phrase": "No voluntary committed cost sharing is contemplated"
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 1,
+        "rq": "Inclusion of voluntary committed cost sharing is prohibited.",
+        "aq": "No voluntary committed cost sharing is contemplated.",
+        "chunk_id": 8,
+        "retrieval_scores": [
+          {
+            "chunk": 8,
+            "score": 0.3773
+          },
+          {
+            "chunk": 9,
+            "score": 0.0133
+          },
+          {
+            "chunk": 1,
+            "score": 0.0123
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Facts 1: 'No voluntary committed cost sharing is contemplated' trực tiếp khẳng định không có chia sẻ chi phí tự nguyện, đáp ứng quy tắc R12."
+      }
+    ],
+    "HS-04B": [
+      {
+        "r": "R01",
+        "title": "Tổ chức nộp hồ sơ hợp lệ",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Submitting Organization is Northgate University",
+            "chunk_id": 1,
+            "key_phrase": "Northgate University is a four-year university in the United States"
+          },
+          {
+            "fact": "Northgate University is accredited",
+            "chunk_id": 1,
+            "key_phrase": "Northgate University is a four-year university in the United States"
+          },
+          {
+            "fact": "Northgate University main campus is in Illinois, USA",
+            "chunk_id": 1,
+            "key_phrase": "Northgate University is a four-year university in the United States"
+          },
+          {
+            "fact": "Northgate University is a four-year university",
+            "chunk_id": 1,
+            "key_phrase": "Northgate University is a four-year university in the United States"
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 1,
+        "rq": "Proposals may only be submitted by: Institutions of Higher Education (IHEs) - Two- and four-year IHEs (including community colleges) accredited in, and having a campus located in the US; or Non-profit, non-academic organizations: Independent museums, observatories, research labs, professional societies and similar organizations in the ...",
+        "aq": "Amara Diallo\nSubmitting Organization: Northgate University is a four-year university in the United States.",
+        "chunk_id": 1,
+        "retrieval_scores": [
+          {
+            "chunk": 1,
+            "score": 0.2892
+          },
+          {
+            "chunk": 2,
+            "score": 0.1364
+          },
+          {
+            "chunk": 7,
+            "score": 0.1297
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Tổ chức nộp đơn là Northgate University, một trường đại học hai năm và bốn năm được công nhận, có cơ sở chính ở Illinois, Mỹ."
+      },
+      {
+        "r": "R02",
+        "title": "PI có bằng tiến sĩ trong lĩnh vực NSF hỗ trợ",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Degree: I got my Ph.D. in Statistics from Carnegie Mellon University in 2022",
+            "chunk_id": 3,
+            "key_phrase": "Degree: I got my Ph.D. in Statistics from Carnegie Mellon University in  2022"
+          },
+          {
+            "fact": "This field is supported by NSF",
+            "chunk_id": 3,
+            "key_phrase": "This field is supported by NSF"
+          },
+          {
+            "fact": "This area is inside NSF mathematical and physical sciences",
+            "chunk_id": 4,
+            "key_phrase": "This area is inside NSF mathematical and physical sciences"
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 1,
+        "rq": "Hold a doctoral degree in a field supported by NSF",
+        "aq": "in Statistics from Carnegie Mellon University in 2022.",
+        "chunk_id": 3,
+        "retrieval_scores": [
+          {
+            "chunk": 3,
+            "score": 0.4678
+          },
+          {
+            "chunk": 4,
+            "score": 0.0905
+          },
+          {
+            "chunk": 6,
+            "score": 0.0648
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Fakta 1 menunjukkan bahwa pendaftar memiliki gelar doktor di bidang Statistik yang didukung NSF, sehingga memenuhi aturan R02."
+      },
+      {
+        "r": "R03",
+        "title": "PI đang nghiên cứu trong lĩnh vực NSF hỗ trợ",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Degree: I got my Ph.D. in Statistics from Carnegie Mellon University in 2:22",
+            "chunk_id": 3,
+            "key_phrase": "Degree: I got my Ph.D. in Statistics from Carnegie Mellon University in 2022"
+          },
+          {
+            "fact": "This field is supported by NSF",
+            "chunk_id": 3,
+            "key_phrase": "This field is supported by NSF"
+          },
+          {
+            "fact": "My research is about causal inference methods for health data from observations",
+            "chunk_id": 4,
+            "key_phrase": "My research is about causal inference methods for health data from observations"
+          },
+          {
+            "fact": "This area is inside NSF mathematical and physical sciences",
+            "chunk_id": 4,
+            "key_phrase": "This area is inside NSF mathematical and physical sciences"
+          }
+        ],
+        "coverage": "partial",
+        "supporting_fact": 2,
+        "rq": "Be engaged in research in an area of science, engineering, or education supported by NSF",
+        "aq": "This field is supported by NSF.",
+        "chunk_id": 3,
+        "retrieval_scores": [
+          {
+            "chunk": 3,
+            "score": 0.3444
+          },
+          {
+            "chunk": 4,
+            "score": 0.1698
+          },
+          {
+            "chunk": 7,
+            "score": 0.092
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Fact 2: 'This field is supported by NSF' trực tiếp đáp ứng quy tắc R03 về việc được NSF hỗ trợ."
+      },
+      {
+        "r": "R04",
+        "title": "Vị trí tenure-track ≥50%, chức danh Assistant Professor",
+        "type": "quantitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Appointment is 100% tenure-track as Assistant Professor",
+            "chunk_id": 2,
+            "key_phrase": "Appointment: I am Assistant Professor in the Department of Statistics since 2:2023. My position is 100% tenure-track."
+          },
+          {
+            "fact": "Appointment is 100% tenure-track as Assistant Professor since 2023",
+            "chunk_id": 2,
+            "key_phrase": "Appointment: I am Assistant Professor in the Department of Statistics since 2023. My position is 100% tenure-track."
+          },
+          {
+            "fact": "Tenure review will happen in 2029",
+            "chunk_id": 2,
+            "key_phrase": "Appointment: I am Assistant Professor in the Department of Statistics since 2023. My position is 100% tenure-track. I do not have tenure yet. My tenure review will happen in 2029."
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 1,
+        "rq": "Hold at least a 50% tenure-track (or tenure-track-equivalent) position as an assistant professor (or equivalent title). Faculty members who are Associate Professors or in equivalent appointments, with or without tenure, are not eligible.",
+        "aq": "Appointment: I am Assistant Professor in the Department of Statistics since 2023.",
+        "chunk_id": 2,
+        "retrieval_scores": [
+          {
+            "chunk": 2,
+            "score": 0.4128
+          },
+          {
+            "chunk": 7,
+            "score": 0.0419
+          },
+          {
+            "chunk": 1,
+            "score": 0.0388
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Facts 1 và 2 đều khẳng định vị trí 100% tenure-track Assistant Professor, thỏa mãn yêu cầu tối thiểu 50% tenure-track."
+      },
+      {
+        "r": "R05",
+        "title": "PI chưa có tenure (untenured)",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Appointment is 100% tenure-track",
+            "chunk_id": 2,
+            "key_phrase": "My position is 100% tenure-track"
+          },
+          {
+            "fact": "Appointment is 100% tenure-track",
+            "chunk_id": 2,
+            "key_phrase": "My position is 100% tenure-track"
+          },
+          {
+            "fact": "Appointment is 10:00 AM",
+            "chunk_id": 2,
+            "key_phrase": "My position is 100% tenure-track"
+          },
+          {
+            "fact": "Appointment is 100% tenure-track",
+            "chunk_id": 2,
+            "key_phrase": "My position is 100% tenure-track"
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 1,
+        "rq": "Be untenured",
+        "aq": "My position is 100% tenure-track.",
+        "chunk_id": 2,
+        "retrieval_scores": [
+          {
+            "chunk": 2,
+            "score": 0.208
+          },
+          {
+            "chunk": 6,
+            "score": 0.1414
+          },
+          {
+            "chunk": 1,
+            "score": 0.0
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Các sự kiện 1, 2, 4 đều khẳng định việc bổ nhiệm là 100% tenure-track, thỏa mãn quy tắc 'Be untenured' vì tenure-track không phải là không có tư cách (untenured)."
+      },
+      {
+        "r": "R06",
+        "title": "Chưa từng nhận giải CAREER",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Prior CAREER history: This is my first time to submit to the CAREER competition. I did not receive a CAREER award before and I did not join any CAREER competition before.",
+            "chunk_id": 5,
+            "key_phrase": "Prior CAREER history: This is my first time to submit to the CARE:R competition."
+          },
+          {
+            "fact": "I am Assistant Professor in the Department of Statistics since 2023. My position is 100% tenure-track. I do not have tenure yet. My tenure review will happen in 2029.",
+            "chunk_id": 2,
+            "key_phrase": "Appointment: I am Assistant Professor in the Department of Statistics since 2023."
+          },
+          {
+            "fact": "APPLICATION HS-04B — CAREER PROPOSAL COVER INFORMATION AND ELIGIBILITY SUMMARY",
+            "chunk_id": 0,
+            "key_phrase": "APPLICATION HS-04B — CAREER PROPOSAL COVER INFORMATION AND ELIGIBILITY SUMMARY"
+          }
+        ],
+        "coverage": "partial",
+        "supporting_fact": 1,
+        "rq": "Have not previously received a CAREER award. (Prior or concurrent Federal support for other types of awards for non-duplicative research does not preclude eligibility.)",
+        "aq": "Prior CAREER history: This is my first time to submit to the CAREER competition.",
+        "chunk_id": 5,
+        "retrieval_scores": [
+          {
+            "chunk": 5,
+            "score": 0.2915
+          },
+          {
+            "chunk": 2,
+            "score": 0.1041
+          },
+          {
+            "chunk": 0,
+            "score": 0.1036
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Facts 1: 'This is my first time to submit to the CAREER competition. I did not receive a CAREER award before and I did not join any CAREER competition before.'"
+      },
+      {
+        "r": "R07",
+        "title": "Giới hạn số lần dự thi (1/năm, tối đa 3 lần)",
+        "type": "quantitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Team is only Principal Investigator",
+            "chunk_id": 6,
+            "key_phrase": "I am the only Principal Investigator"
+          },
+          {
+            "fact": "Prior CAREER history: first time submitting to CAREER competition",
+            "chunk_id": 1,
+            "key_phrase": "This is my first time to submit to the CAREER competition"
+          },
+          {
+            "fact": "Prior CAREER history: no CAREER award received",
+            "chunk_id": 1,
+            "key_phrase": "I did not receive a CAREER award before"
+          },
+          {
+            "fact": "Prior CAREER history: no CAREER competition participation",
+            "chunk_id": 1,
+            "key_phrase": "I did not join any CAREER competition before"
+          }
+        ],
+        "coverage": "partial",
+        "supporting_fact": 2,
+        "rq": "A Principal Investigator (PI) may submit only one CAREER proposal per annual competition. In addition, a Principal Investigator may not participate in more than three CAREER competitions.",
+        "aq": "The university submits this proposal for me, a faculty member.",
+        "chunk_id": 1,
+        "retrieval_scores": [
+          {
+            "chunk": 6,
+            "score": 0.2788
+          },
+          {
+            "chunk": 5,
+            "score": 0.2177
+          },
+          {
+            "chunk": 1,
+            "score": 0.1743
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Facts 2-4 confirm PI has no prior CAREER competition participation, so rule R07 is met."
+      },
+      {
+        "r": "R08",
+        "title": "Không có đồng chủ nhiệm (co-PI)",
+        "type": "quantitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Team: I am the only Principal Investigator",
+            "chunk_id": 6,
+            "key_phrase": "I am the only Principal Investigator"
+          },
+          {
+            "fact": "There is no co-PI on the cover page",
+            "chunk_id": 1,
+            "key_phrase": "There is no co-PI on the cover page"
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 2,
+        "rq": "No co-PIs are permitted. Proposals that are non-compliant: Co-principal investigator(s) listed on the cover page will be returned without review.",
+        "aq": "It is accredited and the main campus is in Illinois, USA.",
+        "chunk_id": 1,
+        "retrieval_scores": [
+          {
+            "chunk": 6,
+            "score": 0.6207
+          },
+          {
+            "chunk": 1,
+            "score": 0.0736
+          },
+          {
+            "chunk": 7,
+            "score": 0.0671
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Fact 2: Không có co-PI trên trang bìa, đáp ứng quy tắc R08."
+      },
+      {
+        "r": "R09",
+        "title": "Có thư của trưởng khoa (Departmental Letter), ≤2 trang",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Departmental Letter: One 2-page letter from Prof. Helen Zhang, the Chair of the Department of Statistics",
+            "chunk_id": 9,
+            "key_phrase": "Departmental Letter: One 2-page letter from Prof. Helen Zhang, the Chair of the Department of Statistics"
+          },
+          {
+            "fact": "The letter says I am eligible, the department will mentor me during the award, and the project fits the department mission",
+            "chunk_id": 9,
+            "key_phrase": "The letter says I am eligible, the department will mentor me during the award, and the project fits the department mission"
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 1,
+        "rq": "The proposal must include one (and only one) letter from the PI's department head (or equivalent organizational official). The Departmental Letter should be no more than 2 pages in length. A proposal submitted without this Letter will be returned without review.",
+        "aq": "Departmental Letter: One 2-page letter from Prof.",
+        "chunk_id": 9,
+        "retrieval_scores": [
+          {
+            "chunk": 9,
+            "score": 0.3517
+          },
+          {
+            "chunk": 6,
+            "score": 0.1464
+          },
+          {
+            "chunk": 2,
+            "score": 0.0938
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Số 1: Thư từ trưởng khoa có độ dài 2 trang, phù hợp quy định"
+      },
+      {
+        "r": "R10",
+        "title": "Thuyết minh ≤15 trang, tích hợp nghiên cứu + giáo dục",
+        "type": "quantitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Project Description is 15 pages",
+            "chunk_id": 7,
+            "key_phrase": "Project Description: The Project Description is 15 pages"
+          },
+          {
+            "fact": "Project Description explains research plan about doubly-robust causal estimation",
+            "chunk_id": 7,
+            "key_phrase": "Project Description: The Project Description is 15 pages. It explains my research plan about doubly-robust causal estimation."
+          },
+          {
+            "fact": "Project Description explains education plan: graduate seminar and data-literacy program with Chicago public schools",
+            "chunk_id": 7,
+            "key_phrase": "Project Description: The Project Description is 15 pages. It explains my research plan about doubly-robust causal estimation. It also explains my education plan: I will make a graduate seminar and a data-literacy program with Chicago public schools."
+          },
+          {
+            "fact": "Project Description states research and education activities are integrated",
+            "chunk_id": 7,
+            "key_phrase": "Project Description: The Project Description is 15 pages. It explains my research plan about doubly-robust causal estimation. It also explains my education plan: I will make a graduate seminar and a data-literacy program with Chicago public schools. The seminar students will repeat and test my research results, so the research and education activities are integrated."
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 1,
+        "rq": "The Project Description may not exceed 15 pages. The Project Description should include: a description of the proposed research project; a description of the proposed educational activities; a description of how the research and educational activities are integrated or synergistic.",
+        "aq": "Project Description: The Project Description is 15 pages.",
+        "chunk_id": 7,
+        "retrieval_scores": [
+          {
+            "chunk": 7,
+            "score": 0.4195
+          },
+          {
+            "chunk": 9,
+            "score": 0.1633
+          },
+          {
+            "chunk": 8,
+            "score": 0.0633
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Facts 1-4 satisfy the rule: page count is exactly 15 (not exceeding), all required elements are described."
+      },
+      {
+        "r": "R11",
+        "title": "Ngân sách tối thiểu $400,000/5 năm ($500,000 với BIO/ENG/OPP)",
+        "type": "quantitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "Total budget with indirect costs is $380,000 for the 5-year duration",
+            "chunk_id": 8,
+            "key_phrase": "Budget: The total budget with indirect costs is $380,00:00 for the 5-year duration"
+          },
+          {
+            "fact": "Directorate is Mathematical and Physical Sciences",
+            "chunk_id": 8,
+            "key_phrase": "We send it to the Directorate for Mathematical and Physical Sciences"
+          }
+        ],
+        "coverage": "partial",
+        "supporting_fact": 1,
+        "rq": "The CAREER award, including indirect costs, is expected to total a minimum of $400,000 for the 5-year duration; Awards for proposals to BIO, ENG, or OPP are expected to total a minimum of $500,000 for the 5-year duration.",
+        "aq": "Budget: The total budget with indirect costs is $380,000 for the 5-year duration.",
+        "chunk_id": 8,
+        "retrieval_scores": [
+          {
+            "chunk": 8,
+            "score": 0.455
+          },
+          {
+            "chunk": 5,
+            "score": 0.1605
+          },
+          {
+            "chunk": 9,
+            "score": 0.0753
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Số 1 cho thấy tổng ngân sách với chi phí gián tiếp là $380,000 trong 5 năm, nhưng quy tắc yêu cầu tối thiểu $400,00: không đáp ứng, nhưng quy tắc chỉ áp dụng cho BIO/ENG/OPP, và số 2 cho thấy bộ phận là Toán và Khoa học Vật lý (không phải BIO/ENG/OPP), nên quy tắc $500,000 không áp dụng."
+      },
+      {
+        "r": "R12",
+        "title": "Không có cost sharing tự nguyện",
+        "type": "qualitative",
+        "v": "met",
+        "confidence": "high",
+        "facts": [
+          {
+            "fact": "We do not include any voluntary cost sharing",
+            "chunk_id": 8,
+            "key_phrase": "We do not include any voluntary cost sharing"
+          }
+        ],
+        "coverage": "direct",
+        "supporting_fact": 1,
+        "rq": "Inclusion of voluntary committed cost sharing is prohibited.",
+        "aq": "We do not include any voluntary cost sharing.",
+        "chunk_id": 8,
+        "retrieval_scores": [
+          {
+            "chunk": 8,
+            "score": 0.2546
+          },
+          {
+            "chunk": 9,
+            "score": 0.0423
+          },
+          {
+            "chunk": 2,
+            "score": 0.0313
+          }
+        ],
+        "cite_rule_ok": true,
+        "cite_app_ok": true,
+        "needs_attention": false,
+        "note": "Facts 1: 'We do not include any voluntary cost sharing' trực tiếp đáp ứng quy tắc R12."
+      }
+    ]
+  }
+}

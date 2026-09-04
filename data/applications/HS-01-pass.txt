@@ -1,0 +1,20 @@
+APPLICATION HS-01 — CAREER PROPOSAL COVER INFORMATION AND ELIGIBILITY SUMMARY
+
+Principal Investigator: Dr. Elena Vasquez
+Submitting Organization: Riverside State University, a four-year public institution of higher education accredited in the United States, with its main campus located in Ohio, USA, submitting this proposal on behalf of its faculty member.
+
+Appointment: Dr. Vasquez holds a 100% tenure-track appointment as an Assistant Professor in the Department of Computer Science. She is untenured; her mandatory tenure review is scheduled for 2029.
+
+Degree: Dr. Vasquez earned her Ph.D. in Computer Science from the University of Michigan in 2021, a field supported by NSF.
+
+Current research: She is actively engaged in research on energy-efficient federated learning systems, an area of computer and information science supported by the NSF CISE directorate, with three peer-reviewed publications in the past two years.
+
+Prior CAREER history: This is Dr. Vasquez's first submission to the CAREER competition. She has never previously received a CAREER award and has not participated in any prior CAREER competitions. She holds one NSF CRII award for non-duplicative preliminary work.
+
+Team: Dr. Vasquez is the sole Principal Investigator. No co-PIs are listed on the cover page. One graduate student and an external evaluator are budgeted as project personnel.
+
+Project Description: The Project Description is 14 pages. It presents the research plan on adaptive compression for federated learning, an education plan creating a new undergraduate course and a summer outreach workshop for rural high schools, and a section explaining how classroom data-collection modules feed directly back into the research testbed, making the research and educational activities integrated and synergistic.
+
+Budget: The total requested budget, including indirect costs, is $478,500 over the 5-year duration, submitted to the CISE directorate. No voluntary committed cost sharing is included in the budget or budget justification.
+
+Departmental Letter: A single 2-page letter from Prof. Daniel Ho, Chair of the Department of Computer Science, is included in Supplementary Documents. The letter affirms Dr. Vasquez's eligibility, states the department's commitment to mentoring her through the award period, and describes how the project advances the department's research and educational mission.

@@ -1,0 +1,8 @@
+{
+  "_note": "Sổ cán bộ thẩm định — dùng cho kiểm tra xung đột lợi ích (COI) trước khi nhận hồ sơ. Bản MVP quản lý qua trang quản trị; bản demo sửa file này. affiliations: tổ chức hiện tại + nơi từng công tác/cộng tác.",
+  "officers": [
+    {"name": "Nguyen Van An", "affiliations": ["Grants Office"], "notes": "cán bộ mẫu, không xung đột"},
+    {"name": "Tran Thi Binh", "affiliations": ["Grants Office", "Riverside State University"], "notes": "từng công tác tại Riverside State University (trùng HS-01 — để demo chặn COI)"},
+    {"name": "James Miller", "affiliations": ["Lakeshore Technical University"], "notes": "trùng tên trưởng khoa trong HS-02 — để demo cảnh báo trùng tên"}
+  ]
+}

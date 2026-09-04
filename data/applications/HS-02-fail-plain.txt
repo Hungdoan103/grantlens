@@ -1,0 +1,21 @@
+APPLICATION HS-02 — CAREER PROPOSAL COVER INFORMATION AND ELIGIBILITY SUMMARY
+(Note for dataset: this applicant writes in plainer, second-language English. Substance must be judged, not style.)
+
+Principal Investigator: Dr. Tuan Pham
+Submitting Organization: We are Lakeshore Technical University. It is a four-year university in the United States. It is accredited and the campus is in Wisconsin, USA. The university submits this proposal for me, a faculty member.
+
+Appointment: I am Associate Professor in the Department of Electrical and Computer Engineering. I received tenure in 2024. My appointment is full time (100%).
+
+Degree: I finished my Ph.D. degree in Electrical Engineering at Purdue University in 2016. This field is supported by NSF.
+
+Current research: Now I do research about fault detection for power electronics converters. This area is inside NSF engineering. I published six papers about this topic in last three years. My lab has two PhD students.
+
+Prior CAREER history: I did not receive CAREER award before. I submitted CAREER proposal one time in 2023 but it was not funded. This year is my second time to join the competition. I submit only this one proposal this year.
+
+Team: On the cover page there is me and also Dr. Maria Santos as co-PI. Dr. Santos will help for the machine learning part of the project.
+
+Project Description: The Project Description is 15 pages. It explains the research plan for real-time fault detection, and also education plan: I will make a new lab course about power electronics and do mentoring program for community college students. The research and education connect together because students in the course will test the fault detection hardware and their results go back to the research.
+
+Budget: Total budget with indirect costs is $350,000 for 5 years. We send the proposal to the CISE directorate. We do not put any voluntary cost sharing in the budget.
+
+Departmental Letter: One letter from department head Prof. James Miller is included. It is 2 pages. The letter says the department supports my project and will mentor me during the award.

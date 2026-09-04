@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+# dữ liệu nặng / runtime — không đẩy lên repo
+data/grantlens.db
+data/external/abn/*.zip
+data/external/abn/abn.sqlite
+"data/Dữ liệu -"*.zip
+data/*.zip
+data/feedback/feedback.jsonl
+data/feedback/feedback-sft.jsonl
+*.bak
+docs/_render.html
