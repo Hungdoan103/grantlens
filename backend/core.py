@@ -219,16 +219,20 @@ def load_letter_template() -> str:
     return "\n".join(lines).strip()
 
 
-def draft_letter(case_id: str, applicant: str, finals: list) -> str:
+def draft_letter(case_id: str, applicant: str, finals: list, officer: str = "", org: str = "") -> str:
+    from datetime import date
     fails = [f for f in finals if f["verdict"] != "met"]
-    user = (f"Applicant: {applicant} (case {case_id}).\nOfficer-approved verdicts (JSON):\n"
-            f"{json.dumps(finals, ensure_ascii=False)}\n")
+    user = (f"Applicant: {applicant} (case {case_id}, submitting organisation: {org or 'not stated'}).\n"
+            f"Reviewing officer (signs the letter): {officer or 'not stated'}. Today's date: {date.today().isoformat()}.\n"
+            f"Officer-approved verdicts (JSON):\n{json.dumps(finals, ensure_ascii=False)}\n")
     if not fails:
         user += "All rules met — write a short eligibility-confirmed letter (still include the appeal note).\n"
     tpl = load_letter_template()
     if tpl:
         user += ("\nThe organisation REQUIRES this letter template. Follow its structure, headings and order EXACTLY; "
-                 "replace {PLACEHOLDERS} with real values; keep the plain-B1-English rule:\n---TEMPLATE---\n"
+                 "keep the plain-B1-English rule. Fill {PLACEHOLDERS} ONLY with values given above or in the verdicts. "
+                 "NEVER invent names, addresses, emails, phone numbers or dates — if a value is not given, leave the "
+                 "{PLACEHOLDER} exactly as it is for staff to complete:\n---TEMPLATE---\n"
                  f"{tpl}\n---END TEMPLATE---")
     return llm.chat_text(SYS_LETTER, user, max_tokens=800)
 

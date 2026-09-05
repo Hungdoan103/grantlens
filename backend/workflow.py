@@ -242,7 +242,8 @@ def draft_letter(case_id, officer, role="officer"):
     finals = [{"rule": v["rule_id"], "title": r["title_vi"], "rule_quote": v["rq"], "applicant_quote": v["aq"],
                "verdict": v["final_verdict"], "officer_reason": v["officer_reason"] or ""}
               for v in vs for r in core.load_rules() if r["id"] == v["rule_id"]]
-    text = core.draft_letter(case_id, c["applicant"] or case_id, finals)
+    text = core.draft_letter(case_id, c["applicant"] or case_id, finals, officer=c.get("officer") or officer,
+                             org=c.get("org") or "")
     store.update_case(case_id, status="letter_drafted", letter=text, letter_status="draft")
     store.log("AI", "Soạn NHÁP thư kết quả từ kết luận đã ký", case_id, "system", {"words": len(text.split())})
     return text
