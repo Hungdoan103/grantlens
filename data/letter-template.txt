@@ -20,16 +20,7 @@ Dear {APPLICANT_NAME},
 **5. PROBITY AND TRANSPARENCY**  
 {PLACEHOLDER: REITERATE THE OFFICE’S COMMITMENT TO PROBITY, TRANSPARENCY, AND THE NINE KEY PRINCIPLES OF THE CGRPs. STATE THAT ALL DECISIONS ARE MADE IN ACCORDANCE WITH THE PGPA ACT, RULES, AND CGRPs.}  
 
-**6. CONTACT DETAILS**  
-For any further information or assistance, please contact:  
-{OFFICER_NAME}  
-{POSITION}  
-{CONTACT_DETAILS}  
-
-We thank you for your application and look forward to the possibility of working with you in the future.  
-
 Yours sincerely  
 {OFFICER_NAME}  
 {POSITION}  
 {ORGANIZATION_NAME}  
-{CONTACT_DETAILS}

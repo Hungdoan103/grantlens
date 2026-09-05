@@ -234,7 +234,23 @@ def draft_letter(case_id: str, applicant: str, finals: list, officer: str = "", 
                  "NEVER invent names, addresses, emails, phone numbers or dates — if a value is not given, leave the "
                  "{PLACEHOLDER} exactly as it is for staff to complete:\n---TEMPLATE---\n"
                  f"{tpl}\n---END TEMPLATE---")
-    return llm.chat_text(SYS_LETTER, user, max_tokens=800)
+    return _sanitize_letter(llm.chat_text(SYS_LETTER, user, max_tokens=800), user)
+
+
+def _sanitize_letter(letter: str, allowed: str) -> str:
+    """Lớp chặn deterministic: email / số điện thoại / ngày không có trong dữ liệu đầu vào
+    là do model bịa -> thay bằng placeholder cho cán bộ điền. Không tin prompt suông."""
+    import re
+    from datetime import date
+    letter = re.sub(r"[\w.+-]+@[\w-]+\.[\w.]+",
+                    lambda m: m.group(0) if m.group(0) in allowed else "{EMAIL LIÊN HỆ — cán bộ điền}", letter)
+    letter = re.sub(r"\+?\d[\d ()\-]{7,}\d",
+                    lambda m: m.group(0) if m.group(0) in allowed else "{SĐT LIÊN HỆ — cán bộ điền}", letter)
+    today = date.today().isoformat()
+    letter = re.sub(r"\b\d{4}-\d{2}-\d{2}\b",
+                    lambda m: m.group(0) if (m.group(0) == today or m.group(0) in allowed)
+                    else "{HẠN — cán bộ ấn định}", letter)
+    return letter
 
 
 def extract_rules(guideline_text: str) -> list:
