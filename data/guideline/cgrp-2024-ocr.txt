@@ -1,0 +1,2105 @@
+SOURCE: Commonwealth Grants Rules and Principles 2024 (Department of Finance, Australia)
+Khách cung cấp dạng PDF scan; văn bản dưới đây do Tesseract OCR — có thể còn lỗi ký tự nhỏ.
+
+=== PAGE 1 ===
+Commonwealth Grants Rules and Principles 2024
+
+=== PAGE 2 ===
+Department of Finance
+(Governance and Resource Management)
+
+Copyright Notice
+
+Content
+
+© Commonwealth of Australia 2024
+ISBN: 978-1-925537-80-2 (online)
+
+With the exception of the Commonwealth Coat of Arms, any material protected by a trade mark, and where otherwise
+noted, this work is licensed under a Creative Commons Attribution BY-NC 4.0 Australia licence
+(https://creativecommons.org/licenses/by-nc/4.0legalcode).
+
+The details of the relevant licence conditions are available on the Creative Commons website (accessible using the links
+provided) as is the full legal code for the CC BY-NC 4.0 licence.
+
+Use of the Coat of Arms
+
+The terms under which the Coat of Arms can be used are detailed on the following website:
+https://www.pmc.gov.au/publications/commonwealth-coat-arms-information-and-guidelines.
+
+Content from this website should be attributed as the Department of Finance.
+
+=== PAGE 3 ===
+Foreword
+
+The Australian Government grants policy framework provides transparency, accountability and flexibility in
+grants administration to achieve government policy outcomes and ensure equitable access of grants to and for
+the benefit of the Australian public.
+
+Since its introduction, the grants policy framework has continually evolved to improve consistency and
+standards of grants administration as well as to support government in responding quickly to emerging events,
+ongoing community needs and legislative and policy changes.
+
+The Commonwealth Grants Rules and Principles 2024 is largely principles-based but contains some important
+mandatory requirements around developing grant opportunity guidelines, briefing ministers, recording
+decisions, publishing and reporting.
+
+The principles-based approach enables mandatory requirements and expected behaviours to be articulated
+while allowing entities the flexibility to tailor processes to the circumstances of each grant to maximise policy
+outcomes.
+
+The key changes from the Commonwealth Grants Rules and Guidelines 2017 to the Commonwealth Grants
+Rules and Principles 2024 reflect the Government’s commitment and the need for continual improvement to
+integrity, transparency and accountability in grants administration.
+
+In that context, | am pleased to make the Commonwealth Grants Rules and Principles 2024 under subsection
+105C(1) of the Public Governance, Performance and Accountability Act 2013. The Commonwealth Grants
+Rules and Guidelines 2017 (F2017L01097) are repealed, and this instrument takes effect, on 1 October 2024.
+
+Katy Gallagher
+
+Minister for Finance
+
+Contents
+
+Commonwealth Grants Rules and Principles 2024
+Foreword
+Part 1 Mandatory Requirements
+1. Purpose
+2. Objectives and Scope
+3. The Commonwealth Resource Management Framework
+4. Grants-specific Processes and Requirements
+5. Public Reporting
+
+Part 2 Guidance on Key Principles
+
+=== PAGE 4 ===
+6
+7.
+8.
+9
+
+10.
+11.
+12.
+13.
+14,
+15.
+
+Key Principles for Grants Administration
+
+Robust Planning and Design
+
+Collaboration and Partnership
+
+Proportionality
+
+An Outcomes Orientation
+
+Merit-based Processes
+
+Achieving Value with Relevant Money
+
+Consistency with Grant Guidelines and Established Processes
+Governance and Accountability
+
+Probity and Transparency
+
+Acronyms
+
+Glossary
+
+Part 1 Mandatory Requirements
+
+1. Purpose
+
+1.1.
+
+1.2.
+
+1.3.
+
+1.4.
+
+1.5.
+
+1.6.
+
+The Commonwealth Grants Rules and Principles 2024 (CGRPs) are issued by the Finance Minister
+(Minister for Finance) under section 105C of the Public Governance, Performance and Accountability Act
+2013 (PGPA Act).
+
+The CGRPs establish the overarching Commonwealth grants policy framework and articulate the
+expectations for all non-corporate Commonwealth entities” in relation to grants administration. Under this
+overarching framework, non-corporate Commonwealth entities undertake grants administration based on
+the mandatory requirements and key principles of grants administration in the CGRPs.”
+
+The CGRPs contain requirements that apply to ministers": including grants related decision-making and
+reporting requirements, in addition to the legislative requirements that apply where a minister approves
+proposed expenditure.
+
+The CGRPs are divided into two parts. Part 1 contains mandatory requirements. Part 2 further explains
+how entities should apply the nine key principles of grants administration.
+
+Requirements that must be complied with are denoted by the use of the term must in the CGRPs. The
+use of the term ‘should’ in the CGRPs denotes better practice.
+
+4
+
+he combination of mandatory requirements and key principles provides accountable authorities” and
+ficials with the flexibility to administer grants that contribute to a range of government outcomes and to
+work together with non-government stakeholders, such as industry, small business and the not-for-profit
+sector.
+
+°
+
+=== PAGE 5 ===
+2. Objectives and Scope
+
+Objectives of grants administration
+
+2.1. The objective of grants administration is to promote proper® use and management of public resources
+through collaboration with government and non-government stakeholders to achieve government policy
+outcomes.
+
+2.2. This objective is achieved through:
+
+a. the legislative, policy and reporting framework for grants administration set out in Part 1 of the
+CGRPs;
+
+b. the nine key principles for grants administration, discussed in Part 2:
+i. robust planning and design;
+ii. collaboration and partnership;
+iii. proportionality;
+iv. an outcomes orientation;
+v. merit-based processes;
+vi. achieving value with relevant money;
+vii. consistency with grant guidelines and established processes;
+viii. governance and accountability; and
+ix. probity and transparency;
+
+c. whole-of-government and individual entity grants administration practices.”
+
+Scope of the CGRPs
+
+2.3. For the purposes of the CGRPs, a ‘grant’ is an arrangement for the provision of financial assistance” by
+the Commonwealth or on behalf of the Commonwealth:
+
+a. under which relevant money" or other CRF money" is to be paid to a grantee other than the
+Commonwealth; and
+
+b. which is intended to help address one or more of the Australian Government's policy outcomes
+while assisting the grantee achieve its objectives.
+
+2.4. The CGRPs apply to all forms and types of grants, including election commitments. Grants may take a
+variety of forms, including payments made:
+a. as a result of competitive or non-competitive selection processes;
+b. where particular eligibility criteria are satisfied; or
+
+c. ona one-off ad hoc basis. Grants provided on a one-off ad hoc basis include a circumstance where
+all of the following apply:
+
+i. there is an urgent need for payment to a person or body to address an unexpected or unforeseen
+need; and
+
+ii, there is not an opportunity to establish a competitive or other non-competitive process to
+consider potential applicants; and
+
+iii. the grant is to be made available only to one, or a very small number of, persons or bodies; and
+iv. the grant is not expected to be repeated or made on an ongoing basis.
+
+Types of grants may include but are not limited to grants that: provide for research; provide for the
+delivery of services; help fund infrastructure; or help build capacity.
+
+=== PAGE 6 ===
+2.5. Payments from one non-corporate Commonwealth entity to another non-corporate Commonwealth entity
+are notional" and are not grants. In addition, a non-corporate Commonwealth entity cannot provide a
+grant to itself.
+
+2.6. For the purposes of the CGRPs, the following financial arrangements are taken not to be grants:
+
+a. the acquisition of goods and services by a relevant entity, for its own use, including the acquisition of
+goods and services on behalf of another relevant entity or a third party. These arrangements are
+covered by the Commonwealth Procurement Rules (CPRs);""
+
+b. an act of grace payment approved under section 65 of the PGPA Act;
+
+c. a payment of compensation made under:
+
+i. an arrangement relating to defective administration; or
+ii, an arrangement relating to employment conditions; or
+iii. an arrangement established by legislation;
+. a payment to a person of a benefit or an entitlement established by legislation;
+. a tax concession or offset;
+an investment™ or loan;""
+. financial assistance provided to a State in accordance with section 96 of the Australian Constitution;
+. a payment to a State or a Territory that is made for the purposes of the Federal Financial Relations
+Act 2009;"*
+. a payment that is made for the purposes of the Local Government (Financial Assistance) Act 1995;
+
+(16)
+
+oa op
+
+>
+
+g. a payment that is made for the purposes of the Australian Education Act 2013; or the Higher
+Education Support Act 2003;
+h. a payment of assistance for the purposes of Australia’s international development assistance
+programme, which is treated by the Commonwealth as official development assistance;
+i. a payment of a charitable donation by a non-corporate entity from monies received from individuals
+for that purpose;
+. a membership payment for the purposes of complying with Australia’s obligations under
+international treaties; and
+k. payments made through non-corporate Commonwealth entities for the operation of corporate
+Commonwealth entities.
+2.7. Additional guidance on the range of financial arrangements referred to in paragraph 2.6 is available on the
+Finance website.
+
+2.8. Grants administration encompasses all processes involved in the grants lifecycle, including:
+. design of grant opportunities and activities;
+. assessment and selection of grantees;
+. establishment of grants;
+. ongoing management of grantees and grant activities; and
+e. evaluation of grant opportunities and activities.
+2.9. The CGRPs apply to grants administration performed by:
+
+297g
+
+a. ministers;
+
+b. accountable authorities;
+
+c. Officials; and
+
+d. third parties that undertake grants administration on behalf of the Commonwealth."
+
+=== PAGE 7 ===
+2.10. Third parties that undertake any grants administration processes (see paragraph 2.8) on behalf of the
+Commonwealth are required to adhere to the key principles and applicable requirements of the CGRPs
+and the published grant opportunity guidelines.
+
+2.11. The grants administration processes that third parties may undertake on behalf of the Commonwealth
+include but are not limited to: assessing applications against particular criteria; recommending or
+supporting particular grant activities; or distributing relevant money to grantees.
+
+Entity guidance
+
+2.12. Officials must comply with the CGRPs. There is a range of supporting documentation to assist entities to
+implement the CGRPs, including:
+
+a. Finance guidance, which provides more detailed better practice information on how to apply the
+resource management framework, including the grants policy framework;
+
+b. whole-of-government tools and templates issued by Finance to assist entities to implement the
+grants policy framework”; and
+
+c. overarching whole-of-government documents that are relevant to grants administration, including on
+the use of GrantConnect.
+
+3. The Commonwealth Resource Management Framework
+
+3.1. Ministers, accountable authorities and officials operate within an environment of legislation and
+government policy. Within this broad context, the resource management framework consists of the
+legislation, policy and guidance governing the management of public resources.
+
+3.2. The resource management framework contains an overarching requirement that accountable authorities
+must govern entities in a way that promotes proper use and management of public resources. In
+managing the affairs of the entity, accountable authorities must comply with the Constitution, the PGPA
+Act, the PGPA Rule and any other relevant law. In addition, accountable authorities of non-corporate
+Commonwealth entities must govern the entity in a way that is not inconsistent with the policies of the
+Australian Government.*"
+
+3.3. Ministers must also comply with the relevant legislative requirements in the PGPA Act and Rule and the
+CGRPs. Officials must advise their ministers on these requirements.”
+
+Key resource management legislative requirements
+
+3.4. The PGPAAct and Rule provide the overarching accountability framework for grants administration.
+Accountable authorities and officials must consider their obligations under the PGPA Act and Rule when
+undertaking grants administration.” Internal guidelines, operational guidance and grant opportunity
+guidelines must be consistent with these requirements, while including any additional specific processes.
+
+(24)
+
+3.5. Section 15 of the PGPA Act provides that an accountable authority must govern the affairs of the entity in
+a way that promotes proper use and management of public resources for which the accountable authority
+is responsible. When used in relation to the use or management of public resources ‘proper’ means
+efficient, effective, economical and ethical.
+
+a. Section 15 is an overarching requirement applying to all aspects of an entity's resource
+management, including grants administration.
+
+=== PAGE 8 ===
+3.6.
+
+3.7.
+
+3.8.
+
+3.9.
+
+3.10.
+
+3.11.
+
+3.12.
+
+3.13.
+
+3.14,
+
+b. Accountable authorities mainly discharge their responsibility under section 15 by ensuring that their
+entity has appropriate policies, procedures, guidelines and internal controls in place. Entities then
+undertake grants administration, proportionate to the risks identified and outcomes sought, ensuring
+that they are consistent with the resource management framework and CGRPs.
+
+c. Accountable authorities of non-corporate Commonwealth entities are required to manage within the
+context of the Australian Government's policy framework. The CGRPs are the core policy of the
+Australian Government relating to grants administration.
+
+Accountable authorities must ensure that entity fraud and corruption procedures and practices comply
+with section 10 of the PGPA Rule that goes to preventing, detecting and responding to fraud and
+corruption, including appropriate mechanisms in relation to risk management and controls, including as it
+relates to grants administration.
+
+The Rule places obligations on accountable authorities in relation to: fraud and corruption risk
+assessments; control plans; awareness and training; and case handling and reporting.
+
+« Under section 10(b) of the PGPA Rule, an entity’s accountable authority must implement a fraud
+and corruption control plan for the entity.
+
+¢ Under section 45 of the PGPA Act, accountable authorities must establish and maintain an audit
+committee.
+Before entering into an arrangement” for the proposed commitment of relevant money there must be
+legal authority to support the arrangement.
+The authority to enter into, vary or administer an arrangement can come from either:
+
+a. section 23 of the PGPA Act, which provides the Commonwealth with the power to enter into, vary or
+administer an arrangement of relevant money that relates to the ordinary services and functions of
+government;
+
+b. section 32B of the Financial Framework (Supplementary Powers) Act 1997 (FFSP Act), which
+provides the Commonwealth with the power to enter into, vary or administer an arrangement or a
+
+grant of financial assistance if it is specified in Schedule 1AA or Schedule 1AB to the FFSP
+Regulations; or
+
+c. specific legislation. New or existing primary legislation administered by the relevant portfolio that
+provides the Commonwealth with the power to enter into, vary or administer an arrangement. This
+authority may be delegated to officials to enable them to enter into, vary or administer an
+arrangement.
+
+In addition to the requirement for legal authority, accountable authorities and officials must also act in
+accordance with the PGPA Act and Rule, and the CGRPs, in relation to the proposed expenditure of
+relevant money.
+
+Section 18 of the PGPA Rule requires that where accountable authorities or officials approve a proposed
+commitment of relevant money, the approval must be recorded in writing as soon as practicable after the
+approval is given.””
+
+Accountable authorities and officials must disclose material personal interests, including in relation to
+grants administration, under the PGPA Act and Rule.” A similar requirement is contained in the Code of
+Conduct under the Public Service Act 1999.” Ministerial staff must disclose and take reasonable steps
+to avoid any conflicts of interest, as per the Ministerial Staff Code of Conduct.
+
+The PGPA Act and Rule, and the CGRPs, include requirements that apply to ministers. Officials must
+advise the relevant minister on these requirements.
+
+The PGPA Act requires that a minister must not approve proposed expenditure of relevant money unless
+
+satisfied, after reasonable inquiries, that the expenditure would be a ‘proper’ use of relevant money."” The
+terms of the approval must be recorded in writing as soon as practicable after the approval is given.
+
+=== PAGE 9 ===
+‘Proper’ when used in relation to the use or management of public resources means efficient, effective,
+economical and ethical.
+
+3.15. Officials must retain appropriate records, consistent with their accountability obligations, and ensure the
+
+records are available on request."
+
+4. Grants-specific Processes and Requirements
+
+4.1.
+
+The grants policy framework is an important part of the resource management framework. This framework
+provides for non-corporate Commonwealth entities to work together with non-government stakeholders to
+achieve government policy outcomes. In addition to the requirements in the PGPA Act and Rule, other
+grants-specific requirements apply to accountable authorities, officials and ministers.
+
+Requirements for Accountable Authorities and Officials
+
+4.2.
+
+4.3.
+
+4.4.
+
+4.5.
+
+46.
+
+AT.
+
+Officials must establish and document whether a proposed activity is a grant prior to applying the
+CGRPs."
+
+Accountable authorities and officials involved in grants administration must comply with government
+policies and legislation relevant to grants administration."
+
+Officials must:
+
+a. develop grant opportunity guidelines for all new grant opportunities™, and revised guidelines where
+significant changes have been made to a grant opportunity;
+
+b. have regard to the nine key principles for grants administration;
+
+c. ensure that grant opportunity guidelines and related internal guidance are consistent with the
+CGRPs; and
+
+d. advise the relevant minister on the relevant requirements of the PGPA Act and Rule and the
+CGRPs, where a minister is considering a proposed expenditure of relevant money for a grant.
+
+Where an accountable authority or an official approves the proposed commitment of relevant money in
+relation to a grant, the accountable authority or official who approves it must record, in writing, the basis
+for the approval relative to the grant opportunity guidelines and the key principle of achieving value with
+relevant money.
+
+Officials must provide written advice to ministers, where ministers exercise the role of an approver”. This
+advice must, at a minimum:
+
+a. explicitly state that the spending proposal being considered for approval is a ‘grant’;
+
+b. provide information on the applicable requirements of the PGPA Act and Rule and the CGRPs
+(particularly any ministerial recording and reporting obligations), including the legal authority for the
+grant;
+
+c. outline the application and selection process followed™, including the selection criteria that was
+used to select potential grantees; and
+
+d. provide clear advice on the merits of the proposed grant or grants relative to the grant opportunity
+guidelines and the key principle of achieving value with relevant money.
+
+When briefing ministers on the merits of a specific grant or group of grants, officials:
+a. must use the following categories and may include rankings of applications if appropriate:
+i. which applications fully meet the selection criteria;
+
+=== PAGE 10 ===
+ii. which applications partially meet the selection criteria; and
+iii. which applications do not meet any of the selection criteria.
+In addition, officials:
+b. must indicate which of the applications can be supported within the available funding;
+c. must recommend that applications that do not meet any of the selection criteria be rejected;
+
+d. should make any other specific recommendations regarding the grant applications, in addition to the
+above categories, which could include recommendations based on other factors that may be taken
+into account as outlined in the grant opportunity guidelines.
+
+4.8. Where a third party administers grants on behalf of the Commonwealth, the relevant accountable
+authority must ensure the arrangement is in writing and promotes the proper use and management of
+other CRF money." In addition, the accountable authority must ensure the arrangement requires the third
+party to adhere to the key principles and applicable requirements of the CGRPs.
+
+4.9. One of the key principles of the CGRPs (collaboration and partnership) is that accountable authorities and
+officials work together across government and with non-government stakeholders when undertaking
+grants administration. When determining what the acquittal or reporting requirements are, officials must
+
+have regard to information collected by Australian Government regulators and available to officials.“
+
+Requirements for Ministers
+
+4.10. In addition to the requirements under the PGPA Act", where the proposed expenditure relates to a grant
+or group of grants, the minister or ministerial panel:
+
+a. must receive written advice from officials (see paragraphs 4.6 and 4.7); on the merits of the
+proposed grant or group of grants before approving a grant/s;
+
+b. must record, in writing, the basis for the approval relative to the grant opportunity guidelines and the
+key principle of achieving value with relevant money;
+
+c. must record, in writing, the basis for not approving any grant or group of grants which officials have
+recommended be approved;
+
+d. must record, in writing, the basis for approving any grant or group of grants applications which
+Officials have recommended be rejected, and
+
+e. must record, in writing, and declare as appropriate, any conflicts of interest relating to a decision to
+approve a grant.
+
+4.11. Ministers may approve grants within their own electorate.
+
+a. Where a minister (including an Assistant Minister) approves a proposed grant in their own
+electorate, the minister must write to the Minister for Finance advising of the details.
+
+b. Where there is correspondence to the relevant grantee, a copy of this letter is sufficient, except in
+the circumstances outlined in paragraph 4.12(b). If there is no correspondence, ministers must
+write to the Minister for Finance advising of the decision as soon as practicable after it is made.
+
+c. There are two circumstances where grants awarded in a minister's own electorate do not need to be
+reported.
+
+i. senators do not need to report on grants they decide to award in their own state or territory; or
+ii. where grants are awarded Australia-wide, state-wide, or across a region on the basis of a
+
+formula“ by a minister, and any of these grants falls in the relevant minister’s electorate, the
+minister does not need to report to the Minister for Finance.
+
+4.12. Ministers may approve grants that are not recommended by officials.
+
+=== PAGE 11 ===
+a. Ministers“ (including senators) must report to the Minister for Finance on all instances where they
+have decided to approve a particular grant which the relevant official has ‘recommended be
+rejected". The report must include a brief statement of reasons (i.e. the basis of the approval for
+each grant). The report must be provided to the Minister for Finance as soon as practicable
+following the approval."
+
+b. If a decision relates to a minister’s own electorate (House of Representatives members only), the
+minister must also include this information when writing to the Minister for Finance in the context of
+the process outlined in paragraph 4.11.
+
+4.13. The Minister for Finance must table a copy of a report received under paragraphs 4.11(a) and 4.12(a) in
+each House of Parliament as soon as practicable after the end of each quarter“. Any decision by a
+minister under paragraphs 4.11(a) and 4.12(a) must also be recorded on GrantConnect, with a summary
+of the basis of the approval, as part of reporting under paragraph 5.5.
+
+Grant-connected policies
+
+4.14. Grant-connected policies are Commonwealth whole-of-government policies where grants have been
+identified as a means of assisting delivery. These policies have been explicitly approved by the Cabinet as
+applying to Commonwealth grants. Additional guidance on the process to obtain approval to introduce a
+grant-connected policy is available on the Finance website.”
+
+4.15. Generally, a grant-connected policy will be the responsibility of an entity other than Finance. The relevant
+policy entity is responsible for actively administering and reviewing the policy, including providing advice
+on the application of the policy.
+
+5. Public Reporting
+
+5.1. Effective disclosure and reporting arrangements for grants administration are essential for reasons of
+transparency, integrity and public accountability. Reliable and timely information on grants awarded is a
+precondition for public and parliamentary confidence in the quality and integrity of grants administration.
+
+Web-based reporting requirements
+
+5.2. Grant opportunity guidelines must be made publicly available on GrantConnect“’, except where there is a
+specific policy reason not to publicise the grant opportunity guidelines (see paragraph 5.8).
+
+a. Publicly available information on grant opportunities must be the same, or a subset of the
+information published on GrantConnect.
+
+5.3. Developing forecast grant opportunities is encouraged to provide potential grantees an opportunity to plan
+projects and applications. Where officials develop forecast grant opportunities, these must be published
+on GrantConnect.
+
+5.4. An entity must report on GrantConnect*’, information on individual grants (as defined in paragraph 2.3)
+and any subsequent variations to the grant/s no later than twenty-one calendar days after the grant
+agreement or the variation" for the grant takes effect." This grant award information must include a link
+to the relevant published grant opportunity guidelines on GrantConnect, where available.
+
+5.5. Where the approver of the grant/s is a minister, an entity must record information on the grant/s awarded
+and the decision/s on GrantConnect, as required by paragraph 4.13, as soon as practicable.
+
+=== PAGE 12 ===
+5.6.
+5.7.
+
+5.8.
+
+Officials must identify whether a grant agreement contains confidentiality provisions.
+
+There may be circumstances where officials determine that public reporting of grants in accordance with
+the CGRPs is contrary to the Privacy Act 1988 (Privacy Act), other statutory requirements, or the specific
+terms of a grant agreement.
+
+a. In these circumstances, the relevant officials must publish as much information as legally possible.
+For example, it may be possible to omit the name of the grantee and other personal information that
+may contravene the Privacy Act but report other grant details.
+
+b. The reasons for not reporting fully must be documented by officials.
+
+c. Officials should also take all reasonable steps to ensure that future grant agreements contain
+provisions that do not prevent the disclosure of information.
+
+Aminister may seek an exemption from publishing on GrantConnect from the Minister for Finance, where
+officials assess that publishing grant opportunity guidelines or information on grants awarded in
+accordance with the CGRPs could adversely affect the achievement of government policy outcomes, or
+where there is a specific policy reason to not publish. The responsible minister must write to the Minister
+for Finance detailing the rationale for exemption. Officials should consult with Finance before commencing
+this process.
+
+Part 2 Guidance on Key Principles
+
+6. Key Principles for Grants Administration
+
+6.1.
+
+6.2.
+
+6.3.
+
+This part of the CGRPs sets out how to apply the key principles of grants administration. While the
+CGRPs contain a number of mandatory requirements, the key principles provide flexibility in how
+accountable authorities and officials can work together with stakeholders to administer grants and achieve
+government policy outcomes.
+
+The nine key principles for grants administration that apply to the grants lifecycle and all grant
+opportunities™ are:
+
+¢ robust planning and design;
+
+¢ collaboration and partnership;
+
+* proportionality;
+
+* an outcomes orientation;
+
+« merit-based processes;
+
+« achieving value with relevant money;
+
+« consistency with grant guidelines and established processes;
+* governance and accountability; and
+
+¢ probity and transparency.
+Accountable authorities and officials must put in place practices and procedures to ensure that grants
+administration is conducted in a manner that is consistent with these nine key principles.“ Ensuring that
+the requirements of the CGRPs are well understood and effectively incorporated into grants
+administration supports the achievement of policy outcomes.
+
+=== PAGE 13 ===
+6.4.
+
+6.5.
+
+The CGRPs provide the framework within which accountable authorities put in place internal controls and
+associated operational guidance related to grants administration within each entity. Accountable
+authorities are encouraged to use whole-of-government guidance™ as the basis for their own internal
+controls, as this will reduce the risk of misinterpreting the requirements of the resource management
+framework and promote consistency for stakeholders.
+
+Officials should work together with government and non-government stakeholders, through all phases of
+the grants lifecycle. Officials should build productive relationships with potential grantees and grantees to
+collaboratively achieve government policy outcomes.
+
+7. Robust Planning and Design
+
+7.1.
+7.2.
+
+7.3.
+
+TA,
+
+7.5.
+
+High quality planning underpins efficient, effective, economical and ethical grants administration.
+
+Officials should work together with government and non-government stakeholders to plan, design and
+undertake grants administration.
+
+« Potential grantees, grantees and beneficiaries will likely have valuable insights into how best to
+design and implement grant opportunities. This will assist to achieve policy outcomes appropriately
+aligned to public needs.
+
+Grants administration processes should be proportional to the scale and risk profile of the grant
+opportunity. Officials should consider that grant opportunities affect not only the Commonwealth and
+grantees but may also impact on other beneficiaries of a grant as well.
+
+Officials should address all relevant planning and implementation issues before commencing grant
+opportunities. These issues should be built into the design of any grant opportunity.
+
+« The specific issues to be addressed will depend on the nature of the grant opportunity. A complex
+open, two-stage grant opportunity may, for example, require a different approach to a closed, non-
+competitive grant.
+
+Officials should have regard to all relevant planning issues, including the need to:
+
+« establish a rationale for grant opportunities, particularly what outcomes are expected and how these
+will be measured;
+
+« define the operational objectives;
+
+« communicate effectively with potential grantees and key stakeholders;
+¢ undertake risk identification and engagement;
+
+« design grant opportunities to achieve value with relevant money;
+«ensure that eligibility criteria reflect the operational objectives and policy intent;
+¢ clearly identify decision makers and their roles;
+
+« design grant opportunities for accountability, probity and transparency;
+« carefully consider the application and selection process to be used;
+
+« establish performance and evaluation measures;
+
+« select an appropriate funding strategy and grant agreement;
+
+« consider the Australian Government's accounting treatment;
+
+« develop appropriate documentation, such as grant opportunity guidelines and application
+information;
+
+« consider legal, taxation and policy matters and seek advice where appropriate; and
+
+=== PAGE 14 ===
+7.6.
+
+« implement robust governance arrangements.
+Grant programs and grant opportunities are established to achieve a government policy outcome and
+should be designed to enable closure on successful completion and be promoted in a way that does not
+raise expectations that the grant program or grant opportunity will continue into perpetuity.
+
+Risk Identification and Engagement
+
+TT.
+
+7.8.
+
+7.9.
+
+7.10.
+
+7.11.
+
+7.12.
+
+Risk is part of the environment in which government operates. Understanding, accepting and managing
+risk is part of everyday decision-making within government. Accountable authorities have a duty to
+establish and maintain systems relating to risk and control." They should develop a positive risk culture
+within their entities, supported by appropriate frameworks and processes. A key element of grants
+administration is to identify and engage with risk. Officials should be conscious of the risks of a grant
+opportunity, make informed decisions in managing these risks and identify and harness potential benefits.
+
+Risk identification and engagement should be built into an entity's grants administration processes. Risk
+identification and engagement activities will vary depending on the entity, grant opportunity, grant, and
+grantee. Some risks can appropriately be mitigated or managed through the grant agreement, while other
+risks are better managed across the grants lifecycle, such as planning and design, the application and
+selection process or the ongoing relationship between officials and grantees.
+
+Risk can be categorised a number of ways. The CGRPs use three broad categories: grant program or
+grant opportunity risk; grantee risk; and grant activity risk.
+
+Risks involving the grant program or grant opportunity relate to the planning, development and
+implementation of the grants by the relevant entity, such as:
+
+« the nature of the grant opportunities (i.e. scope, complexity, uniqueness, quantum of funds, etc);
+
+« design of the grant opportunities (i.e. a new or novel approach, having clearly defined outcomes, a
+unique allocation mechanism, timeframes, cost shifting, etc);
+
+«entity capacity to administer the grant opportunities (i.e. resourcing, infrastructure requirements,
+staff experience and skills, etc); and
+
+« implementation issues (i.e. communications with grantees and other stakeholders, clear
+accountabilities, ongoing grant administration, etc).
+
+Risks involving the grantee relate to the grantee’s industry or sector, the grantee and the entity’s
+relationship with the grantee, such as:
+
+« the nature of a particular industry (i.e. emerging industries, highly volatile sectors, controversial
+providers, industry capacity and regulation, etc);
+
+« the relationship between the parties to the grant agreement (i.e. contractual relationships,
+collaboration, stakeholder expectations, multiple funding bodies, etc);
+
+* experience, capacity and past history of grantees; and
+
+« accountability procedures (i.e. performance management, fraud, conflict of interest, ‘double dipping’,
+etc).
+
+Risks involving the grant activities relate to the specific activities that are funded by the grant, such as:
+
+« the nature of grant activities (i.e. scope and range of activities, number of activities, geographic
+coverage, location, beneficiaries involved, etc);
+
+« stakeholder capabilities (i.e. governance and experience, co-funding arrangements, clear roles and
+responsibilities, competing outcomes, etc);
+
+¢ grant activity design (i.e. value and duration of specific activities, objectives, timeframe for projects,
+etc); and
+
+¢ grant activity standards (i.e. service standards, specific accountabilities, etc).
+
+=== PAGE 15 ===
+7.13. Officials should ensure that risk identification and engagement is supported by performance information,
+
+procedures and systems that continuously identify and treat emerging risks throughout the grants
+lifecycle.
+
+7.14. Officials should ensure that the party best placed to manage a specific risk is identified, the risks are
+
+assigned to that party, and that they manage those risks. Identifying the party best able to manage a risk
+and assigning that risk is an active process that should occur throughout the grants lifecycle.
+
+8. Collaboration and Partnership
+
+8.1.
+
+8.2.
+
+8.3.
+
+8.4.
+
+8.5.
+
+Accountable authorities have a duty to encourage officials to co-operate with others to achieve common
+
+objectives.™ Officials should work collaboratively with government and non-government stakeholders. It is
+important to consider the needs and interests of potential grantees, grantees and beneficiaries. It should
+not be assumed that the same approach will suit all grant opportunities and circumstances. Through
+effective collaboration, shared understanding of expectations and positive working relationships,
+government policy outcomes can be achieved.
+
+Officials are encouraged to seek input from non-government stakeholders when undertaking grants
+administration. Officials, working together with stakeholders, will:
+
+¢ improve the design and delivery of grant opportunities;
+
+« help identify and reduce fragmentation and unnecessary overlaps in grant opportunities;
+« improve the responsiveness, flexibility and relevance of grant opportunities;
+
+« aid in the development of appropriate outputs, outcomes, impact measures, accountability
+requirements, governance structures and grants documentation; reduce administration and
+compliance costs for potential grantees, grantees and government; and
+
+* encourage potential grantees to understand their legal rights and obligations.
+Consultation and co-operation with government and non-government stakeholders can help reduce
+fragmentation and unnecessary overlaps, improving outcomes for grantees, beneficiaries, the
+Commonwealth and other funding organisations. Officials should consider what interaction a particular
+grant opportunity may have on other government or non-government funded activities, particularly where
+there are similar policy outcomes.
+
+« Grants could be funded by Commonwealth, state or territory and local government bodies, private
+trusts and foundations or national or state coordinating organisations.
+
+¢ Officials should develop effective liaison with other funding organisations, particularly where policy
+responsibility or grants administration is shared between different entities or levels of government,
+or where an entity or third party is responsible for the grants administration of another entity.
+Officials should seek to minimise red-tape and duplication. In particular, they should not seek information
+from potential grantees and/or grantees that is collected by other parts of the entity or other
+Commonwealth entities and is available to them.
+
+Effective working relationships based on collaboration and respect between the grantee and officials are
+supported by a well-designed grant agreement that clearly establishes roles and responsibilities and
+promotes a shared understanding of objectives and expectations for all parties. Longer term grant
+agreements are conducive to improved partnerships between grantees and officials.
+
+=== PAGE 16 ===
+9. Proportionality
+
+9.1.
+
+9.2.
+
+9.3.
+
+9.4.
+
+9.5.
+
+Proportionality in grants administration involves striking an appropriate balance between the complexity,
+risks, outcomes, and transparency. Accountable authorities have a duty in relation to requirements
+imposed on others and when imposing requirements on others must take into account the risks
+
+associated with the use or management of public resources and the effect of requirements imposed.
+
+Officials should ensure that the administration of grants appropriately reflect the capabilities of potential
+grantees, grantees and accommodate the Australian Government's need for robust and accountable
+processes, consistent with the risks involved.
+
+Grants vary widely in nature, scale and complexity. Officials should apply the proportionality principle to
+suit the specific circumstances of the particular grants.
+
+« Some grants may involve grantees, such as individuals, small business, primary producers or the
+not-for-profit sector, while others involve large corporations, or whole industry sectors. Some
+potential grantees may have prior experience in applying for and undertaking grant activities, while
+others may not.
+
+« Some grants support ongoing activities, with grants provided to the same or similar organisations
+over a period of years. Other grants may support new policy, with the associated risks of doing
+something for the first time, due to social, business or strategic changes.
+
+« Some grants provide short-term, one-off assistance to grantees, while others may be for a longer
+duration with multiple application rounds.
+
+« Some grants require only a broad purpose and relatively simple accountability requirements; others
+may require tight specifications and complex accountability.
+
+Officials should use the proportionality principle to inform the choice of the application and selection
+process, the grant agreement to be used and the reporting and acquittal requirements. Officials should
+tailor grant opportunity guidelines, application processes, grant agreements, accountability, and reporting
+requirements based on the potential risks and specific circumstances. In doing this, officials should
+consider: the policy outcomes being sought; an assessment of the capability of potential grantees and
+grantees; the purpose, value and duration of a grant; the nature and type of deliverables; governance;
+accountability requirements; and the nature and level of the risks involved.
+
+« The format and complexity of grant opportunity guidelines may vary, depending on the activity. At
+a minimum, guidelines for one-off ad hoc grant opportunities should include the purpose or
+description of the grant, the objectives, the selection process, any reporting and acquittal
+requirements and the proposed evaluation mechanisms.
+
+« Grant agreements for a small-scale, low risk, one-off grant should take the form of a letter of
+agreement or exchange of letters.
+
+¢ For low-risk grant activities where the likelihood of identified risks occurring is remote or the impact
+of the identified risk is minimal, the grant agreement should cover those risks that can be
+
+appropriately managed through the agreement and ensure that the grantee is not overburdened. 4]
+
+« More complex grant activities may require tailored grant agreements. For complex grants, involving
+high levels of conditionality, grant agreements may need to be individually structured to reflect the
+role, responsibilities and level of control which each of the parties is expected to assume.
+
+Officials should apply the proportionality principle when determining the reporting and acquittal
+requirements for grants. There are no mandatory acquittal or reporting requirements for grantees in the
+CGRPs. Officials should determine the volume, detail and frequency of reporting requirements,
+proportional to the risks involved and policy outcomes being sought.
+
+« Where a grant is used to support the ongoing delivery of services from the same organisations over
+a period of years, officials should consider reducing the detail of the reporting requirements, given a
+
+=== PAGE 17 ===
+9.6.
+
+9.7.
+
+10.
+
+10.1.
+
+10.2.
+
+10.3.
+
+grantee’s established record of compliance and performance.
+
+« Subject to transparency considerations and risk assessment, it may be appropriate for officials to
+provide grantees that have a consistent record of high performance and reliability, more streamlined
+reporting requirements and evaluation measures, for example, allowing for aggregation of reports
+and less frequent reporting milestones.
+
+« When determining what acquittal or reporting requirements are required, officials should have
+regard to information collected by Australian Government regulators™.
+
+° Officials should not impose obligations on grantees to provide information that is available
+from other sources, such as Australian Government regulators™, the Australian Bureau of
+Statistics, peak bodies or publicly available material.
+
+« Where possible and appropriate, officials should consider aligning grant reporting requirements with
+
+a grantee’s internal reporting, such as the annual reporting cycle and/or other substantive reporting
+requirements.
+
+A further consideration is the entity’s reporting requirements. Inappropriately or inflexibly applied entity
+
+standards and accountability frameworks could deter potential grantees. For example, requiring small
+
+businesses or not-for-profit entities to report in the same manner as large corporate organisations may not
+
+be appropriate. Similarly, poorly formulated reporting requirements, which focus on outputs rather than
+
+outcomes, can be overly burdensome, while stifling innovation by grantees.
+
+« Officials should use better practice tools’ and templates.
+
+¢ Officials should balance the stringency of acquittal procedures against the level of risk, based on
+consideration of the risks involved with the grant activity, the grantee and the costs of compliance.
+Grant opportunity guidelines and operational procedures should explain how proportionality is to be
+applied. Proportionality decisions should also be recorded and periodically reviewed, so that
+accountability and reporting requirements remain aligned to considerations of performance and risk
+through all phases of the grants lifecycle.
+
+An Outcomes Orientation
+
+Grants administration should be designed and implemented so that grantees focus on outcomes and
+outputs for beneficiaries, while seeking the most efficient and effective use of inputs. Accountable
+
+authorities and officials should focus on achieving government policy outcomes.”
+
+Grants administration should have a performance framework that is linked to an entity’s strategic direction
+and key performance indicators. Officials should determine the operational objectives that can be used to
+evaluate a grant. Specifically, officials should determine what change is expected as a result of a grant
+(the intended outcomes) and then measure the actual outcome.
+
+« Anentity’s strategic direction outlines at a high level what it seeks to achieve. It is recorded in an
+entity's Portfolio Budget Statements and Corporate Plan.
+
+« The operational objective is a statement of what the grant is intended to achieve. Grant
+opportunities should be based on clearly defined and documented objectives. The objectives should
+be a concise, unambiguous, realistic statement of what a grant opportunity is intended to achieve.
+
+Officials should ensure that the objectives of particular grant opportunities are clear and specific. This will
+make it easier to: develop supporting documentation, such as selection criteria; limit wasted applications;
+and aid in the development of an appropriate performance framework, based on proportionality
+considerations. Officials should develop operational objectives which:
+
+=== PAGE 18 ===
+« are clearly linked to the outcomes set by government;
+
+« are linked to an entity's strategic goals and/or directions and stated in such a way that clearly
+communicates what is to be achieved, measured, evaluated, and/or assessed;
+
+« include quantitative, qualitative and milestone information which is phrased in such a way that it is
+clear how and when these objectives have been achieved;
+
+« are authorised or endorsed by ministers, the entity’s accountable authority or senior officials,
+whichever is appropriate;
+
+« are shared with potential grantees, grantees and where appropriate beneficiaries; and
+« are reviewed regularly and changed as appropriate.
+10.4. In adopting an outcomes orientation, officials should ensure that outcome, output and input measures are
+
+clearly specified, as this will facilitate effective and efficient evaluation of grants administration and
+associated grant activities.
+
+« Outcome measures assess the extent to which the grant is meeting both the strategic directions and
+operational objectives of the entity. Outcome measures may for example, relate to changes effected
+in the community and may include: the level of usage of facilities built with the grant; the level of
+community involvement resulting from projects; and levels of service delivery.
+
+« Output measures show the extent to which the grant’s operational targets or milestones have been
+achieved. Output measures may include: the numbers of completed projects; the numbers of new
+applicants; and the numbers and/or value of grants awarded.
+
+« Input measures show the inputs, such as funding and resources consumed by grants administration
+and may include: the costs of administering a grant; the number of staff employed; and the costs of
+processing applications.
+
+10.5. In adopting an outcomes orientation, officials should consider common issues. These can include:
+
+¢ assuming that a grant being awarded automatically secures the desired outcome;
+
+« assuming that the consumption of inputs results in the delivery of desired outputs and outcomes;
+and
+
+¢ framing performance indicators that are reliant on data provided by the grantee, without validating
+the grantee’s capacity to produce accurate, reliable and complete data.
+
+10.6. In adopting an outcomes orientation, officials should consider the use of longer term grant agreements,
+where appropriate, in order to achieve outcomes. For example, where grant activities are likely to occur
+over a number of years, it may be more appropriate to provide grantees with longer term grant
+agreements rather than conducting multiple grant rounds and offering shorter term grants.
+
+Performance Evaluation and Reporting
+
+10.7. Performance reporting requirements and other information sought from grantees are key inputs used by
+officials in evaluating whether outcomes have been achieved and whether a particular grant activity
+achieved value with relevant money. In developing the performance reporting and information
+requirements for particular grant opportunities and grantees, officials should balance the amount of
+information sought and the associated costs to grantees of collecting and collating such information,
+against the obligation to perform due diligence in relation to grant evaluation processes.
+
+« Officials, in close consultation with government and non-government stakeholders, should design
+performance information to show the extent to which grant activities contribute to government
+outcomes, as well as producing outputs.
+
+¢ Officials should undertake proportional and ongoing due diligence of grant recipients throughout the
+lifecycle of the applicable grant opportunity, particularly to ensure that emerging risks and issues are
+
+=== PAGE 19 ===
+addressed appropriately and the grant recipient is able to deliver according to the intention of the
+grant opportunity.
+
+10.8. Officials should establish appropriate performance measures on which to evaluate grants. Officials should
+ensure that performance measures are flexible enough to take into account the risk profile of the grant
+opportunity, grantees, and the grant activities being funded. Officials should ensure that these measures
+are specified in: grant opportunity guidelines; agreements; other documentation; and each entity's broader
+performance management framework.
+
+Officials should undertake an evaluation of a grant opportunity before initiating further grant
+opportunities or extending existing grant agreements, in order to determine whether existing grants
+administration processes, practices and requirements remain applicable.
+
+While conducting the evaluation, officials should consider the extent to which government outcomes
+and entity strategic directions remain appropriate as a result of the impact of the grant activities.
+
+10.9. Requesting appropriate targeted performance information will assist grantees and officials to draw well-
+informed conclusions. It contributes to timely and effective decision-making in managing grant activities. It
+can provide useful information on which to base future decisions for designing, continuing or concluding
+grant opportunities, and can contribute to the accountability of entities for their performance.
+
+11. Merit-based Processes
+
+11.1. When selecting the process through which potential applicants will be given the opportunity to access
+grants, consideration needs to be given to other key principles of grants administration, in particular, value
+with relevant money, an outcomes orientation and proportionality.
+
+11.2. Key
+
+factors to be considered by officials when deciding the most appropriate allocation process include:
+he nature and needs of potential grantees and beneficiaries;
+
+the outcomes sought by the grant opportunity;
+
+he likely number and type of applications;
+
+he nature of the grant activity;
+
+he value of the grant;
+
+the need for timeliness and cost-effectiveness in the decision-making process while maintaining
+rigour, equity and accountability;
+
+market considerations including existing and new stakeholders that may offer enhanced value
+hrough novel approaches or improved processes; and
+
+he advantages and disadvantages of the available options and any risks and mitigation strategies.
+
+11.3. Officials should consider the options available for selection processes, including:
+
+open competitive grant selection processes — which have open and closed nominated dates, with
+applications being assessed against the nominated selection criteria (eligibility and assessment
+criteria) and against the comparative merits of other applications;
+
+targeted or restricted competitive processes — which are open to a small number of potential
+grantees based on the specialised requirements of the grant activity under consideration.
+Applications are assessed against the nominated selection criteria and against the comparative
+merits of other applications;
+
+=== PAGE 20 ===
+11.4.
+
+11.5.
+
+11.7.
+
+* non-competitive, open processes — under which applications may be submitted at any time over the
+life of the grant opportunity and are assessed individually against the selection criteria, with funding
+decisions in relation to each application being determined without reference to the comparative
+merits of other applications;
+
+« demand-driven or ‘first-in first-served’ processes — where applications that satisfy stated eligibility
+criteria receive funding, up to the limit of available appropriations and subject to revision,
+suspension or abolition of the grant opportunity.”” Demand driven processes only use verifiable and
+objective eligibility criteria as the basis for allocating grants. Assessment criteria are not used. The
+eligibility criteria must be clearly linked to the achievement of value with relevant money;
+
+« closed non-competitive processes — for example, where applicants are invited by the entity to
+submit applications or provide a proposal for a particular grant and the applications or proposals are
+not assessed against other applicants’ submissions but assessed individually against the selection
+criteria. Better practice closed non-competitive processes either name the eligible applicants and/or
+provide information on how eligibility was determined; or
+
+* one-off ad hoc grants — are determined on a proper use and value with relevant money basis, and
+usually by ministerial decision.”
+
+Officials should choose methods that will promote open, transparent, competitive and equitable access to
+grants.
+
+Competitive, merit-based selection processes can achieve better outcomes and value with relevant
+money and should be used unless specifically agreed otherwise by a minister, accountable authority or
+delegate”. Where it is proposed to use a method other than a competitive, merit-based selection process,
+
+"| the rationale for using a different approach should be documented and included in the grant opportunity
+guidelines.
+
+. In some circumstances, it may be appropriate to use a non-competitive and/or a non-application based
+
+selection process. For example, it may be important to strike a balance between the desire to maximise
+access to a grant and the need for a timely and cost-effective decision-making process. It may also be
+appropriate to target particular individuals, organisations, regions, or industry sectors, depending on the
+government policy outcomes to be achieved.
+
+¢ Officials should ensure that publicly available grant opportunities are notified in ways that provide all
+potential grantees with a reasonable opportunity to apply.
+
+« Careful consideration should be given to the use of appropriate and effective promotion, to increase
+awareness of grant opportunities with key target groups. Appropriate and effective promotion of
+grant opportunities can include print and broadcast media, news features and editorials, newsletters
+and direct mail, workshops or other special events, public launches or announcements, the internet,
+social media and the use of outposted officers.
+
+Officials should conduct grants administration in a manner that minimises concerns about equitable
+
+treatment.” This can provide assurance to the various stakeholders that relevant money has been spent
+for the approved purposes and is achieving the best possible outcomes.
+
+¢ Officials should ensure that decisions in relation to the approval of applications for grants are
+transparent, well documented and consistent with the legislative and policy requirements set out in
+Part 1, sections 3 and 4 of the CGRPs.
+
+« Officials should put in place a transparent and systematic application and selection process. Such
+processes assist in informing decisions and enhancing confidence in the grant opportunity
+outcomes and grants administration processes, for both stakeholders and the public.
+
+¢ Targeted or restrictive eligibility criteria may assist where narrowing the field of potential applicants
+aims to achieve a particular policy outcome. However, care needs to be taken that restrictive
+
+=== PAGE 21 ===
+eligibility criteria does not exclude potential applicants that may be better placed to contribute to the
+policy outcomes, or provide better value with relevant money.
+
+Those involved in grants administration should be aware that the geographic distribution of grants
+may be seen as an indicator of the general equity of a grant opportunity and also of party-political
+bias in the distribution of grants.
+
+Akey consideration is whether decision-makers or approvers have equitably and transparently
+selected grant activities that achieve value with relevant money in the context of the outcomes of
+the grant opportunity, as set out in the grant opportunity guidelines.
+
+12. Achieving Value with Relevant Money
+
+12.1. Achieving value with relevant money should be a prime consideration in all phases of grants
+
+administration.”” Grants administration should provide value, as should the grantees in delivering grant
+activities. This requires the careful comparison of the costs and benefits of feasible options in all phases
+of grants administration, particularly when planning and designing grant opportunities and when selecting
+grantees. It is also a means by which officials can assure the entity’s accountable authority, ministers and
+the Parliament that resources are deployed in an efficient, effective, economical and ethical manner, while
+not imposing overly burdensome requirements on grantees.
+
+12.2. Officials achieve value with relevant money in grants administration by:
+
+Considering and promoting the proper use and management of public resources (proper means
+efficient, effective, economical and ethical).
+
+Working with government and non-government stakeholders when appropriate to develop or modify
+grant opportunities. Stakeholder input can aid in improving the efficiency of the design and delivery
+of grant opportunities.
+
+Using processes, procedures and requirements that are proportional to the risks and nature of grant
+opportunities. For intellectual property rights resulting from grant activities, entities should not
+generally assert ownership, but should consider a licence for Commonwealth purposes.
+
+Adopting an active risk identification and engagement approach focused on minimising potential
+adverse impacts and maximising benefits, through identifying and treating risks.
+
+Responding to change. Officials should establish flexible processes so as to be able to respond
+quickly to changing government priorities.
+
+Effective design and selection processes. The objective of the selection process is to select grant
+activities that best represent value with relevant money in the context of the objectives and
+outcomes of the grant opportunity. A fundamental appraisal criterion is that a grant should add value
+by achieving something worthwhile that would not occur without the grant.
+
+Ongoing monitoring and management. The establishment of ongoing monitoring and management
+arrangements throughout the grants lifecycle should assure entities that grant opportunities are
+proceeding as planned and that relevant money is being appropriately managed.
+
+12.3. Grantees contribute to achieving value with relevant money by:
+
+Considering how best to deliver the grant activities to target groups or individuals. This may involve
+using existing processes and technologies or professional standards, or it may involve innovation
+and performance improvement by the grantee or officials.
+
+Having in place an effective risk management approach that will minimise potential waste of
+relevant money.
+
+=== PAGE 22 ===
+Ongoing monitoring and management of the grant activities, as appropriate. This may involve the
+effective use of organisational processes, procedures and systems to produce the required
+reporting information.
+
+Contributing to government policy outcomes through collaborative delivery of grant activities.
+
+Participating in evaluation processes.
+
+12.4. The design phase of grants administration is important to address questions of how best to achieve value
+with relevant money. While the list is not exhaustive, officials should consider the following points as they
+may reveal less costly or more effective means of achieving government policy outcomes.
+
+It is important that officials determine that a grant is the most appropriate mechanism. There may be
+alternative means to realise a desired outcome, such as the use of statutory powers or the
+procurement of goods or services.
+
+Where government makes a specific decision to establish a grant opportunity, officials should still
+consider whether a needs analysis in the selection process would assist in identifying the highest
+priority grant activities, consistent with the intended government policy outcomes.
+
+Officials should determine whether an existing grant opportunity may be expanded or modified to
+meet an identified need, rather than establishing an additional grant opportunity. Relevant
+considerations include: the possible duplication of grant opportunity guidelines; advertising budgets;
+application and selection processes; grant agreements and payment arrangements; systems and
+support; and monitoring and performance assessment procedures. Officials should consider that
+duplication will generally add to an entity's administrative costs and may increase compliance cost
+for potential grantees and grantees.
+
+Officials should consider other sources of funding that may be available. Consideration should be
+given to the possibility of ‘double-dipping’ by a grantee. Double-dipping occurs where a grantee is
+able to obtain funding for the same grant activity from more than one source.
+
+Officials should be alert to the possibility of ‘cost shifting’ to the Commonwealth by another level of
+government, or ‘substitution of effort’ by another level of government. Cost shifting occurs where, for
+example, the Commonwealth funds a grant activity that should be paid for by a state, territory or
+local government. Officials should put in place a range of procedures to minimise opportunities for
+cost shifting and substitution of effort. These include seeking assurances that the funding will not be
+used for grant activities that would normally be paid for by a state, territory or local government. A
+further measure is to specify the types of grant activities excluded from Commonwealth grants in
+any relevant grant documentation such as grant opportunity guidelines.
+
+Officials should consider the use of longer term grant agreements, where appropriate. When
+considering the length of term of grant agreements, officials should consider the administrative costs
+involved for the entity and grantees. Longer term grant agreements may better achieve value with
+relevant money and government policy outcomes, than conducting multiple grant opportunities with
+grant agreements of shorter term duration.
+
+13. Consistency with Grant Guidelines and Established Processes
+
+13.1. Consistency with grant guidelines and established processes is key to better practice grants
+administration. Achieving government policy outcomes should be at the core when designing grant
+opportunity selection processes, guidelines, associated grant agreements as well as an entity’s practices
+and procedures.
+
+13.2.
+
+It is important that officials develop clear, consistent and well-documented grant opportunity guidelines
+and other related documentation. Grant opportunity guidelines are the authoritative documents and
+should be fit-for-purpose and align with the nine key principles of the CGRPs. Officials should consider
+that a single reference source for policy guidance and other documentation (for example, administrative
+
+=== PAGE 23 ===
+13.3.
+
+13.4.
+
+13.5.
+
+procedures, eligibility and assessment criteria appraisal processes, monitoring requirements, evaluation
+strategies and standard forms) helps to ensure consistent and efficient grants administration.”
+
+The content and complexity of grant opportunity guidelines and related processes should be proportional
+to the grant program, grant activities, potential grantees and the available funding. It is important that
+potential grantees and beneficiaries of grant activities are not disadvantaged by deviations from the
+published selection criteria and processes. Grant opportunity guidelines should include (as relevant):
+
+¢ grant objectives and purpose;
+¢ eligibility criteria;
+
+« clear assessment criteria (if applicable), including any considerations, prioritisations or other factors
+that may be taken into account, and how these will be assessed and applied;
+
+« weighting of assessment criteria;
+« the approval process (as relevant) including the:
+— closing date for applications;
+— likely decision date;
+— outline of selection process;
+— approach for any final recommendations;
+— decision-maker;
+* expected terms and conditions of the grant agreement;
+« indicative reporting and acquittal requirements; and
+
+¢ adescription of complaint handling, review and/or FOI mechanisms.
+
+Officials must ensure that any suite of documents that form the grant opportunity guidelines are
+consistent with the CGRPs.™
+
+¢ Officials should ensure that the requirements of grant opportunities are simply expressed, are clear
+in their intent and are effectively communicated to stakeholders.
+
+« Officials should consider testing the clarity of grant opportunity guidelines with stakeholders prior to
+their release. Through stakeholder engagement, entities are able to test the design of the grant
+opportunity and any potential risks and mitigations. This can assist with ensuring the grant
+opportunity guidelines are fit-for-purpose and appropriate, thereby reducing future potential
+deviations from the grant opportunity guidelines.
+
+Potential grantees need access to adequate information to enable them to submit a grant application.
+Application documentation should contain clear eligibility and assessment criteria to enable the selection
+of applications in a consistent, transparent and accountable manner.
+
+« The design of the application form should assist potential grantees to provide information in respect
+of all selection criteria.
+
+¢ Application forms and associated information should be easy to understand and provide all
+necessary information, including contact points and details for further information.
+
+¢ Eligibility criteria should be straightforward, easily understood and effectively communicated to
+potential grantees. This helps avoid potential costs to applicants associated with developing and
+submitting applications that are ineligible or that have little chance of success.
+
+« Officials should ensure that grant opportunity guidelines clearly inform potential grantees of terms
+and conditions they will need to meet during the life of the grant, such as financial and performance
+
+=== PAGE 24 ===
+13.6.
+
+13.7.
+
+13.8.
+
+13.9.
+
+reporting. The proposed grant agreement should be included with the grant opportunity guidelines
+so that potential grantees can consider this at the time that they are considering applying for a
+grant.
+
+« Timely appraisal avoids possible inequities and waste that may arise through unnecessary delay.
+
+« Provision of feedback to unsuccessful grant applicants promotes transparency in decision-making
+and improves the capacity of potential grantees to apply for future grant activities. The most efficient
+and effective method will depend on the nature of the granting activity and the resources available
+to deliver feedback.
+
+The objective of the selection process is to select grant activities that achieve value with relevant money
+in the context of the objectives and outcomes of the grant opportunity. Selection criteria and processes
+should be reviewed to minimise risks of potential unintended consequences. For example, ensuring that
+the requirement and complexity of the selection criteria does not unintentionally exclude suitable grantees
+from the process.
+
+Decisions to award grants should correspond to the guidelines and the published process for the grant
+opportunity; be based on merit; transparent and well-documented; and align with the objectives of the
+grant opportunity.
+
+« The PGPAAct and the CGRPs require all commitments of public resources to be efficient, effective,
+economical and ethical. For a grant, this includes assessing the merits of the application relative to
+the grant opportunity guidelines and the prime consideration of achieving value with relevant money.
+
+When assessing the extent to which a grant application or proposal represents value with relevant money,
+consideration should be given to the following, as applicable:
+
+« the overall objective(s) to be achieved in providing the grant;
+« the relative value of the grant sought;
+« how the grant activities will target or prioritise groups or individuals;
+
+« extent to which the geographic location of the application or characteristics of the applicants
+matches identified priorities;
+
+« the balance and mix of applications or proposals (particularly for competitive processes) received
+and how the grant activities will achieve Government policy outcomes; and
+
+« the extent to which the evidence in the application or proposal demonstrates that it satisfies the
+selection criteria and will contribute to meeting the outcomes/objectives.
+There may be instances where it is considered necessary to waive or amend the selection criteria
+established for a grant opportunity, in whole or in part. Where eligibility and assessment criteria are
+waived, decisions to approve grants should still be consistent with the policy authority for the grant
+opportunity and/or the applicable published objectives. Officials should document these decisions.
+
+« Officials should ensure that grant opportunity guidelines document the circumstances in which the
+eligibility or assessment criteria set out in grant opportunity guidelines may be waived or amended
+and what strategies will be used to mitigate any disadvantage to potential grantees from waiving or
+amending selection criteria.
+
+« Officials should seek ministerial or other appropriate authority before invoking provisions for waiving
+or amending eligibility and assessment criteria and keep appropriate records.
+
+« Grant opportunity guidelines should not be changed after the grant opportunity is closed to
+applications. Decisions to deviate from published guidelines and any amended processes should be
+documented and appropriately communicated, including whether potential grantees will be provided
+an opportunity to apply or to revise an application, or whether a new grant opportunity will be
+issued.
+
+=== PAGE 25 ===
+«  Itis important that appraisal and selection processes be transparent and free from the risk of bias. It
+is better practice for all like applications to be assessed using a common appraisal process, and
+where there is a departure from the approved selection process, the reasons should be
+documented. Similarly, grant assessors should document when referring to, or relying on,
+knowledge or documentation other than the application form.
+
+13.10. Accountability and transparency are related concepts. Accountability involves decision-makers, officials
+and grantees being able to demonstrate and justify the use of public resources to government, the
+Parliament and the community. This necessarily involves all parties keeping appropriate and accessible
+records to evidence the above.
+
+13.11. Sound administration of a grant opportunity is supported through establishing documented internal
+procedures to guide each aspect of the administration process. It is important to document such
+procedures prior to the commencement of the grant opportunity and to review and maintain these over
+the life of the grant opportunity. Any changes to the approved grant opportunity guidelines or
+administrative processes will need to be reflected in the documented procedures in a timely manner in
+order to ensure grant administration remains consistent with the approved parameters.
+
+14. Governance and Accountability
+
+14.1. Grants administration should be underpinned by solid governance structures and clear accountability for
+all parties involved.
+
+14.2. Accountability involves ensuring individuals and organisations are responsible for their plans, decisions,
+actions and results. Accountability arrangements in grants administration relate to both the process of
+grants administration, including the grants allocation processes and ongoing grants management, and the
+achievement of government outcomes. Ministers, accountable authorities, officials and grantees all have
+their respective roles to play in achieving the applicable government outcomes and should be held
+accountable for the ways in which they fulfill their roles.
+
+14.3. Officials should clearly define the roles and responsibilities of all parties involved in grants administration.
+Officials are encouraged to develop a robust governance framework, which clearly defines the roles and
+responsibilities of the various parties, as this will facilitate accountability.
+
+« Any grants governance framework must be underpinned by the mandatory requirements in Part 1
+of the CGRPs, such as the need for accountable authorities and officials to ensure that grants
+administration, including decision-making, is consistent with the requirements of the PGPA Act and
+Rule and that ministers are advised of their requirements under the CGRPs.
+
+« Any grants governance framework should also clearly outline the role of grantees in the
+administration of a grant and the role of third parties, such as, external committees or entities that
+may manage grants on behalf of the Commonwealth.
+
+14.4. Officials should develop policies, procedures and documentation necessary for the effective and efficient
+governance and accountability of grants administration. This must include the development of grant
+opportunity guidelines and associated operational guidance for administering grant activities on an
+ongoing basis. It is particularly important that such guidance clearly sets out the roles and responsibilities
+of all parties involved in grants administration processes. Officials must ensure the development of such
+guidance is consistent with the CGRPs."”
+
+Appropriate Skills and Training
+
+14.5. Officials involved in developing and/or managing grant opportunities should have the necessary grants
+management, stakeholder liaison and financial management skills. Officials involved in assessing
+
+=== PAGE 26 ===
+applications should be appropriately skilled and have access to procedural instructions and/or training
+before processing grant applications.
+
+« These safeguards are particularly important if grants administration is devolved to various offices or
+across multiple entities, or involves different levels of government or individuals and organisations
+external to the Commonwealth.
+
+« Care should be exercised to ensure that the competing demands on staff time and scarcity of
+expertise do not lead to variations in the standards of appraisal and administration.
+
+« Entities should document the appropriate skills and/or training of officials involved in each phase of
+the grants lifecycle and facilitate suitable ongoing support to maintain standards and quality
+assurance over grants administration.
+
+Record Keeping
+
+14.6. Accountability is dependent on the proper maintenance, awareness and availability of appropriate grants
+administration documentation and processes. Record keeping is therefore a key component of good
+grants governance and accountability. Good record keeping by officials will assist in meeting
+accountability obligations, demonstrate compliance with the CGRPs and the resource management
+framework, and show that due process has been followed in actions and decisions.
+
+« Officials should have regard to grants-specific record keeping requirements and the implications for
+record keeping of the grants-specific mandatory requirements in Part 1 of the CGRPs relating to
+requirements for ministers and officials regarding web-based reporting.
+
+14.7. Good record keeping assists entity performance by better informing decision-making. For example:
+
+« where officials can identify previous and current grantees and their performance they will be better
+able to assess risks;
+
+« decision-makers must document the reasons for decisions in awarding grants®” (and where
+appropriate not awarding grants) as this will assist equitable application of the assessment criteria,
+in particular, when selection processes are conducted over an extended period of time. This helps to
+ensure that grants are awarded to those grant activities that best satisfy the objectives of the grant
+opportunity; and
+
+« where it is proposed to use a method other than a competitive, merit-based selection process,
+officials should document why this approach has been used."
+
+Grant Agreements
+
+14.8. Officials should ensure that grant agreements are well-drafted and are fit-for-purpose, as this will
+contribute to good governance and accountability. Grant agreements are an opportunity to clearly
+document the expectations of all parties in relation to the grant. Both officials and grantees should clearly
+understand conditions in the grant agreement. The use of plain English facilitates this. A well-drafted grant
+agreement is one that provides for:
+
+« aclear understanding between the parties on required outcomes, prior to commencing payment of
+the grant;
+
+¢ appropriate accountability for relevant money, which is informed by risk analysis;
+
+* agreed terms and conditions in regard to the use of the grant, including any access requirements;
+and
+
+«the performance information and other data that the grantee may be required to collect as well as
+the criteria that will be used to evaluate the grant, the grantee’s compliance and performance.
+
+14.9. There is no form of grant agreement that is right for all grants. However, unless legislation or policy
+mandates the form of an agreement, officials should choose the appropriate form of agreement, based
+on:
+
+=== PAGE 27 ===
+14.10.
+
+14.11.
+
+14.12.
+
+14.13.
+
+14.14.
+
+14.15.
+
+* ananalysis of the risks;
+« consideration of proportionality;
+
+« the context in which the grant is made (for example, the nature of the grantee, relevant applicable
+legislation, and relevant policy directions);
+
+« guidance material, templates and tools provided by Finance;
+¢ officials and the grantee working collaboratively;
+« the best way to resolve issues that may arise; and
+
+« legal advice, where appropriate.
+Officials should ensure that the grant agreement supports proper use and management of relevant
+money. The grant agreement should, at a minimum: define grant activity deliverables; outline schedule
+payments (according to progress); specify reporting requirements and acquittal procedures (if required)
+
+« Agrantee’s own policies and procedures should support the grant agreement and ensure the
+effective and efficient governance and accountability for the grant.
+Where legislation, regulation, rules, government policy or ministerial direction imposes specific
+requirements such as how, to whom and in what form a grant is made or specifies particular terms and
+conditions, officials should meet those requirements.
+
+Awell-drafted grant agreement alone is not sufficient to ensure the objectives of the grant activity are
+met. Officials should ensure that grant agreements are supported by ongoing communication, active
+grants management and performance monitoring requirements, which are proportional to the risks
+involved.
+
+« Performance and financial monitoring provide useful information on which to assess the extent that
+objectives have been achieved.
+
+« Monitoring payments and progress are integral to good governance and risk management and
+provides a measure of assurance that relevant money allocated to grantees has been spent for its
+intended purposes.
+
+« Adequate and well-documented arrangements to ensure financial accountability are the basis of
+effective grant acquittal. Reliable, timely and adequate evidence is required to demonstrate that the
+grant has been expended in accordance with the terms and conditions of the grant agreement.
+Officials should balance the stringency and complexity of acquittal against the level of risk and take
+into account the cost of compliance. Active risk engagement and management strategies will help
+achieve this balance.
+
+Value with relevant money should be considered in recommending and approving a variation to a grant
+agreement. Variations should not be used as an alternative to appropriately planning a new grant
+opportunity.
+
+As a general rule, grant agreements should:
+
+«only be varied where necessary and for the length of time that will allow for the project or activities to
+be completed as originally agreed; and
+
+¢ not significantly change the scope of the initial agreement.
+
+Extending an agreement via a variation for continued grant activities, or new activities/projects, may not
+achieve a value with relevant money outcome. This could be because:
+
+« changes may have occurred in the sector that impact on the existing grantee’s willingness to continue
+to deliver grant activities;
+
+e input costs may have changed; or
+
+¢ new potential grantees could potentially offer better solutions to achieve the policy outcome.
+
+=== PAGE 28 ===
+14.16. Where there is a pattern of variations, officials should consider, as appropriate options including, using
+longer term grant agreements or undertaking a new process.
+
+15. Probity and Transparency
+
+15.1. Probity relates to ethical behaviour. Establishing and maintaining probity involves applying and complying
+with public sector values and duties such as honesty, integrity, impartiality and accountability."
+
+15.2. Transparency refers to the preparedness of those involved in grants administration, including officials and
+grantees, to being open to scrutiny about grants administration and grant opportunity processes. This
+involves providing reasons for decisions and information to government, the Parliament, potential
+grantees, grantees, beneficiaries and the community. Transparency provides assurance that grants
+administration is appropriate and that legislative obligations and policy commitments are being met.
+
+15.3. Probity and transparency in grants administration is achieved by ensuring:
+
+« that decisions relating to grant opportunities are impartial; appropriately documented and reported;
+publicly defensible; and lawful. The key relevant requirements are set out in Part 1 of the CGRPs
+(section 3, Resource Management Framework and section 4, Grants-specific Processes and
+Requirements);
+
+« compliance with the public reporting requirements set out in Part 1 of the CGRPs (section 5, Public
+Reporting); and
+
+« that grants administration by officials and grantees incorporates appropriate safeguards against
+fraud, unlawful activities and other inappropriate conduct.
+
+Fraud
+
+15.4. Accountable authorities must ensure that entity fraud and corruption procedures and practices comply
+with section 10 of the PGPA Rule including as it relates to grants administration".
+
+15.5. Accountable authorities should:
+
+« establish appropriate internal control mechanisms for grants administration. For example, the
+separation of duties can be a key internal control. Generally, no single officer should appraise an
+application for a grant, give financial approval for the expenditure and also make the offer to the
+potential grantee; and
+
+¢ guard against fraudulent and corrupt use of relevant money. For example, reported information
+should be assessed not only against objectives but appropriate benchmarks to indicate appropriate
+use of relevant money. Officials should be aware of the procedures to follow when fraud, corruption
+or misappropriation is suspected.
+
+Conflicts of Interest
+
+15.6. Actual or perceived conflicts of interest can be damaging to government, granting entities and officials,
+potential grantees and grantees. A conflict of interest arises where a person makes a decision or
+exercises a power in a way that may be, or may be perceived to be, influenced by either material personal
+interests (financial or non-financial) or material personal associations. A conflict of interest may arise:
+
+« where decision-makers or officials involved in grants administration have a direct or indirect interest,
+which may influence the selection of a particular grant activity;
+
+« where members of external committees have a direct or indirect interest in informing a decision
+about expenditure or providing advice on grant opportunities; and
+
+=== PAGE 29 ===
+« where a potential grantee has a direct or indirect interest, which may influence the selection of their
+proposed grant activity during the application process.
+
+15.7. Conflicts may arise at any stage including during the selection process or while the grant activity is being
+undertaken.
+
+15.8. Officials should establish transparent processes which help manage misconceptions and the potential for
+personal or related party gain. Accountable authorities should ensure that entity policy and management
+processes for conflict of interest are published to support probity and transparency.
+
+15.9. Accountable authorities should put in place appropriate mechanisms for identifying and managing
+potential conflicts of interest for grant opportunities. These mechanisms may include:
+
+« establishing procedures for officials, potential grantees, and grantees to declare their interests;
+
+« developing procedures to manage potential conflicts of interest in all phases of grants
+administration;
+
+* maintaining a register of staff and other party interests; and
+
+« ensuring that grant opportunity guidelines clearly outline what constitutes a conflict of interest.
+
+Acronyms
+
+AAO Administrative Arrangements Order
+
+ANAO Australian National Audit Office
+
+CFO Chief Financial Officer
+
+CGRPs Commonwealth Grants Rules and Principles 2024
+CPRs Commonwealth Procurement Rules
+
+FFR Act Federal Financial Relations Act 2009
+
+Finance Department of Finance
+
+FFSP Act Financial Framework (Supplementary Powers) Act 1997
+
+FFSP Regulations — Financial Framework (Supplementary Powers) Regulations 1997
+
+FOI Freedom of Information
+PGPA Act Public Governance, Performance and Accountability Act 2013
+PGPA Rule Public Governance, Performance and Accountability Rule 2014
+
+Glossary
+For the purposes of the CGRPs, terms have the meanings defined below.
+accountable authority see subsection 12(2) of the PGPA Act.
+
+application process refers to the steps that must be followed by potential grantees to be considered for a
+grant. It includes the forms, and written documentation, which contain eligibility and any assessment criteria to
+
+=== PAGE 30 ===
+be satisfied.
+
+approver (or decision maker) refers to the person or group of people who decide to approve a grant and could
+be a minister, ministerial panel, accountable authority, official or third party.
+
+assessment criteria are the specified principles or standards, against which applications will be judged. These
+criteria are also used to assess the merits of proposals and, in the case of a competitive grant opportunity, to
+determine application rankings.
+
+beneficiaries include the individuals/organisations/communities which directly or indirectly receive a gain or
+benefit from the grant activity.
+
+closed non-competitive processes — for example, where applicants are invited by the entity to submit
+applications for a particular grant and the applications or proposals are not assessed against other applicants’
+submissions but assessed individually against the selection criteria. Better practice closed non-competitive
+processes either name the eligible applicants and/or provide information on how eligibility was determined.
+
+decision maker (or approver) — see above.
+
+demand-driven or ‘first-in first-served’ processes — where applications that satisfy stated eligibility criteria
+receive funding, up to the limit of available appropriations and subject to revision, suspension or abolition of the
+grant opportunity. Demand driven processes only use verifiable eligibility criteria as the basis for allocating
+grants. Assessment criteria are not used. The eligibility criteria must be clearly linked to the achievement of
+value with relevant money.
+
+eligibility criteria refer to the mandatory criteria which must be met to qualify for a grant. Eligibility criteria
+should be developed to enable objective validation and are either ‘met’ or ‘not met’. Assessment criteria may
+apply in addition to eligibility criteria.
+
+entity means a Commonwealth entity and includes a Department of State, a Parliamentary Department, a listed
+entity or a body corporate established by a law of the Commonwealth (see section 8 of the PGPA Act).
+
+external committee means any body comprising external representation formed for the purposes of informing
+entities on the merits of applications in a grant opportunity. This may include advisory panels, expert
+committees, or technical advisers.
+
+finance law means the PGPA Act and Rule, an instrument made under the PGPA Act, or an Appropriation Act
+(see section 8 of the PGPA Act).
+
+grant activity(ies) refers to the project /tasks /services that the grantee is required to undertake.
+
+grants administration is the processes that an entity undertakes to achieve Government policy outcomes
+through grants. It includes: planning and design; selection and decision-making; the making of a grant; the
+management of grant agreements; the ongoing relationship with grantees; reporting; and review and evaluation.
+
+grant agreement sets out the relationship between the parties to the agreement and specifies the details of the
+grant.
+
+grant opportunity refers to the specific grant round or process where a Commonwealth grant is made
+available to potential grantees. Grant opportunities may be open or targeted and will reflect the relevant grant
+selection process.
+
+grant opportunity guidelines refers to a document(s) containing the relevant information required for potential
+grantees to understand: the purpose, outcomes and objectives of a grant; the application and assessment
+process; the governance arrangements (including roles and responsibilities); and the operation of the grant.
+Grant opportunity guidelines include related documents, such as the application guidelines and forms,
+
+=== PAGE 31 ===
+invitations to apply, supporting documentation, frequently asked questions, draft grant agreements, and any
+templates for reporting or acquittals.
+
+GrantConnect is the Australian Government's whole-of-government grants information system, which
+centralises the publication and reporting of Commonwealth grants in accordance with the CGRPs.
+
+grantee means the individual/organisation which has been selected to receive a grant.
+
+grants lifecycle includes the: design of grant opportunities and activities; assessment and selection of
+grantees; establishment of grants; ongoing management of grantees and grant activities; and evaluation of
+grant opportunities and activities.
+
+non-competitive, open processes — under which applications may be submitted at any time over the life of
+the grant opportunity and are assessed individually against the selection criteria, with funding decisions in
+relation to each application being determined without reference to the comparative merits of other applications.
+
+officials means officials of a Commonwealth entity. An official of a Commonwealth entity is an individual who is
+in, or forms part of the entity (see section 8 of the PGPA Act).
+
+open competitive processes — which have open and closed nominated dates, with applications being
+assessed against the nominated selection criteria (eligibility and assessment criteria) and against the
+comparative merits of other applications.
+
+one-off ad hoc grants as a selection process may be appropriate when all the elements of paragraph 2.4c of
+Part 1 apply.
+
+other Consolidated Revenue Fund (CRF) money is money that forms part of the CRF other than relevant
+money or any other money of a kind prescribed by the rules (see section 105 of the PGPA Act).
+
+relevant money means money standing to the credit of any bank account of the Commonwealth or a corporate
+Commonwealth entity or money that is held by the Commonwealth or a corporate Commonwealth entity (see
+section 8 of the PGPA Act).
+
+Rule means the Rule made under section 101 of the PGPA Act (see section 8 of the PGPA Act).
+selection criteria comprise eligibility criteria and assessment criteria.
+
+selection process is the method used to select potential grantees. This process may involve comparative
+assessment of applications or the assessment of applications against the eligibility criteria and/or the
+assessment criteria.
+
+targeted or restricted competitive processes — which are open to a small number of potential grantees
+based on the specialised requirements of the grant activity under consideration. Applications are assessed
+against the nominated selection criteria and against the comparative merits of other applications.
+
+third parties refers to any person or entity involved in the grants administration process who is not a minister,
+accountable authority or official. Third parties include but are not limited to: external committees, ministerial
+
+committees, ministerial staff, parliamentarians, sub-contractors, non-government organisations and corporate
+Commonwealth entities, where they undertake grants administration processes on behalf of the Government.
+
+[1] Corporate Commonwealth entities must comply with Division 6A of the Public Governance, Performance and Accountability Rule 2014, when a minister is involved in the
+making of a CCE grant. Corporate Commonwealth entities may be subject to the CGRPs where they administer grants as third parties on behalf of the Government, see
+paragraph 2.9.
+
+[2] Government may make further decisions which affect the administration of grants.
+
+[3] Ministers include Assistant Ministers, consistent with the Ministers of State Act 1952.
+
+[4] Every Commonwealth entity has an accountable authority. See PGPA Act subsection 12(2), Accountable authorities.
+
+[5] Proper is defined in the PGPA Act. See section 8, Dictionary.
+
+[6] This includes centralised grants administration systems and processes.
+
+[7] A gift of public property is not a grant as described in the CGRPs. See section 66 of the PGPA Act, Gifts of relevant property.
+
+[8] Relevant money is defined in the PGPA Act. See section 8, Dictionary.
+
+[9] Other CRF money is defined in the PGPA Act. See section 105, Rules in relation to other CRF money and PGPA Rule section 29 Other CRF money.
+
+[10] Notional payments are defined in the PGPA Act. See section 76, Notional payments and receipts by non-corporate Commonwealth entities.
+
+[11] The CPRs provide that, in addition to the acquisition of property or services by a relevant entity for its own use, procurement also encompasses a situation where a
+relevant entity is responsible for acquiring goods or services for other entities, or for third parties.
+
+=== PAGE 32 ===
+[12] A payment of compensation includes but is not limited to: payments under the Scheme for Compensation for Detriment caused by Defective Administration; payments
+under section 73 (Payments in special circumstances) of the Public Service Act 1999; payments under the Remuneration Tribunal Act 1973; and settlements made in
+accordance with the Legal Services Directions 2017.
+
+[13] An investment is an arrangement that involves the purchase of an asset by the Commonwealth for the primary purpose of earning income or a profitable return. Refer to
+guidance on the Finance website at www-finance.gov.au.
+
+[14] Some forms of financial assistance provided by way of concessional loans may be subject to the CGRPs.
+
+[15] These payments include General Revenue Assistance, Other General Revenue Assistance, National Specific Purpose Payments, and National Partnership Payments. For
+further information on the Federal Financial Relations Framework see www.federalfinancialrelations.gov.au, Other forms of financial assistance made to States and
+Territories, such as Commonwealth own-purpose expenses, may be subject to the CGRPs.
+
+[16] Other forms of financial assistance made to local government may be subject to the CGRPs.
+
+[17] Other forms of financial assistance made to educational institutions may be subject to the CGRPs.
+
+[18] The Commonwealth has regard to the definition of official development assistance that the OECD has set out, available on the OECD's website see http://ww.oecd.org.
+
+[19] Examples of third parties, include but are not limited to external committees, parliamentarians, sub-contractors, non-government organisations and corporate
+Commonwealth entities where they undertake grants administration on behalf of the Commonwealth.
+
+[20] See the finance website for guidance and templates relating to grants administration at www.finance.gov.au.
+
+[21] See PGPA Act, section 21 Non-corporate Commonwealth entities.
+
+[22] In addition to the requirements of the CGRPs, accountable authorities have a duty to keep their responsible minister informed under PGPA Act, section 19 Duty to keep
+responsible minister and Minister for Finance informed. See also paragraph 4.6, CGRPs.
+
+[23] The PGPA Act requires that the accountable authority of a Commonwealth entity must establish and maintain an appropriate system of risk oversight and management
+and an appropriate system of internal control for the entity. This includes by implementing measures directed at ensuring officials of the entity comply with finance law. See
+section 16, Duty to establish and maintain systems relating to risk and control.
+
+[24] See www-inance.gov.au for the most recent guidance.
+
+[25] The PGPA Act defines an ‘arrangement’ and includes a contract, agreement, deed, treaty or understanding. See section 23(2), Power in relation to arrangements and
+commitments.
+
+[26] ‘Ordinary services and functions of government’ means spending relating to the running costs of an entity, such as the payment of staff salaries or building rental.
+Generally, payments relating to the ordinary services and functions of government will come from departmental appropriations, however there can be situations where they
+are paid from administered appropriations. If you are unsure about whether an activity relates to the ‘ordinary services or functions of government’ you should seek legal
+advice.
+
+[27] See PGPA Rule 18, Approving commitments of relevant money.
+
+[28] See section 29, PGPA Act, Duty to disclose interests, and Division 2, PGPA Rule, Officials’ duty to disclose interests. The overriding principle for a declaration of a material
+personal interest is, ‘if in doubt, declare the interest’. See further guidance relevant for grant administration in Part 2, CGRPs, particularly section 13, Probity and
+Transparency.
+
+[29] See section 13(7) of the Public Service Act 1999. Further guidance can be found in the APS Values and Code of Conduct in practice publication on the Australian Public
+Service Commission website: www.apsc.gov.au.
+
+[30] Ministerial staff includes electorate officers in ministers’ offices employed under the Members of Parliament (Staff) Act 1984. See clause 3 of the Ministerial Staff Code of
+Conduct on the Special Minister of State website: www.smos.gov.au/ministerial-staff-code-conduct.
+
+[31] See section 71, PGPA Act, Approval of Proposed Expenditure by a Minister.
+
+[32] See Part 2-3 of the PGPA Act and the Archives Act 1983.
+
+[33] Officials should consider the substantive purposes and characteristics of a financial arrangement to determine the nature of the financial arrangement.
+
+[34] See paragraph 3.2, CGRPs.
+
+[35] This includes one-off ad hoc grants.
+
+[36] A risk-based approach is in place for consideration of new or revised grant opportunity guidelines. Officials involved in the development of grant opportunity guidelines are
+required to complete a risk assessment of the grants and associated guidelines. The Department of Finance in consultation with the Department of the Prime Minister and
+Cabinet will conduct a risk assessment and agree the final risk rating of the guidelines,
+
+[37] For the purposes of the CGRPs an approver may also be referred to as the decision maker.
+
+[38] For demand-driven grant opportunities, this advice should include: how the allocation method was developed; how implementation issues were considered; and an outline
+of risk mitigation strategies.
+
+[39] See PGPA Rule 29, Other CRF money.
+
+[40] Including the Australian Charities and Not-for-profits Commission (ACNC). Officials should discuss the availability of relevant information with the ACNC. See
+www.acne.gov.au.
+
+[41] See section 71, PGPA Act, Approval of proposed expenditure by a minister.
+
+[42] Presiding officers of the Departments of the Parliament are not required to report to the Minister for Finance.
+
+[43] For example, demand-driven grants could provide that, subject to specific eligibility criteria being met, particular organisations across a region will be awarded a grant.
+
+[44] Presiding officers of the Departments of the Parliament are not required to report to the Minister for Finance.
+
+[45] See paragraph 4.7, which provides the officials should make recommendations relative to the grant opportunity guidelines, and that officials must recommend that grants
+that do not meet any of the selection criteria be rejected.
+
+[46] Additional guidance on the form of the report is available from the Finance website at www,finance.gov.au. For decisions made in December, reporting should be before
+31 January of the subsequent year to ensure that all reports by ministers for the preceding calendar year can be tabled by the Minister for Finance by 30 April each year, in
+accordance with Senate Order 23E.
+
+7 For this purpose, ‘quarter’ means for a period of three months starting 1 January, 1 April, 1 July or 1 October each year.
+
+[48] See www-inance.gov.au.
+
+[49] Entities may choose to make information publicly available by other mechanisms. GrantConnect is the authoritative source for grant information and must accurately report
+approved grant opportunity guidelines and details of grants awarded.
+
+[50] See the Finance website for further guidance on grants reporting at www-finance.gov.au.
+
+[51] See the Finance website at www.finance.gov.au for further guidance on reportable variations, such as significant additional payments of relevant money, extensions into a
+new financial year, novation and/or a change in organisation details. Minor variations, such as indexing, changes to project/research team members or date changes within
+the same financial year, do not need to be reported on GrantConnect.
+
+[52] The date of effect will depend on the particular arrangement. It can be the date on which a grant agreement is signed or a specified starting date. Where there is no grant
+agreement entities must publish information on individual grants as soon as practicable.
+
+[53] Examples include one-off ad hoc grants, grants awarded through competitive, non-competitive and/or demand-driven processes.
+
+[54] See paragraph 4.3 and 4.4, CGRPs.
+
+[55] Entities may be required to use centralised or whole-of-government grants administration processes.
+
+[56] See the Finance website for guidance material at www.finance.gov.au.
+
+[57] Entities may identify other matters requiring consideration at the planning phase, depending on their specific circumstances.
+
+[58] See section 16, PGPA Act, Duty to establish and maintain systems relating to risk and control,
+
+[59] See section 17, PGPA Act, Duty to encourage cooperation with others.
+
+[60] Officials should balance this requirement for consultation against any issues that may arise in respect to probity, conflict of interest and the potential for competitive
+advantage.
+
+[61] Including the Australian Charities and Not-for-profits Commission. Officials should discuss the availability of relevant information with the ACNC. See www.acne.gov.au.
+
+[62] See section 18, PGPA Act. Duty in relation to requirements imposed on others.
+
+[63] See the Finance website for Grant opportunity guideline templates at www.finance.gov.au.
+
+[64] See the Finance website for the simple grant agreement template at www.finance.gov.au.
+
+[65] Such as the ACNC, see www.acnc.gov.au.
+
+[66] See paragraph 4.9, CGRPs.
+
+[67] The Standard Business Reporting (SBR) initiative may also be relevant for financial reporting, see www.sbr.gov.au. For financial reporting by not-for-profit organisations,
+entities must accept information according to the National Standard Chart of Accounts (NSCOA) accounting categories where a not-for-profit organisation chooses to use
+them.
+
+[68] See the Finance website at www-finance.gov.au.
+
+[69] Under section 15, PGPA Act, accountable authorities have a duty to govern Commonwealth entities in a way that, amongst other things, promotes the achievement of the
+purposes of the entity. See section 15, Duty to govern the Commonwealth entity.
+
+[70] The specific risks of creating demand-driven grant opportunities should be documented and provided to delegates. See paragraph 4.6 and footnote 38, CGRPs.
+
+[71] Refer paragraph 2.4c, CGRPs.
+
+[72] This delegation comes from the PGPA Act. See section 23, Power in relation to arrangements and commitments.
+
+[73] It may be appropriate in some circumstances to use non-competitive or targeted processes, such as, when the number of service providers is very limited and these
+providers have a well-established record of delivering the grant activities.
+
+[74] Refer paragraph 5.2a, CGRPs.
+
+[75] All parties involved in grants administration may be subject to complaints of inequitable treatment, political and other forms of patronage or bias.
+
+=== PAGE 33 ===
+[76] Under section 15, PGPA Act, accountable authorities have a duty to govern Commonwealth entities in a way that, amongst other things, promotes the proper use and
+management of public resources and the financial stability of the entity. See section 15, Duty to govern the Commonwealth entity.
+
+[77] Including through centralised grants administration arrangements.
+
+[78] To promote consistency for stakeholders, officials should use the whole-of-government templates available on the Finance website: www.finance.gov.au.
+
+[79] See paragraph 4.4, CGRPs.
+
+[80] See paragraph 4.4, CGRPs.
+
+[81] See paragraph 4.5 and 4.10, CGRPs.
+
+[82] See paragraph 11.5, CGRPs.
+
+[83] See the Finance website www.finance.gov.au
+
+[84] The PGPA Act contains a number of duties in relation to officials including duties of care and diligence, duties to act in good faith and for a proper purpose, duties in relation
+to use of position, duties in relation to the use of information and duties to disclose interests. See Division 3 of the PGPA Act, Officials.
+
+[85] See paragraph 3.6, CGRPs
+
+[86] It is not advisable to include potential grantees for a grant opportunity on bodies which directly input into the grant selection process.

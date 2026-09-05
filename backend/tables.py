@@ -27,10 +27,21 @@ def _table_to_pipe(rows, idx: int) -> str:
     return "\n".join(lines)
 
 
+def _find_tesseract():
+    import shutil, os
+    return (shutil.which("tesseract")
+            or next((p for p in (r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+                                 r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe")
+                     if os.path.exists(p)), None))
+
+
 def _ocr_page(page):
-    """OCR dự phòng cho trang scan — chỉ chạy nếu đã cài pytesseract + Tesseract."""
+    """OCR dự phòng cho trang scan — chạy nếu máy có Tesseract (tự tìm trên Windows)."""
     try:
         import pytesseract
+        exe = _find_tesseract()
+        if exe:
+            pytesseract.pytesseract.tesseract_cmd = exe
         img = page.to_image(resolution=200).original
         return pytesseract.image_to_string(img)
     except Exception:

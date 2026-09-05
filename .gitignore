@@ -10,3 +10,4 @@ data/feedback/feedback.jsonl
 data/feedback/feedback-sft.jsonl
 *.bak
 docs/_render.html
+data/data-rar/

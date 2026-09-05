@@ -1,31 +1,39 @@
-[MẪU THƯ CỦA ĐƠN VỊ — thay file này bằng mẫu thật khách gửi; xoá file để dùng thư mặc định]
+[Mẫu thư đơn vị — dịch ngược từ CGRP 2024 + Gov Style Manual letters guide (khách cung cấp 2026-09-05); cán bộ rà tại tab Nạp dữ liệu]
+**{ORGANIZATION_LETTERHEAD}**  
+{DATE}  
 
-OFFICE OF SPONSORED PROGRAMS
-{ORGANIZATION_LETTERHEAD}
+{APPLICANT_NAME}  
+{ADDRESS_LINE_1}  
+{ADDRESS_LINE_2}  
+{POSTAL_CODE}  
 
-Date: {DATE}
-Ref: {CASE_ID}
+Dear {APPLICANT_NAME},  
 
-Dear {APPLICANT_NAME},
+**1. DECISION**  
+{PLACEHOLDER: STATE THE DECISION CLEARLY, INCLUDING WHETHER THE APPLICATION IS ACCEPTED, REJECTED, OR CONDITIONALLY ACCEPTED. INCLUDE THE DATE OF THE DECISION AND THE CASE ID.}  
 
-RE: OUTCOME OF ELIGIBILITY REVIEW — {CASE_ID}
+**2. FINDINGS**  
+{PLACEHOLDER: PROVIDE A BRIEF SUMMARY OF THE REASONS FOR THE DECISION, REFERRING TO THE RELEVANT GRANT GUIDELINES AND THE NINE KEY PRINCIPLES OF THE CGRPs. INCLUDE TWO-SIDED VERBATIM QUOTES FROM THE APPLICATION AND EVALUATION REPORT.}  
 
-1. DECISION
-   (State clearly: eligible / not eligible / additional information required.)
+**3. WHAT THE APPLICANT CAN DO**  
+{PLACEHOLDER: EXPLAIN THE NEXT STEPS FOR THE APPLICANT, INCLUDING ANY REQUIRED DOCUMENTS, DEADLINES, OR FURTHER ACTIONS. INCLUDE INFORMATION ON HOW TO CONTACT THE OFFICE FOR FURTHER ASSISTANCE.}  
 
-2. FINDINGS
-   (One numbered paragraph per criterion that is not met or needs information.
-    Each paragraph MUST contain: the criterion in plain words; the exact rule text
-    in quotation marks; the exact application text in quotation marks; one plain
-    sentence explaining the gap. Reflect the reviewing officer's reason where given.)
+**4. RIGHT TO APPEAL**  
+{PLACEHOLDER: STATE THE APPLICANT’S RIGHT TO APPEAL THE DECISION, INCLUDING THE DEADLINE FOR SUBMITTING AN APPEAL, THE APPELLATE BODY, AND THE PROCEDURE FOR DOING SO.}  
 
-3. WHAT YOU CAN DO
-   (Bullet list of concrete fixes or documents to send, with the submission channel.)
+**5. PROBITY AND TRANSPARENCY**  
+{PLACEHOLDER: REITERATE THE OFFICE’S COMMITMENT TO PROBITY, TRANSPARENCY, AND THE NINE KEY PRINCIPLES OF THE CGRPs. STATE THAT ALL DECISIONS ARE MADE IN ACCORDANCE WITH THE PGPA ACT, RULES, AND CGRPs.}  
 
-4. YOUR RIGHT TO APPEAL
-   You may appeal this decision in writing within 30 days to the Review Board.
-   You may request the full assessment record for this application.
+**6. CONTACT DETAILS**  
+For any further information or assistance, please contact:  
+{OFFICER_NAME}  
+{POSITION}  
+{CONTACT_DETAILS}  
 
-Sincerely,
-{OFFICER_NAME}
-Grants Officer, on behalf of the Review Board
+We thank you for your application and look forward to the possibility of working with you in the future.  
+
+Yours sincerely  
+{OFFICER_NAME}  
+{POSITION}  
+{ORGANIZATION_NAME}  
+{CONTACT_DETAILS}
