@@ -89,7 +89,9 @@ Chỉ số: accuracy (tổng / theo loại rule / theo confidence), confusion ma
 | Tốc độ | 50,6s/tiêu chí | 23,0s/tiêu chí |
 
 Kết luận: dùng **8b** (4b nhanh gấp đôi nhưng bỏ lọt 5/6 lỗi trượt — không chấp nhận được).
-Failure cases của 8b tập trung ở vùng ranh giới unclear (HS-03) — đúng vùng thiết kế bắt con người quyết; chi tiết trong eval-results-qwen3_8b.json.
+
+**Sau khi thêm guard chặn false-pass (đợt 2):** đo lại HS-02 + HS-07 (chứa toàn bộ 6 nhãn not_met của subset) với qwen3:8b —
+accuracy **24/24 = 100%**, citation 100%, **false-pass 0/6** (trước guard: 1/6). Chi tiết eval-results-qwen3_8b.json.
 
 
 ## Bộ dữ liệu (15 hồ sơ, mỗi hồ sơ nhắm 1 ca nghiệp vụ)
