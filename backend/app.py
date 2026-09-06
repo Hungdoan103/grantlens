@@ -65,10 +65,16 @@ def index():
 
 @app.get("/api/meta")
 def meta():
+    all_rs = core.load_rulesets()
     return {"rules": core.load_rules(), "llm": llm.describe(), "llm_health": llm.health(),
             "embed_backend": rag.EMBED_BACKEND, "states": workflow.STATES, "state_vi": workflow.STATE_VI,
             "min_seconds_per_rule": workflow.MIN_SECONDS_PER_RULE,
-            "letter_template": bool(core.load_letter_template())}
+            "letter_template": bool(core.load_letter_template()),
+            "rulesets": [{"id": r["id"], "name": r["name"], "version": r["version"], "region": r.get("region", ""),
+                          "n_rules": len(r["rules"]), "default": r["id"] == all_rs["_default"]}
+                         for k, r in all_rs.items() if k != "_default"],
+            "sla_days": coi.sla_days(),
+            "managers": [o["name"] for o in coi.load_officers() if o.get("role") == "manager"]}
 
 
 @app.get("/api/stats")
@@ -83,7 +89,8 @@ def feedback_stats():
 
 @app.get("/api/officers")
 def officers():
-    return {"officers": [{"name": o["name"], "affiliations": o.get("affiliations", [])} for o in coi.load_officers()]}
+    return {"officers": [{"name": o["name"], "role": o.get("role", "officer"),
+                          "affiliations": o.get("affiliations", [])} for o in coi.load_officers()]}
 
 
 # ---------------- cases ----------------
@@ -103,9 +110,10 @@ class NewCase(BaseModel):
     directorate: str = ""
     text: str
     officer: str = "Cán bộ"
+    ruleset_id: str = ""
 
 
-def _create_case(applicant, org, directorate, text, officer, filename=None):
+def _create_case(applicant, org, directorate, text, officer, filename=None, ruleset_id=""):
     text = text.replace("\r\n", "\n").strip()
     if len(text.split()) < 40:
         raise HTTPException(400, "Văn bản hồ sơ quá ngắn (< 40 từ)")
@@ -113,8 +121,13 @@ def _create_case(applicant, org, directorate, text, officer, filename=None):
     store.upsert_case({"id": cid, "applicant": applicant.strip() or cid, "org": org, "directorate": directorate,
                        "scenario": "Hồ sơ tải lên" + (f" ({filename})" if filename else ""), "tags": ["upload"],
                        "source": "upload", "text": text})
-    store.log(officer, f"Tải lên hồ sơ mới {cid} — {applicant} ({len(text.split())} từ)", cid, "officer",
-              {"filename": filename, "words": len(text.split())})
+    try:
+        rs = core.get_ruleset(ruleset_id or None)
+    except KeyError:
+        raise HTTPException(404, f"Không có bộ tiêu chí '{ruleset_id}'")
+    store.update_case(cid, ruleset_id=rs["id"], ruleset_version=rs["version"])
+    store.log(officer, f"Tải lên hồ sơ mới {cid} — {applicant} ({len(text.split())} từ) · bộ tiêu chí {rs['name']} v{rs['version']}",
+              cid, "officer", {"filename": filename, "words": len(text.split()), "ruleset": rs["id"]})
     try:
         _screen(cid, "Hệ thống")
     except Exception:  # sàng lọc lỗi không được chặn việc tạo hồ sơ
@@ -124,17 +137,18 @@ def _create_case(applicant, org, directorate, text, officer, filename=None):
 
 @app.post("/api/cases")
 def create_case(req: NewCase):
-    return _create_case(req.applicant, req.org, req.directorate, req.text, req.officer)
+    return _create_case(req.applicant, req.org, req.directorate, req.text, req.officer, ruleset_id=req.ruleset_id)
 
 
 @app.post("/api/cases/upload")
 async def upload_case(file: UploadFile = File(...), applicant: str = Form(""), org: str = Form(""),
-                      directorate: str = Form(""), officer: str = Form("Cán bộ")):
+                      directorate: str = Form(""), officer: str = Form("Cán bộ"), ruleset_id: str = Form("")):
     try:
         meta = tables.file_to_text(file.filename, await file.read())
     except Exception as e:
         raise HTTPException(400, f"Không đọc được file {file.filename}: {e}")
-    c = _create_case(applicant or Path(file.filename).stem, org, directorate, meta["text"], officer, file.filename)
+    c = _create_case(applicant or Path(file.filename).stem, org, directorate, meta["text"], officer, file.filename,
+                     ruleset_id=ruleset_id)
     if meta["n_tables"] or meta["scanned_pages"]:
         store.log("Hệ thống", f"Phân tích layout {file.filename}: {meta['n_tables']} bảng giữ nguyên cấu trúc"
                   + (f", {len(meta['scanned_pages'])} trang scan CẦN OCR (trang {meta['scanned_pages']})" if meta["scanned_pages"] else "")
@@ -237,6 +251,76 @@ class ApproveReq(Officer):
 @app.post("/api/cases/{case_id}/letter/approve")
 def approve_letter(case_id: str, req: ApproveReq):
     return workflow.approve_letter(case_id, req.officer, req.text, req.role)
+
+
+# ---------------- multi-GO: bộ tiêu chí theo đợt tài trợ + versioning ----------------
+@app.get("/api/rulesets")
+def rulesets():
+    all_rs = core.load_rulesets()
+    return {"default": all_rs["_default"],
+            "rulesets": [r for k, r in all_rs.items() if k != "_default"]}
+
+
+class SetRulesetReq(Officer):
+    ruleset_id: str
+
+
+@app.post("/api/cases/{case_id}/ruleset")
+def set_case_ruleset(case_id: str, req: SetRulesetReq):
+    try:
+        return workflow.set_ruleset(case_id, req.ruleset_id, req.officer, req.role)
+    except KeyError as e:
+        raise HTTPException(404, str(e))
+
+
+class SaveRulesetReq(Officer):
+    id: str
+    name: str
+    version: str = "1"
+    region: str = ""
+    source: str = ""
+    rules: list
+
+
+@app.post("/api/rulesets")
+def save_ruleset(req: SaveRulesetReq):
+    import re as _re
+    rid = req.id.strip().lower()
+    if not _re.fullmatch(r"[a-z0-9][a-z0-9\-_.]{2,60}", rid):
+        raise HTTPException(400, "id bộ tiêu chí: chữ thường/số/gạch, 3-60 ký tự")
+    rules = [r for r in req.rules if r.get("id") and r.get("quote") and r.get("title_vi")]
+    if len(rules) < 3:
+        raise HTTPException(400, "Bộ tiêu chí cần ≥ 3 rule hợp lệ (id, title_vi, quote)")
+    for r in rules:
+        r["type"] = r.get("type") if r.get("type") in ("quantitative", "qualitative") else "qualitative"
+    rs = {"id": rid, "name": req.name.strip(), "region": req.region, "version": req.version.strip() or "1",
+          "source": req.source, "saved_by": req.officer, "saved_at": store.now(), "rules": rules}
+    (core.RULESETS_DIR / f"{rid}.json").write_text(json.dumps(rs, ensure_ascii=False, indent=2), encoding="utf-8")
+    idx = json.loads((core.RULESETS_DIR / "index.json").read_text(encoding="utf-8"))
+    idx["rulesets"] = [e for e in idx["rulesets"] if e["id"] != rid] + [
+        {"id": rid, "file": f"{rid}.json", "name": rs["name"], "region": rs["region"], "version": rs["version"]}]
+    (core.RULESETS_DIR / "index.json").write_text(json.dumps(idx, ensure_ascii=False, indent=2), encoding="utf-8")
+    core.reload_rulesets()
+    store.log(req.officer, f"LƯU bộ tiêu chí '{rs['name']}' v{rs['version']} ({len(rules)} rule) — id {rid}. "
+              "Hồ sơ mới chọn được bộ này; hồ sơ cũ giữ bộ đã khóa.", None, req.role,
+              {"ruleset": rid, "version": rs["version"], "n_rules": len(rules)})
+    return {"ok": True, "ruleset": {k: v for k, v in rs.items() if k != "rules"}, "n_rules": len(rules)}
+
+
+# ---------------- ký cấp 2 (quản lý) + vòng bổ sung hồ sơ ----------------
+@app.post("/api/cases/{case_id}/countersign")
+def countersign(case_id: str, req: Officer):
+    return workflow.countersign(case_id, req.officer)
+
+
+class SupplementReq(Officer):
+    items: str
+    days: int = 15
+
+
+@app.post("/api/cases/{case_id}/request-supplement")
+def request_supplement(case_id: str, req: SupplementReq):
+    return workflow.request_supplement(case_id, req.items, req.days, req.officer, req.role)
 
 
 # ---------------- bias lab ----------------

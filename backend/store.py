@@ -24,7 +24,10 @@ CREATE TABLE IF NOT EXISTS cases (
   assessed_at TEXT, review_started_at TEXT, signed_at TEXT,
   spot_rule TEXT, spot_answer TEXT, spot_ai TEXT,
   letter TEXT, letter_status TEXT, letter_approved_at TEXT,
-  llm_model TEXT, embed_backend TEXT, screening TEXT, crosscheck TEXT
+  llm_model TEXT, embed_backend TEXT, screening TEXT, crosscheck TEXT,
+  ruleset_id TEXT, ruleset_version TEXT, ruleset_snapshot TEXT,
+  countersigned_by TEXT, countersigned_at TEXT,
+  supplement TEXT, supplement_round INTEGER DEFAULT 0
 );
 CREATE TABLE IF NOT EXISTS verdicts (
   case_id TEXT, rule_id TEXT,
@@ -61,9 +64,12 @@ def db():
         _db = _conn()
         _db.executescript(SCHEMA)
         cols = {r[1] for r in _db.execute("PRAGMA table_info(cases)")}
-        for col in ("screening", "crosscheck"):  # migration cho DB tạo trước khi có cột
-            if col not in cols:
-                _db.execute(f"ALTER TABLE cases ADD COLUMN {col} TEXT")
+        for col, typ in [("screening", "TEXT"), ("crosscheck", "TEXT"), ("ruleset_id", "TEXT"),
+                         ("ruleset_version", "TEXT"), ("ruleset_snapshot", "TEXT"),
+                         ("countersigned_by", "TEXT"), ("countersigned_at", "TEXT"),
+                         ("supplement", "TEXT"), ("supplement_round", "INTEGER DEFAULT 0")]:
+            if col not in cols:  # migration cho DB cũ
+                _db.execute(f"ALTER TABLE cases ADD COLUMN {col} {typ}")
         _db.commit()
     return _db
 
@@ -72,7 +78,7 @@ def _row(r):
     if r is None:
         return None
     d = dict(r)
-    for k in ("tags", "facts", "retrieval", "detail", "screening", "crosscheck"):
+    for k in ("tags", "facts", "retrieval", "detail", "screening", "crosscheck", "ruleset_snapshot", "supplement"):
         if k in d and isinstance(d[k], str):
             try:
                 d[k] = json.loads(d[k])

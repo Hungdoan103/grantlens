@@ -19,14 +19,30 @@ ORG_BLOCK, ORG_WARN, NAME_WARN = 0.85, 0.70, 0.82
 
 
 @lru_cache(maxsize=1)
-def load_officers():
+def _load_file():
     if not OFFICERS_FILE.exists():
-        return []
-    return json.loads(OFFICERS_FILE.read_text(encoding="utf-8")).get("officers", [])
+        return {}
+    return json.loads(OFFICERS_FILE.read_text(encoding="utf-8"))
+
+
+def load_officers():
+    return _load_file().get("officers", [])
+
+
+def sla_days() -> dict:
+    """Hạn xử lý (ngày) theo trạng thái — UI cảnh báo quá hạn."""
+    return _load_file().get("sla_days", {})
 
 
 def reload():
-    load_officers.cache_clear()
+    _load_file.cache_clear()
+
+
+def role_of(name: str):
+    """Vai trò trong sổ cán bộ: 'officer' | 'manager' | None (chưa khai báo)."""
+    q = norm(name)
+    rec = next((o for o in load_officers() if norm(o["name"]) == q), None)
+    return (rec or {}).get("role")
 
 
 def check(officer_name: str, case: dict) -> dict:

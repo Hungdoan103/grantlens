@@ -1,0 +1,83 @@
+{
+  "id": "nsf-22-586",
+  "name": "NSF 22-586 CAREER",
+  "region": "US",
+  "version": "2022.1",
+  "source": "NSF 22-586 — Faculty Early Career Development Program (CAREER)",
+  "source_url": "https://www.nsf.gov/funding/opportunities/career-faculty-early-career-development-program/nsf22-586/solicitation",
+  "retrieved": "2026-08-30",
+  "rules": [
+    {
+      "id": "R01",
+      "type": "qualitative",
+      "title_vi": "Tổ chức nộp hồ sơ hợp lệ",
+      "quote": "Proposals may only be submitted by: Institutions of Higher Education (IHEs) - Two- and four-year IHEs (including community colleges) accredited in, and having a campus located in the US; or Non-profit, non-academic organizations: Independent museums, observatories, research labs, professional societies and similar organizations in the U.S."
+    },
+    {
+      "id": "R02",
+      "type": "qualitative",
+      "title_vi": "PI có bằng tiến sĩ trong lĩnh vực NSF hỗ trợ",
+      "quote": "Hold a doctoral degree in a field supported by NSF"
+    },
+    {
+      "id": "R03",
+      "type": "qualitative",
+      "title_vi": "PI đang nghiên cứu trong lĩnh vực NSF hỗ trợ",
+      "quote": "Be engaged in research in an area of science, engineering, or education supported by NSF"
+    },
+    {
+      "id": "R04",
+      "type": "quantitative",
+      "title_vi": "Vị trí tenure-track ≥50%, chức danh Assistant Professor",
+      "quote": "Hold at least a 50% tenure-track (or tenure-track-equivalent) position as an assistant professor (or equivalent title). Faculty members who are Associate Professors or in equivalent appointments, with or without tenure, are not eligible."
+    },
+    {
+      "id": "R05",
+      "type": "qualitative",
+      "title_vi": "PI chưa có tenure (untenured)",
+      "quote": "Be untenured"
+    },
+    {
+      "id": "R06",
+      "type": "qualitative",
+      "title_vi": "Chưa từng nhận giải CAREER",
+      "quote": "Have not previously received a CAREER award. (Prior or concurrent Federal support for other types of awards for non-duplicative research does not preclude eligibility.)"
+    },
+    {
+      "id": "R07",
+      "type": "quantitative",
+      "title_vi": "Giới hạn số lần dự thi (1/năm, tối đa 3 lần)",
+      "quote": "A Principal Investigator (PI) may submit only one CAREER proposal per annual competition. In addition, a Principal Investigator may not participate in more than three CAREER competitions."
+    },
+    {
+      "id": "R08",
+      "type": "quantitative",
+      "title_vi": "Không có đồng chủ nhiệm (co-PI)",
+      "quote": "No co-PIs are permitted. Proposals that are non-compliant: Co-principal investigator(s) listed on the cover page will be returned without review."
+    },
+    {
+      "id": "R09",
+      "type": "qualitative",
+      "title_vi": "Có thư của trưởng khoa (Departmental Letter), ≤2 trang",
+      "quote": "The proposal must include one (and only one) letter from the PI's department head (or equivalent organizational official). The Departmental Letter should be no more than 2 pages in length. A proposal submitted without this Letter will be returned without review."
+    },
+    {
+      "id": "R10",
+      "type": "quantitative",
+      "title_vi": "Thuyết minh ≤15 trang, tích hợp nghiên cứu + giáo dục",
+      "quote": "The Project Description may not exceed 15 pages. The Project Description should include: a description of the proposed research project; a description of the proposed educational activities; a description of how the research and educational activities are integrated or synergistic."
+    },
+    {
+      "id": "R11",
+      "type": "quantitative",
+      "title_vi": "Ngân sách tối thiểu $400,000/5 năm ($500,000 với BIO/ENG/OPP)",
+      "quote": "The CAREER award, including indirect costs, is expected to total a minimum of $400,000 for the 5-year duration; Awards for proposals to BIO, ENG, or OPP are expected to total a minimum of $500,000 for the 5-year duration."
+    },
+    {
+      "id": "R12",
+      "type": "qualitative",
+      "title_vi": "Không có cost sharing tự nguyện",
+      "quote": "Inclusion of voluntary committed cost sharing is prohibited."
+    }
+  ]
+}

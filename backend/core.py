@@ -93,9 +93,39 @@ RULES_SCHEMA = {
 }
 
 
+RULESETS_DIR = DATA / "rulesets"
+
+
 @lru_cache(maxsize=1)
+def load_rulesets() -> dict:
+    """Multi-GO: mỗi đợt/quỹ tài trợ một bộ tiêu chí riêng, có version. {id -> ruleset}."""
+    idx = json.loads((RULESETS_DIR / "index.json").read_text(encoding="utf-8"))
+    out = {}
+    for e in idx["rulesets"]:
+        rs = json.loads((RULESETS_DIR / e["file"]).read_text(encoding="utf-8"))
+        rs.setdefault("name", e.get("name", rs["id"]))
+        rs.setdefault("version", e.get("version", "1"))
+        rs.setdefault("region", e.get("region", ""))
+        out[rs["id"]] = rs
+    out["_default"] = idx.get("default") or next(iter(out))
+    return out
+
+
+def get_ruleset(ruleset_id: str = None) -> dict:
+    all_rs = load_rulesets()
+    rid = ruleset_id or all_rs["_default"]
+    if rid not in all_rs:
+        raise KeyError(f"Không có bộ tiêu chí '{rid}'")
+    return all_rs[rid]
+
+
+def reload_rulesets():
+    load_rulesets.cache_clear()
+
+
 def load_rules():
-    return json.loads((DATA / "guideline" / "rules.json").read_text(encoding="utf-8"))["rules"]
+    """Bộ tiêu chí mặc định (tương thích chỗ gọi cũ)."""
+    return get_ruleset()["rules"]
 
 
 @lru_cache(maxsize=1)
@@ -123,7 +153,7 @@ def _short(q: str, n: int = 45) -> str:
     return q if len(w) <= n else " ".join(w[:n]) + " ..."
 
 
-def assess_rule(case_id: str, text: str, rule: dict, k: int = 3) -> dict:
+def assess_rule(case_id: str, text: str, rule: dict, k: int = 3, ruleset_id: str = None, meta: dict = None) -> dict:
     ret = get_retriever(case_id, text)
     hits = ret.retrieve(f"{rule['title_vi']} — {rule['quote']}", k=k)
     valid_ids = {h["id"] for h in hits}
@@ -151,7 +181,7 @@ def assess_rule(case_id: str, text: str, rule: dict, k: int = 3) -> dict:
         jd = llm.chat_json(
             SYS_JUDGE,
             f"CASE {case_id} — RULE {rule['id']}: \"{rule['quote']}\"\n\nFACTS (normalized, style removed; coverage={coverage}):\n{fact_list}"
-            f"{feedback.fewshot_block(rule['id'])}\n\nDecide.",
+            f"{feedback.fewshot_block(rule['id'], ruleset_id)}\n\nDecide.",
             JUDGE_SCHEMA,
         )
         verdict = jd.get("verdict") if jd.get("verdict") in VERDICTS else "unclear"
@@ -171,9 +201,21 @@ def assess_rule(case_id: str, text: str, rule: dict, k: int = 3) -> dict:
     else:
         aq, chunk_id = "", hits[0]["id"]
     cite_ok = (aq == "") or quote_in_source(aq, text)
-    needs_attention = verdict in ("unclear", "not_addressed") or confidence == "low" or not cite_ok
+
+    # ---- Lớp E: GUARD — code chặn false-pass trên rule kiểm được bằng số liệu/mẫu chữ ----
+    from . import guards
+    guard = guards.check(ruleset_id or get_ruleset()["id"], rule, verdict, text, meta or {})
+    if guard and guard["action"] == "override":
+        note = f"[CHẶN FALSE-PASS] {guard['reason']}. (LLM trả 'met' nhưng mã nguồn kiểm số liệu xác định vi phạm — rule định lượng do code quyết.) | LLM: {note}"
+        verdict, confidence = guard["verdict"], "high"
+    elif guard and guard["action"] == "flag":
+        note = f"[NGHI FALSE-PASS] {guard['reason']} — hạ xuống CHƯA RÕ, bắt buộc cán bộ quyết. | LLM: {note}"
+        verdict, confidence = "unclear", "low"
+
+    needs_attention = verdict in ("unclear", "not_addressed") or confidence == "low" or not cite_ok or bool(guard)
 
     return {
+        "guard": guard,
         "r": rule["id"], "title": rule["title_vi"], "type": rule["type"],
         "v": verdict, "confidence": confidence,
         "facts": facts, "coverage": coverage, "supporting_fact": idx,
@@ -185,13 +227,13 @@ def assess_rule(case_id: str, text: str, rule: dict, k: int = 3) -> dict:
     }
 
 
-def assess_case(case_id: str, text: str, progress=None):
+def assess_case(case_id: str, text: str, progress=None, ruleset_id: str = None, meta: dict = None):
     """Generator: yield từng verdict để API stream tiến độ."""
-    rules = load_rules()
+    rules = get_ruleset(ruleset_id)["rules"]
     for i, rule in enumerate(rules):
         if progress:
             progress(rule["id"], i, len(rules))
-        yield assess_rule(case_id, text, rule)
+        yield assess_rule(case_id, text, rule, ruleset_id=ruleset_id, meta=meta)
 
 
 SYS_TEMPLATE = """You are a compliance officer designing an OUTCOME-LETTER TEMPLATE for a grants office.

@@ -1,0 +1,19 @@
+{
+  "default": "nsf-22-586",
+  "rulesets": [
+    {
+      "id": "nsf-22-586",
+      "file": "nsf-22-586.json",
+      "name": "NSF 22-586 CAREER",
+      "region": "US",
+      "version": "2022.1"
+    },
+    {
+      "id": "au-demo-fund",
+      "file": "au-demo-fund.json",
+      "name": "AU Demo Fund",
+      "region": "AU",
+      "version": "2026.1"
+    }
+  ]
+}

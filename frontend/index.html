@@ -204,6 +204,7 @@ pre.json{font-family:'IBM Plex Mono',monospace;font-size:11px;background:#F6F7F5
   <!-- ===== RULES ===== -->
   <div class="view" id="v-rules">
     <div class="note">Mỗi tiêu chí giữ <b>nguyên văn tiếng Anh</b> từ solicitation NSF 22-586 CAREER. Trích dẫn phía hồ sơ được sinh theo cơ chế <b>citation-by-retrieval</b>: model chỉ chọn đoạn và cụm từ khóa, câu trích do code cắt nguyên văn.</div>
+    <div class="row"><label><b>Đợt/quỹ tài trợ (bộ tiêu chí):</b></label><select id="rulesetsel" onchange="renderRuleset()"></select><span id="rulesetinfo" class="conf"></span></div>
     <div id="rulelist"></div>
   </div>
 
@@ -225,7 +226,7 @@ pre.json{font-family:'IBM Plex Mono',monospace;font-size:11px;background:#F6F7F5
   <div class="view" id="v-ingest">
     <div class="card">
       <h3 style="margin-top:0">Tải hồ sơ mới vào hàng đợi</h3>
-      <div class="row"><input type="text" id="upApplicant" placeholder="Tên người nộp"><input type="text" id="upOrg" placeholder="Tổ chức"><input type="text" id="upDir" placeholder="Directorate (CISE/BIO/…)" style="width:170px"></div>
+      <div class="row"><input type="text" id="upApplicant" placeholder="Tên người nộp"><input type="text" id="upOrg" placeholder="Tổ chức"><input type="text" id="upDir" placeholder="Directorate (CISE/BIO/…)" style="width:170px"><select id="upRuleset" title="Đợt/quỹ tài trợ — bộ tiêu chí áp dụng"></select></div>
       <div class="row"><input type="file" id="upFile" accept=".txt,.docx,.pdf"><span class="conf">.txt / .docx / .pdf — hoặc dán văn bản bên dưới</span></div>
       <textarea id="upText" placeholder="Dán văn bản hồ sơ (tiếng Anh) vào đây…" style="min-height:160px;font-family:'IBM Plex Mono',monospace;font-size:12px"></textarea>
       <div class="row"><button class="btn green" onclick="uploadCase()">Tạo hồ sơ</button><span id="upmsg"></span></div>
@@ -260,7 +261,12 @@ pre.json{font-family:'IBM Plex Mono',monospace;font-size:11px;background:#F6F7F5
 
 <script>
 /* ================= state & helpers ================= */
-let META=null,RULES=[],CASES=[],CUR=null;   // CUR = {case, verdicts, ai_masked}
+let META=null,RULES=[],RULESETS=[],CASES=[],CUR=null;   // CUR = {case, verdicts, rules, ruleset, ai_masked}
+function renderRuleset(){
+  const rs=RULESETS.find(r=>r.id===$('rulesetsel').value)||RULESETS[0];if(!rs)return;
+  $('rulesetinfo').textContent=`nguồn: ${rs.source||'—'} · mỗi hồ sơ KHÓA bộ + version tại lần đánh giá đầu`;
+  $('rulelist').innerHTML=rs.rules.map(r=>`<div class="rulecard"><span class="rid">${r.id}</span><span class="rtype">${r.type}</span><div style="font-weight:600;margin:6px 0 2px">${esc(r.title_vi)}</div><div class="rquote">"${esc(r.quote)}"</div></div>`).join('');
+}
 const VLBL={met:"ĐẠT",not_met:"KHÔNG ĐẠT",unclear:"CHƯA RÕ",not_addressed:"KHÔNG ĐỀ CẬP"};
 const CLBL={high:"tin cậy cao",medium:"tin cậy vừa",low:"tin cậy THẤP"};
 const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -303,7 +309,9 @@ async function init(){
     const h=META.llm_health,ok=h.ok;
     $('asidefoot').innerHTML=`Lõi AI: <b style="color:#fff">${esc(META.llm.model)}</b><br>RAG: ${esc(META.embed_backend)} · ${META.llm.local?'chạy local, dữ liệu không rời máy':META.llm.backend}<div class="pill"><span class="dot ${ok?'':'bad'}"></span>${ok?'model sẵn sàng':'model chưa sẵn sàng'}</div>`;
     $('llmbanner').innerHTML=META.llm.is_mock?`<div class="warn"><b>Đang ở chế độ MOCK</b> — không gọi model, kết quả AI là giả lập để kiểm thử luồng nghiệp vụ. Chạy thật: <span class="mono">ollama pull qwen3:8b</span> rồi khởi động server không có <span class="mono">GRANTLENS_LLM=mock</span>.</div>`:(!ok?`<div class="err"><b>Model chưa sẵn sàng:</b> ${esc(h.msg)}</div>`:'');
-    $('rulelist').innerHTML=RULES.map(r=>`<div class="rulecard"><span class="rid">${r.id}</span><span class="rtype">${r.type}</span><div style="font-weight:600;margin:6px 0 2px">${esc(r.title_vi)}</div><div class="rquote">"${esc(r.quote)}"</div></div>`).join('');
+    RULESETS=(await api('/rulesets')).rulesets;
+    const rsOpts=RULESETS.map(r=>`<option value="${r.id}">${esc(r.name)} v${esc(r.version)}${r.region?' · '+esc(r.region):''} (${r.rules.length} tiêu chí)</option>`).join('');
+    $('rulesetsel').innerHTML=rsOpts;$('upRuleset').innerHTML=rsOpts;renderRuleset();
     $('statusfilter').innerHTML='<option value="">Mọi trạng thái</option>'+META.states.map(s=>`<option value="${s}">${META.state_vi[s]}</option>`).join('');
     await loadCases();renderDash();
   }catch(e){$('asidefoot').innerHTML='<b style="color:#E38A7C">Không kết nối được backend</b><br>uvicorn backend.app:app --port 8000';}
@@ -331,8 +339,8 @@ async function renderDash(){
 function renderCaseList(){
   const f=($('casefilter').value||'').toLowerCase(),sf=$('statusfilter').value;
   const rows=CASES.filter(c=>(!sf||c.status===sf)&&(!f||(c.id+' '+c.applicant+' '+c.org+' '+c.scenario).toLowerCase().includes(f)));
-  $('casetable').innerHTML=`<tr><th>Mã</th><th>Người nộp</th><th>Tổ chức</th><th>Dir.</th><th>Kịch bản</th><th>Trạng thái</th><th>Cán bộ</th><th>Cập nhật</th></tr>`+
-    rows.map(c=>`<tr class="click" onclick="go('case','${c.id}')"><td class="mono">${c.id}${c.pair?` <span class="conf">⇄ ${c.pair}</span>`:''}</td><td><b>${esc(c.applicant)}</b></td><td>${esc(c.org)}</td><td class="mono">${esc(c.directorate)}</td><td style="color:var(--muted)">${esc(c.scenario)}</td><td><span class="st st-${c.status}">${META.state_vi[c.status]}</span></td><td>${esc(c.officer||'—')}</td><td class="conf">${fmtT(c.updated_at)}</td></tr>`).join('')||'<tr><td colspan="8">Không có hồ sơ</td></tr>';
+  $('casetable').innerHTML=`<tr><th>Mã</th><th>Người nộp</th><th>Tổ chức</th><th>Bộ tiêu chí</th><th>Kịch bản</th><th>Trạng thái · SLA</th><th>Cán bộ</th><th>Cập nhật</th></tr>`+
+    rows.map(c=>`<tr class="click" onclick="go('case','${c.id}')"><td class="mono">${c.id}${c.pair?` <span class="conf">⇄ ${c.pair}</span>`:''}${c.supplement_round?` <span class="conf">bổ sung #${c.supplement_round}</span>`:''}</td><td><b>${esc(c.applicant)}</b></td><td>${esc(c.org)}</td><td class="mono">${esc(c.ruleset_id||'')}${c.ruleset_version?' v'+esc(c.ruleset_version):''}</td><td style="color:var(--muted)">${esc(c.scenario)}</td><td><span class="st st-${c.status}">${META.state_vi[c.status]}</span> ${slaChip(c)}</td><td>${esc(c.officer||'—')}</td><td class="conf">${fmtT(c.updated_at)}</td></tr>`).join('')||'<tr><td colspan="8">Không có hồ sơ</td></tr>';
 }
 
 /* ================= case detail ================= */
@@ -340,18 +348,30 @@ async function openCase(id){
   CUR=await api('/cases/'+id);
   renderCase();
 }
+function caseRules(){return (CUR&&CUR.rules)||RULES;}
+const SLA_TS={new:'created_at',assessed:'assessed_at',in_review:'review_started_at',signed:'signed_at',letter_drafted:'signed_at'};
+function slaChip(c){
+  const lim=(META.sla_days||{})[c.status];if(!lim)return '';
+  let ts=c.status==='awaiting_supplement'?(c.supplement&&c.supplement.requested_at):c[SLA_TS[c.status]]||c.updated_at;
+  if(!ts)return '';
+  const days=Math.floor((Date.now()-new Date(ts))/86400e3);
+  return days>lim?`<span class="chip c-not_met">SLA quá hạn ${days-lim} ngày (${days}/${lim}d)</span>`:`<span class="conf">SLA ${days}/${lim} ngày</span>`;
+}
 function renderCase(){
-  const c=CUR.case,st=c.status;
+  const c=CUR.case,st=c.status,rs=CUR.ruleset||{};
   $('pagetitle').textContent=`${c.id} — ${c.applicant}`;
-  $('casehead').innerHTML=`<div class="card" style="margin-bottom:12px"><div class="row" style="margin:0"><span class="st st-${st}" style="font-size:12px">${META.state_vi[st]}</span><span class="grow"></span>${c.officer?`<span class="conf">Cán bộ: <b>${esc(c.officer)}</b></span>`:''}</div>
-    <div class="kv" style="margin-top:10px"><b>Tổ chức</b><span>${esc(c.org||'—')}</span><b>Directorate</b><span class="mono">${esc(c.directorate||'—')}</span><b>Kịch bản</b><span>${esc(c.scenario||'—')}</span>${c.llm_model?`<b>Đánh giá bởi</b><span class="mono">${esc(c.llm_model)} · ${fmtT(c.assessed_at)}</span>`:''}${c.pair?`<b>Cặp bias</b><span>${c.pair} — <a href="#" onclick="go('bias');$('biasA').value='${c.id}';$('biasB').value='${c.pair}';return false">so sánh trong Bias Lab</a></span>`:''}</div></div>`;
+  const supp=c.supplement;
+  $('casehead').innerHTML=`<div class="card" style="margin-bottom:12px"><div class="row" style="margin:0"><span class="st st-${st}" style="font-size:12px">${META.state_vi[st]}</span>${slaChip(c)}<span class="grow"></span>${c.officer?`<span class="conf">Cán bộ: <b>${esc(c.officer)}</b></span>`:''}${c.countersigned_by?`<span class="chip c-met">Quản lý đã ký cấp 2: ${esc(c.countersigned_by)}</span>`:''}</div>
+    <div class="kv" style="margin-top:10px"><b>Bộ tiêu chí</b><span>${esc(rs.name||'')} <span class="mono">v${esc(rs.version||'')}</span> ${rs.locked?'<span class="chip c-met">ĐÃ KHÓA cho hồ sơ này</span>':`<span class="conf">chưa khóa — sẽ khóa khi đánh giá</span>${META.states.indexOf(st)<META.states.indexOf('signed')&&(META.rulesets||[]).length>1?` · <a href="#" onclick="changeRuleset();return false">đổi bộ</a>`:''}`}</span><b>Tổ chức</b><span>${esc(c.org||'—')}</span><b>Directorate</b><span class="mono">${esc(c.directorate||'—')}</span><b>Kịch bản</b><span>${esc(c.scenario||'—')}</span>${c.supplement_round?`<b>Vòng bổ sung</b><span>#${c.supplement_round}${supp&&st==='awaiting_supplement'?` — hạn <b>${esc(supp.deadline)}</b>`:''}</span>`:''}${c.llm_model?`<b>Đánh giá bởi</b><span class="mono">${esc(c.llm_model)} · ${fmtT(c.assessed_at)}</span>`:''}${c.pair?`<b>Cặp bias</b><span>${c.pair} — <a href="#" onclick="go('bias');$('biasA').value='${c.id}';$('biasB').value='${c.pair}';return false">so sánh trong Bias Lab</a></span>`:''}</div>
+    ${st==='awaiting_supplement'&&supp?`<div class="warn" style="margin:10px 0 0"><b>Đang chờ người nộp bổ sung (vòng #${supp.round}, hạn ${esc(supp.deadline)}):</b> ${esc(supp.items)}<br><span class="conf">Nhận được tài liệu → bấm "+ Đính kèm tài liệu" ở khung Đối chiếu chéo; hệ thống tự đánh giá lại từ đầu.</span></div>`:''}</div>`;
   const idx=META.states.indexOf(st);
   $('stepper').innerHTML=`<div class="stepper">${META.states.map((s,i)=>`<div class="step ${i<idx?'done':i===idx?'cur':''}"><span class="n">${i<idx?'✓':i+1}</span>${META.state_vi[s]}</div>`).join('')}</div>`;
   // action bar
   let a='';
   if(st==='new')a=`<button class="btn" onclick="runAssessment()">▶ Chạy đánh giá AI (${esc(META.llm.model)})</button>`;
-  if(st==='assessed')a=`<button class="btn green" onclick="startReview()">Bắt đầu thẩm định (spot-check mù trước)</button> <button class="btn ghost" onclick="runAssessment()">Đánh giá lại</button>`;
-  if(st==='in_review')a=`<button class="btn ghost" onclick="runAssessment()">Đánh giá lại (xoá xác nhận)</button>`;
+  if(st==='assessed')a=`<button class="btn green" onclick="startReview()">Bắt đầu thẩm định (spot-check mù trước)</button> <button class="btn ghost" onclick="runAssessment()">Đánh giá lại</button> <button class="btn ghost" onclick="askSupplement()">Yêu cầu bổ sung hồ sơ</button>`;
+  if(st==='in_review')a=`<button class="btn ghost" onclick="askSupplement()">Yêu cầu bổ sung hồ sơ</button> <button class="btn ghost" onclick="runAssessment()">Đánh giá lại (xoá xác nhận)</button>`;
+  if(st==='awaiting_supplement')a=`<button class="btn ghost" onclick="runAssessment()">Đánh giá lại với hồ sơ hiện có</button>`;
   if(idx>=META.states.indexOf('signed'))a=`<button class="btn ghost" onclick="reopenCase()">Mở lại hồ sơ (có lý do)</button>`;
   $('actionbar').innerHTML=`<div class="row">${a}</div>`;
   $('runstatus').innerHTML='';
@@ -450,11 +470,12 @@ function renderMatrix(){
   let h=`<div class="card" style="margin-bottom:10px;padding:12px 16px"><div class="row" style="margin:0"><b style="font-size:13px">Ma trận tiêu chí × kết luận</b><span class="grow"></span>${masked?'<span class="chip c-masked">AI ĐANG BỊ CHE — làm spot-check trước</span>':`<span class="chip c-met">${sum('met')} đạt</span> <span class="chip c-not_met">${sum('not_met')} không đạt</span> <span class="chip c-unclear">${sum('unclear')} chưa rõ</span> <span class="chip c-not_addressed">${sum('not_addressed')} không đề cập</span>`}</div>
     ${rev?`<div class="progress"><div style="width:${done/n*100}%"></div></div><div class="conf">${done}/${n} tiêu chí đã được cán bộ xác nhận · không có nút "duyệt tất cả" · sửa AI hoặc AI chưa rõ ⇒ phải ghi lý do</div>`:''}</div>`;
   h+=vs.map(v=>{
-    const r=RULES.find(x=>x.id===v.rule_id)||{};
+    const r=caseRules().find(x=>x.id===v.rule_id)||{};
+    const guarded=/\[(CHẶN|NGHI) FALSE-PASS\]/.test(v.note||'');
     const fv=v.final_verdict||v.ai_verdict, conf=v.confirmed_at;
     const attn=!masked&&v.needs_attention&&!conf;
     const head=`<div class="vhead" onclick="toggleRow('${v.rule_id}')"><span class="rid">${v.rule_id}</span><span class="vtitle">${esc(r.title_vi)}</span>
-      ${masked?'<span class="chip c-masked">?</span>':`<span class="chip c-${v.ai_verdict}">AI: ${VLBL[v.ai_verdict]}</span><span class="conf ${v.ai_confidence}">${CLBL[v.ai_confidence]||''}</span>`}
+      ${masked?'<span class="chip c-masked">?</span>':`<span class="chip c-${v.ai_verdict}">AI: ${VLBL[v.ai_verdict]}</span>${guarded?'<span class="chip c-not_met">⛔ guard chặn false-pass</span>':''}<span class="conf ${v.ai_confidence}">${CLBL[v.ai_confidence]||''}</span>`}
       ${conf?`<span class="chip c-${v.final_verdict}">✓ ${VLBL[v.final_verdict]}</span>`:''}
       ${!masked&&v.cite_ok===0?'<span class="conf low">⚠ trích dẫn không khớp</span>':''}</div>`;
     if(masked)return `<div class="vrow">${head}</div>`;
@@ -500,7 +521,7 @@ async function unconfirm(id){try{await api(`/cases/${CUR.case.id}/unconfirm`,{..
 async function runAssessment(){
   if(CUR.verdicts.length&&CUR.case.status==='in_review'&&!confirm('Đánh giá lại sẽ xoá mọi xác nhận hiện có của cán bộ. Tiếp tục?'))return;
   const st=$('runstatus');
-  st.innerHTML=`<div class="card"><div><span class="spin"></span><b>${esc(META.llm.model)}</b> đang đánh giá 12 tiêu chí — mỗi tiêu chí 2 lượt gọi (trích dữ kiện → phán quyết)${META.llm.local?', model chạy local nên có thể mất 1–4 phút':''}…</div><div class="progress"><div id="pbar"></div></div><div class="conf" id="pline"></div><div id="plive" style="margin-top:8px"></div></div>`;
+  st.innerHTML=`<div class="card"><div><span class="spin"></span><b>${esc(META.llm.model)}</b> đang đánh giá ${caseRules().length} tiêu chí (bộ ${esc((CUR.ruleset||{}).name||'')}) — mỗi tiêu chí 2 lượt gọi + guard chặn false-pass${META.llm.local?', model chạy local nên có thể mất vài phút':''}…</div><div class="progress"><div id="pbar"></div></div><div class="conf" id="pline"></div><div id="plive" style="margin-top:8px"></div></div>`;
   $('actionbar').innerHTML='';$('matrix').innerHTML='';
   try{
     const res=await fetch(`/api/cases/${CUR.case.id}/assess`,{method:'POST'});
@@ -516,7 +537,7 @@ async function runAssessment(){
         if(ev.type==='done'){$('pbar').style.width='100%';}
       }
     }
-    toast('AI đã trả 12 kết luận NHÁP');await openCase(CUR.case.id);
+    toast('AI đã trả toàn bộ kết luận NHÁP');await openCase(CUR.case.id);
   }catch(e){st.innerHTML=`<div class="err">Lỗi: ${esc(e.message)}</div>`;$('actionbar').innerHTML=`<div class="row"><button class="btn" onclick="runAssessment()">Thử lại</button></div>`;}
 }
 
@@ -533,7 +554,7 @@ async function startReview(ack,reason){
   }
 }
 function showSpotModal(){
-  const c=CUR.case,r=RULES.find(x=>x.id===c.spot_rule);
+  const c=CUR.case,r=caseRules().find(x=>x.id===c.spot_rule)||{};
   $('spotbox').innerHTML=`<div class="blindtag">Spot-check mù · chống rubber-stamping</div>
     <h2 style="margin-bottom:6px">Bạn kết luận tiêu chí này thế nào?</h2>
     <p style="color:var(--muted);font-size:13.5px">Hệ thống chọn ngẫu nhiên <b>${r.id}</b> và <b>che toàn bộ đề xuất của AI</b> cho tới khi bạn tự trả lời. Kết quả được ghi nhật ký để đo mức độ độc lập của cán bộ so với AI.</p>
@@ -563,6 +584,24 @@ async function signOff(ack){
   catch(e){if(e.status===428){if(confirm(e.message+'\n\nVẫn ký duyệt?'))return signOff(true);await openCase(CUR.case.id);}else toast(e.message,true);}
 }
 async function reopenCase(){const r=prompt('Lý do mở lại hồ sơ đã ký (bắt buộc, ghi nhật ký):');if(!r)return;try{await api(`/cases/${CUR.case.id}/reopen`,{...officer(),reason:r});await openCase(CUR.case.id);}catch(e){toast(e.message,true);}}
+async function askSupplement(){
+  const pre=CUR.verdicts.filter(v=>['unclear','not_addressed'].includes(v.ai_verdict)).map(v=>v.rule_id+': '+(v.note||'').slice(0,60)).join('; ');
+  const items=prompt('Danh mục cần người nộp bổ sung (gửi kèm thư/email cho họ):',pre||'');if(!items)return;
+  const days=prompt('Hạn nộp bổ sung (số ngày):','15');if(days===null)return;
+  try{await api(`/cases/${CUR.case.id}/request-supplement`,{...officer(),items,days:parseInt(days)||15});toast('Đã chuyển sang Chờ bổ sung hồ sơ');await openCase(CUR.case.id);await loadCases();}
+  catch(e){toast(e.message,true);}
+}
+async function changeRuleset(){
+  const list=(META.rulesets||[]).map(r=>`${r.id} — ${r.name} v${r.version}`).join('\n');
+  const rid=prompt('Gán bộ tiêu chí (nhập id):\n'+list, (CUR.ruleset||{}).id||'');if(!rid)return;
+  try{await api(`/cases/${CUR.case.id}/ruleset`,{...officer(),ruleset_id:rid.trim()});toast('Đã gán bộ tiêu chí — cần đánh giá lại');await openCase(CUR.case.id);}
+  catch(e){toast(e.message,true);}
+}
+async function doCountersign(){
+  const mgr=$('mgrsel')?$('mgrsel').value:'';if(!mgr){toast('Chọn quản lý ký cấp 2',true);return;}
+  try{await api(`/cases/${CUR.case.id}/countersign`,{officer:mgr,role:'manager'});toast('Quản lý đã ký cấp 2 — được phép phát hành thư');await openCase(CUR.case.id);}
+  catch(e){toast(e.message,true);}
+}
 
 /* ---------- letter ---------- */
 function renderLetter(){
@@ -570,7 +609,11 @@ function renderLetter(){
   if(idx<META.states.indexOf('signed')){$('letterbox').innerHTML=CUR.verdicts.length&&!CUR.ai_masked?`<div class="warn" style="margin-top:14px">Thư kết quả chỉ được soạn <b>sau khi</b> cán bộ ký duyệt 100% tiêu chí — server từ chối mọi đường tắt.</div>`:'';return;}
   const fails=CUR.verdicts.filter(v=>v.final_verdict!=='met');
   let h=`<div class="card" style="margin-top:14px"><h3 style="margin-top:0">Thư kết quả cho người nộp hồ sơ</h3><div class="conf">Soạn từ ${CUR.verdicts.length} kết luận cuối đã ký bởi ${esc(c.officer)} · ${fails.length} tiêu chí không đạt / cần bổ sung · tiếng Anh B1, có mục bổ sung và khiếu nại</div>`;
-  if(c.status==='signed')h+=`<div class="row"><button class="btn" id="genletter" onclick="genLetter()">Soạn thư (${esc(META.llm.model)})</button>${META.letter_template?'<span class="chip c-met">theo mẫu thư của đơn vị (data/letter-template.txt)</span>':'<span class="conf">chưa có mẫu đơn vị — dùng khung mặc định</span>'}</div>`;
+  if(c.status==='signed'&&CUR.needs_countersign){
+    h+=`<div class="warn"><b>Cần chữ ký cấp 2:</b> hồ sơ có ${fails.length} tiêu chí không đạt/chưa rõ — theo quy trình, một <b>quản lý</b> (khác cán bộ thẩm định, qua kiểm COI) phải ký xác nhận trước khi phát hành thư.</div>
+    <div class="row"><label><b>Quản lý ký cấp 2:</b></label><select id="mgrsel">${(META.managers||[]).map(m=>`<option ${m===c.officer?'disabled':''}>${esc(m)}</option>`).join('')}</select><button class="btn green" onclick="doCountersign()">Ký xác nhận cấp quản lý</button><span class="conf">server kiểm vai trò manager + khác người ký + COI</span></div>`;
+  }
+  else if(c.status==='signed')h+=`<div class="row"><button class="btn" id="genletter" onclick="genLetter()">Soạn thư (${esc(META.llm.model)})</button>${META.letter_template?'<span class="chip c-met">theo mẫu thư của đơn vị (data/letter-template.txt)</span>':'<span class="conf">chưa có mẫu đơn vị — dùng khung mặc định</span>'}</div>`;
   if(c.status==='letter_drafted')h+=`<div class="draftmark">NHÁP — CHƯA GỬI</div><textarea class="letter-edit" id="lettertext">${esc(c.letter)}</textarea><div class="row"><button class="btn green" onclick="approveLetter()">Phê duyệt nội dung thư (${esc(OFFICER)})</button><button class="btn ghost" onclick="genLetter()">Soạn lại</button><span class="conf">Có thể sửa tay trước khi phê duyệt — nhật ký ghi "có chỉnh sửa".</span></div>`;
   if(c.status==='letter_approved')h+=`<div class="draftmark appmark">ĐÃ PHÊ DUYỆT — ${esc(c.officer)} · ${fmtT(c.letter_approved_at)}</div><div class="letter">${esc(c.letter)}</div><div class="row"><button class="btn ghost" onclick="window.print()">In / lưu PDF</button></div>`;
   $('letterbox').innerHTML=h+'</div>';
@@ -617,9 +660,9 @@ async function renderAudit(){
 async function uploadCase(){
   askOfficer(false);const f=$('upFile').files[0],msg=$('upmsg');msg.innerHTML='<span class="spin"></span>';
   try{let c;
-    if(f){const fd=new FormData();fd.append('file',f);fd.append('applicant',$('upApplicant').value);fd.append('org',$('upOrg').value);fd.append('directorate',$('upDir').value);fd.append('officer',OFFICER);
+    if(f){const fd=new FormData();fd.append('file',f);fd.append('applicant',$('upApplicant').value);fd.append('org',$('upOrg').value);fd.append('directorate',$('upDir').value);fd.append('officer',OFFICER);fd.append('ruleset_id',$('upRuleset').value||'');
       const r=await fetch('/api/cases/upload',{method:'POST',body:fd});const d=await r.json();if(!r.ok)throw new Error(d.detail);c=d;}
-    else c=await api('/cases',{applicant:$('upApplicant').value,org:$('upOrg').value,directorate:$('upDir').value,text:$('upText').value,officer:OFFICER});
+    else c=await api('/cases',{applicant:$('upApplicant').value,org:$('upOrg').value,directorate:$('upDir').value,text:$('upText').value,officer:OFFICER,ruleset_id:$('upRuleset').value||''});
     const ing=c.ingest;
     let extra='';
     if(ing&&(ing.n_tables||ing.scanned_pages.length))extra=` · ${ing.n_tables} bảng giữ cấu trúc${ing.scanned_pages.length?` · ${ing.scanned_pages.length} trang scan CẦN OCR`:''}`;

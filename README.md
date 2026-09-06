@@ -45,6 +45,12 @@ Dữ liệu tham chiếu công khai của Úc trong `data/external/` (xem README
 - **Đối chiếu chéo chống gian lận** (`backend/crosscheck.py`): hồ sơ nhiều tài liệu (marker `=== TÀI LIỆU: tên ===`, API `/attach`); mã nguồn so số tiền / năm bằng cấp / số trang giữa các tài liệu + ngày vô lý; lệch → panel "KHÔNG KHỚP — nghi vấn" kèm trích ngữ cảnh. Test case HS-14 (khai $480k, báo cáo $1,52tr). Tự chạy khi đánh giá / đính kèm.
 - **Thư theo mẫu đơn vị**: đặt mẫu vào `data/letter-template.txt` (dòng đầu `[ghi chú]` bị bỏ qua) — thư sinh ra theo đúng cấu trúc mẫu; xoá file để về khung mặc định.
 
+## Cập nhật theo phản hồi khách đợt 2 (09/2026)
+- **Multi-GO + versioning** (`data/rulesets/`): mỗi đợt/quỹ tài trợ một bộ tiêu chí riêng có version; hồ sơ **KHÓA snapshot bộ tiêu chí** tại lần đánh giá đầu (đổi rule sau không ảnh hưởng hồ sơ đang xử lý). API: GET/POST `/api/rulesets`, POST `/api/cases/{id}/ruleset`. Trích rule từ guideline mới → rà → lưu thành bộ mới ngay trên UI.
+- **Guard chặn false-pass** (`backend/guards.py`): rule định lượng (ngân sách theo directorate, số trang, %, co-PI, số lần dự thi...) được mã nguồn kiểm lại sau LLM — LLM nói "met" mà số liệu vi phạm ⇒ ghi đè not_met (định lượng) hoặc hạ unclear (định tính), gắn nhãn, ghi nhật ký; cán bộ muốn vẫn cho ĐẠT phải ghi lý do bác cảnh báo.
+- **Ký cấp 2**: hồ sơ có tiêu chí không đạt/chưa rõ ⇒ thư chỉ phát hành sau khi một **manager** (data/officers.json, khác người thẩm định, qua kiểm COI) ký xác nhận. Ngưỡng chống ký nhanh nâng 8→15s/tiêu chí (`GRANTLENS_MIN_SECONDS_PER_RULE`).
+- **Vòng bổ sung hồ sơ**: trạng thái mới `awaiting_supplement` — cán bộ ghi danh mục cần bổ sung + hạn; đính kèm tài liệu là quay lại đánh giá, đếm số vòng. **SLA** theo trạng thái (data/officers.json `sla_days`) — quá hạn UI cảnh báo đỏ.
+
 ## Điểm phương pháp
 **Chống thiên lệch văn phong (2 lượt gọi thật):** lượt 1 chỉ trích *dữ kiện* trung tính (số liệu, ngày, directorate…) kèm chunk_id + key_phrase; lượt 2 phán quyết **chỉ nhìn danh sách dữ kiện**, không nhìn văn gốc ⇒ ngữ pháp/độ trôi chảy không thể ảnh hưởng. Kiểm chứng bằng 2 cặp HS-04A/B và HS-11A/B (Bias Lab + eval).
 

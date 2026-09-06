@@ -20,8 +20,12 @@ def main():
         only = set(sys.argv[sys.argv.index("--only") + 1].split(","))
     gt_doc = json.loads((DATA / "labels" / "ground-truth.json").read_text(encoding="utf-8"))
     gt, pairs = gt_doc["labels"], gt_doc["bias_pairs"]
-    rules = {r["id"]: r for r in core.load_rules()}
     cases = [c for c in core.load_manifest() if not only or c["id"] in only]
+    rules = {}  # (ruleset, rule_id) -> rule; manifest có thể trỏ ruleset khác nhau
+    for c in cases:
+        rs = core.get_ruleset(c.get("ruleset"))
+        for r in rs["rules"]:
+            rules[r["id"]] = r
     info = llm.describe()
     if info["is_mock"]:
         print("!! Đang chạy chế độ MOCK — số liệu KHÔNG có giá trị báo cáo. Đặt GRANTLENS_LLM=ollama.")
@@ -30,7 +34,8 @@ def main():
         print(f"\n=== {c['id']} — {c['scenario']} ===")
         text = core.load_app_text(c)
         res = []
-        for v in core.assess_case(c["id"], text, progress=lambda rid, i, n: print(f"  {rid} ({i + 1}/{n})", end="\r")):
+        for v in core.assess_case(c["id"], text, progress=lambda rid, i, n: print(f"  {rid} ({i + 1}/{n})", end="\r"),
+                                  ruleset_id=c.get("ruleset"), meta={"directorate": c.get("directorate", "")}):
             res.append(v)
         all_results[c["id"]] = res
         print(f"  xong: " + " ".join(f"{v['r']}={v['v'][:3]}" for v in res))

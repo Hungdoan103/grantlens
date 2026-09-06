@@ -33,7 +33,7 @@ def _load():
     return out
 
 
-def record_signed_case(case: dict, verdicts: list, rules_by_id: dict, llm_model: str) -> int:
+def record_signed_case(case: dict, verdicts: list, rules_by_id: dict, llm_model: str, ruleset_id: str = "") -> int:
     """Gọi lúc ký duyệt: ghi các tiêu chí cán bộ sửa / phải quyết thay AI. Trả số mẫu ghi."""
     DIR.mkdir(parents=True, exist_ok=True)
     n = 0
@@ -51,22 +51,23 @@ def record_signed_case(case: dict, verdicts: list, rules_by_id: dict, llm_model:
                 "ai_verdict": v["ai_verdict"], "ai_confidence": v.get("ai_confidence"),
                 "final_verdict": v["final_verdict"], "officer_reason": v.get("officer_reason") or "",
                 "applicant_quote": v.get("aq") or "", "kind": "override" if override else "human_decided",
-                "officer": v.get("confirmed_by"), "llm": llm_model,
+                "officer": v.get("confirmed_by"), "llm": llm_model, "ruleset": ruleset_id,
             }, ensure_ascii=False) + "\n")
             n += 1
     return n
 
 
-def examples_for_rule(rule_id: str, limit: int = MAX_FEWSHOT):
-    """Ví dụ few-shot cho bước phán quyết: các lần cán bộ SỬA kết luận AI của tiêu chí này (mới nhất trước)."""
+def examples_for_rule(rule_id: str, ruleset_id: str = None, limit: int = MAX_FEWSHOT):
+    """Ví dụ few-shot: các lần cán bộ SỬA kết luận AI của tiêu chí này TRONG CÙNG bộ tiêu chí."""
     if not ENABLED:
         return []
-    ex = [e for e in _load() if e["rule"] == rule_id and e["kind"] == "override" and e.get("facts")]
+    ex = [e for e in _load() if e["rule"] == rule_id and e["kind"] == "override" and e.get("facts")
+          and (ruleset_id is None or e.get("ruleset", "nsf-22-586") == ruleset_id)]
     return ex[-limit:]
 
 
-def fewshot_block(rule_id: str) -> str:
-    ex = examples_for_rule(rule_id)
+def fewshot_block(rule_id: str, ruleset_id: str = None) -> str:
+    ex = examples_for_rule(rule_id, ruleset_id)
     if not ex:
         return ""
     lines = ["\nPAST OFFICER CORRECTIONS for this rule (learn from them; the officer verdict is ground truth):"]

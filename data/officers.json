@@ -1,8 +1,46 @@
 {
-  "_note": "Sổ cán bộ thẩm định — dùng cho kiểm tra xung đột lợi ích (COI) trước khi nhận hồ sơ. Bản MVP quản lý qua trang quản trị; bản demo sửa file này. affiliations: tổ chức hiện tại + nơi từng công tác/cộng tác.",
+  "_note": "Sổ cán bộ — COI + phân vai. role: officer (thẩm định) | manager (ký xác nhận cấp 2 khi loại hồ sơ). sla_days: hạn xử lý theo trạng thái (ngày), quá hạn UI cảnh báo.",
+  "sla_days": {
+    "new": 2,
+    "assessed": 3,
+    "in_review": 5,
+    "awaiting_supplement": 15,
+    "signed": 3,
+    "letter_drafted": 2
+  },
   "officers": [
-    {"name": "Nguyen Van An", "affiliations": ["Grants Office"], "notes": "cán bộ mẫu, không xung đột"},
-    {"name": "Tran Thi Binh", "affiliations": ["Grants Office", "Riverside State University"], "notes": "từng công tác tại Riverside State University (trùng HS-01 — để demo chặn COI)"},
-    {"name": "James Miller", "affiliations": ["Lakeshore Technical University"], "notes": "trùng tên trưởng khoa trong HS-02 — để demo cảnh báo trùng tên"}
+    {
+      "name": "Nguyen Van An",
+      "role": "officer",
+      "affiliations": [
+        "Grants Office"
+      ],
+      "notes": "cán bộ thẩm định mẫu"
+    },
+    {
+      "name": "Tran Thi Binh",
+      "role": "officer",
+      "affiliations": [
+        "Grants Office",
+        "Riverside State University"
+      ],
+      "notes": "demo chặn COI với HS-01"
+    },
+    {
+      "name": "James Miller",
+      "role": "officer",
+      "affiliations": [
+        "Lakeshore Technical University"
+      ],
+      "notes": "demo cảnh báo trùng tên HS-02"
+    },
+    {
+      "name": "Pham Van Quyet",
+      "role": "manager",
+      "affiliations": [
+        "Grants Office"
+      ],
+      "notes": "quản lý — ký xác nhận cấp 2 trước khi loại hồ sơ"
+    }
   ]
 }
