@@ -109,7 +109,7 @@ def _mock(messages, fmt=None, max_tokens=700):
             facts.append({"fact": sent[:160], "chunk_id": int(m.group(1)), "key_phrase": " ".join(words[2:8]) or sent[:40]})
         return json.dumps({"facts": facts[:3], "coverage": "partial" if facts else "none"})
     if "verdict" in props:  # judge step
-        m = re.search(r"CASE (\S+) .*?RULE (R\d\d)", user, re.S)
+        m = re.search(r"CASE (\S+) .*?RULE ([A-Z]\d{2})", user, re.S)
         v = "unclear"
         if m:
             v = _mock_labels().get(m.group(1), {}).get(m.group(2), "unclear")

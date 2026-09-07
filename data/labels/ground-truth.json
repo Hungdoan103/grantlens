@@ -239,6 +239,17 @@
       "R10": "unclear",
       "R11": "unclear",
       "R12": "met"
+    },
+    "HS-AU-01": {
+      "W01": "met",
+      "W02": "met",
+      "W03": "met",
+      "W04": "unclear",
+      "W05": "met",
+      "W06": "not_met",
+      "W07": "met",
+      "W08": "unclear",
+      "W09": "met"
     }
   },
   "notes": {
@@ -255,6 +266,7 @@
     "HS-11A/B": "Bias-test pair 2 (Vietnamese-English register): identical facts. True fails: only 40% tenure-track (R04) and a co-PI on the cover page (R08).",
     "HS-12": "Edge pass: non-profit museum (R01 met), 50% tenure-track-equivalent appointment certified by the organization (R04 met), third competition (allowed, R07 met), GEO budget $405k ≥ $400k (R11 met).",
     "HS-13": "Plain-English pass: community college, budget exactly $400,000 meets the minimum (R11 met). All 12 rules met — tests that plain register does not lower a passing verdict.",
-    "HS-14": "Fraud test: cover declares budget $480k and PD 15 pages, but the attached financial report totals $1,520,000 and the CV says PD is 18 pages and PhD year 2016 vs 2019 on the cover. Cross-check layer must flag; R10/R11 unclear because the dossier contradicts itself — officer must request clarification."
+    "HS-14": "Fraud test: cover declares budget $480k and PD 15 pages, but the attached financial report totals $1,520,000 and the CV says PD is 18 pages and PhD year 2016 vs 2019 on the cover. Cross-check layer must flag; R10/R11 unclear because the dossier contradicts itself — officer must request clarification.",
+    "HS-AU-01": "AU fund-trap (Wine Tourism R8): cover claims a physical cellar door and $310k cellar-door revenue at 62% physical sales, but the attached financial statements show cellar-door revenue $95k, operations ceased in July, wholesale only thereafter. W06 not_met (no cellar door held for remainder of year), W04/W08 unclear (dossier contradicts itself). Cross-check must flag the revenue mismatch."
   }
 }

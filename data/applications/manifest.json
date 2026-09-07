@@ -193,6 +193,20 @@
         "fraud",
         "crosscheck"
       ]
+    },
+    {
+      "id": "HS-AU-01",
+      "file": "HS-AU-01-wine-cellar-trap.txt",
+      "applicant": "Barossa Ridge Wines Pty Ltd",
+      "org": "Barossa Ridge Wines Pty Ltd",
+      "directorate": "Wine Australia",
+      "ruleset": "au-wine-tourism-r8",
+      "scenario": "Bẫy quỹ Úc — khai có cellar door nhưng báo cáo tài chính lộ wholesale-only",
+      "tags": [
+        "au",
+        "fraud",
+        "fund-trap"
+      ]
     }
   ]
 }

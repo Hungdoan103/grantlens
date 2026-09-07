@@ -42,6 +42,9 @@ def seed():
     for c in core.load_manifest():
         if not store.case_exists(c["id"]):
             store.upsert_case({**c, "text": core.load_app_text(c)})
+            if c.get("ruleset"):
+                rs = core.get_ruleset(c["ruleset"])
+                store.update_case(c["id"], ruleset_id=rs["id"], ruleset_version=rs["version"])
     if not store.audit_events(limit=1):
         store.log("Hệ thống", "Khởi tạo nhật ký kiểm toán (genesis)", None, "system")
 

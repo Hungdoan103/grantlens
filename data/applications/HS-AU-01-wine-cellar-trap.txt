@@ -1,0 +1,33 @@
+APPLICATION HS-AU-01 — WINE TOURISM AND CELLAR DOOR GRANT (ROUND 8) — APPLICATION SUMMARY
+(Dataset note: Australian fund-specific TRAP case, built from the client's fund analysis. The cover form claims a compliant physical cellar door, but the attached financial report shows wholesale-only operations and a mismatched cellar-door revenue figure. Cross-check and fund guards must flag it.)
+
+Applicant: Barossa Ridge Wines Pty Ltd
+ABN: 53 004 085 616 — active, registered for GST since 2012.
+Contact: Ms. Claire Hutton, Finance Director.
+
+Producer status: Barossa Ridge Wines Pty Ltd is a wine producer under the WET Act, producing shiraz and riesling in the Barossa Valley, South Australia.
+
+Sales of rebatable wine: In the relevant financial year the company made $1,450,000 (GST exclusive) in sales of rebatable wine, on which WET has been paid in full.
+
+Cellar door operations: The company states that it owns and operates a physical cellar door at 214 Krondorf Road, Tanunda SA, open to the public five days a week. Rebatable domestic cellar door sales revenue declared for the relevant financial year is $310,000 (GST exclusive), of which the company states 62 per cent consists of sales from the physical cellar door.
+
+Liquor licence: South Australian liquor licence number 57204587 valid for the whole relevant financial year.
+
+Grant amount requested: $84,900 (GST exclusive), being 29 per cent of the notional wholesale selling price of the declared rebatable domestic cellar door sales.
+
+Associated producers: The company declares that no associated producer has applied for the grant in the relevant financial year.
+
+=== TÀI LIỆU: Báo cáo tài chính đính kèm (financial-statements.pdf) ===
+
+BARROSSA RIDGE WINES PTY LTD — FINANCIAL STATEMENTS FOR THE RELEVANT FINANCIAL YEAR
+Prepared by Hutton & Marsh Chartered Accountants.
+
+[BẢNG 1]
+| Revenue line | Amount (GST excl.) |
+| Wholesale wine revenue | $1,355,000 |
+| Cellar door retail revenue | $95,000 |
+| Other income | $12,000 |
+| Total revenue | $1,462,000 |
+[/BẢNG 1]
+
+Notes to the accounts: Revenue from cellar door retail was $95,000 for the year. The company ceased cellar door operations in July of the relevant financial year following the sale of the Krondorf Road tasting room; from that month all wine sales were wholesale only, distributed through interstate merchants. No lease or ownership of a physical cellar door was held for the remainder of the year.

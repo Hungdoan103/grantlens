@@ -1,0 +1,18 @@
+{
+  "id": "au-wine-tourism-r8",
+  "name": "Wine Tourism and Cellar Door Grant — Round 8 (AU)",
+  "region": "AU",
+  "version": "R8",
+  "source": "Wine Australia — Wine Tourism and Cellar Door Grant, Grant program guidelines Round 8 (khách cung cấp 2026-09-07). Nhóm quỹ: Industry-focused (khoanh vùng ngành sản xuất rượu).",
+  "rules": [
+    {"id": "W01", "type": "qualitative", "title_vi": "Là nhà sản xuất rượu vang hoặc cider", "quote": "To be eligible for the Wine Tourism and Cellar Door Grant applicants must: a. be a wine or cider producer"},
+    {"id": "W02", "type": "qualitative", "title_vi": "Pháp nhân có ABN hoạt động + đăng ký GST", "quote": "b. be a legal entity registered for GST and with an active ABN"},
+    {"id": "W03", "type": "quantitative", "title_vi": "Doanh số rượu rebatable ≥ $1.207.000 (chưa GST)", "quote": "c. have made at least $1,207,000 (GST exclusive) in sales of rebatable wine in the relevant financial year"},
+    {"id": "W04", "type": "quantitative", "title_vi": "Có doanh số cellar door nội địa vượt phần dùng cho ngưỡng", "quote": "d. accrue rebatable domestic cellar door sales in excess of any such sales used to meet the $1,207,000 (GST exclusive) thresholds in the relevant financial year"},
+    {"id": "W05", "type": "qualitative", "title_vi": "Đã nộp thuế WET cho các doanh số dùng trong hồ sơ", "quote": "e. have paid the WET on all eligible sales used as part of the application"},
+    {"id": "W06", "type": "qualitative", "title_vi": "Sở hữu hoặc thuê CELLAR DOOR VẬT LÝ tại Úc trong năm tài chính", "quote": "f. have owned or leased a physical cellar door in Australia in the relevant financial year, and/or their related entity/ies have owned or leased a physical cellar door in Australia in the relevant financial year."},
+    {"id": "W07", "type": "qualitative", "title_vi": "Giấy phép rượu (liquor licence) hợp lệ trong năm tài chính", "quote": "g. have a liquor licence valid in the relevant financial year."},
+    {"id": "W08", "type": "quantitative", "title_vi": "≥ 50% doanh số cellar door là bán trực tiếp tại cellar door vật lý", "quote": "at least 50 per cent of the rebatable domestic cellar door sales used in the grant application consist of sales from the physical cellar door"},
+    {"id": "W09", "type": "quantitative", "title_vi": "Mức grant tối đa $100.000/năm (chưa GST)", "quote": "an annual grant of up to $100,000 (GST exclusive) for their eligible rebatable domestic cellar door sales"}
+  ]
+}

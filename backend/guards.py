@@ -66,6 +66,63 @@ def _career(rule_id: str, text: str, meta: dict):
     return None
 
 
+# ---------- guard đặc thù các quỹ Úc (theo "bẫy AI" khách phân tích) ----------
+def _au_wine(rule_id: str, text: str, meta: dict):
+    if rule_id == "W03":  # ngưỡng doanh số rượu rebatable $1,207,000
+        for s in _sentences_with(text, r"rebatable wine"):
+            m = re.search(r"\$\s?([\d,]+)", s)
+            if m and int(m.group(1).replace(",", "")) < 1_207_000:
+                return "not_met", f"Doanh số rượu rebatable {m.group(1)}$ < ngưỡng $1,207,000 (code so số liệu)"
+    if rule_id == "W06":  # BẪY: chỉ bán buôn / không có cellar door vật lý
+        if re.search(r"wholesale only|only .{0,25}wholesale|no (physical )?cellar door|does not (own|operate|have)[^.\n]{0,40}cellar door|ceased .{0,30}cellar door", text, re.I):
+            return "not_met", "Hồ sơ/tài liệu nêu chỉ bán buôn hoặc không còn/không có cellar door vật lý — bẫy đặc thù quỹ (code khớp mẫu chữ)"
+    if rule_id == "W08":  # <50% doanh số từ cellar door vật lý
+        m = re.search(r"(\d{1,2})\s?(?:per cent|%)[^.\n]{0,80}(physical )?cellar door", text, re.I)
+        if m and int(m.group(1)) < 50:
+            return "not_met", f"Chỉ {m.group(1)}% doanh số từ cellar door vật lý < 50% (code so số liệu)"
+    if rule_id == "W09":
+        m = re.search(r"grant (?:amount )?(?:requested|of)[^.\n]{0,25}\$\s?([\d,]+)", text, re.I)
+        if m and int(m.group(1).replace(",", "")) > 100_000:
+            return "not_met", f"Số tiền xin {m.group(1)}$ vượt trần $100,000 (code so số liệu)"
+    return None
+
+
+def _au_cyber(rule_id: str, text: str, meta: dict):
+    if rule_id == "C01":  # BẪY: nộp đơn lẻ, không liên danh
+        if re.search(r"sole applicant|apply(ing)? alone|no project partner|without (a |any )?partner|single (organisation|entity) appl", text, re.I):
+            return "not_met", "Hồ sơ nêu nộp đơn lẻ / không có project partner — quỹ bắt buộc liên danh (code khớp mẫu chữ)"
+    if rule_id == "C07":
+        for s in _sentences_with(text, r"eligible expenditure"):
+            m = re.search(r"\$\s?([\d,]+)", s)
+            if m and int(m.group(1).replace(",", "")) < 500_000:
+                return "not_met", f"Chi tiêu hợp lệ {m.group(1)}$ < mức tối thiểu $500,000 (code so số liệu)"
+    return None
+
+
+def _au_bff(rule_id: str, text: str, meta: dict):
+    if rule_id == "F01":  # BẪY: đúng 50% nữ sở hữu -> không phải majority
+        m = re.search(r"(\d{1,2})(?:\.\d+)?\s?(?:per cent|%)[^.\n]{0,70}(women|female)|(?:women|female)[^.\n]{0,70}?(\d{1,2})(?:\.\d+)?\s?(?:per cent|%)", text, re.I)
+        if m:
+            pct = int(m.group(1) or m.group(3))
+            if pct <= 50:
+                return "not_met", f"Tỷ lệ nữ sở hữu/lãnh đạo {pct}% — không đạt 'majority' (>50%) (code so số liệu)"
+    if rule_id == "F05":
+        for s in _sentences_with(text, r"income tax exempt"):
+            if not re.search(r"\bnot\b|\bno\b", s, re.I):
+                return "not_met", "Hồ sơ nêu tổ chức thuộc diện income tax exempt — bị loại trừ (code khớp mẫu chữ)"
+    if rule_id == "F06":
+        m = re.search(r"grant (?:amount )?(?:requested|of)[^.\n]{0,25}\$\s?([\d,]+)", text, re.I)
+        if m:
+            v = int(m.group(1).replace(",", ""))
+            if v < 25_000 or v > 480_000:
+                return "not_met", f"Số tiền xin {m.group(1)}$ ngoài khung $25,000–$480,000 (code so số liệu)"
+    return None
+
+
+_FUND_GUARDS = {"nsf-22-586": _career, "au-wine-tourism-r8": _au_wine,
+                "au-cyber-skills-r2": _au_cyber, "au-female-founders-r1": _au_bff}
+
+
 # ---------- guard tổng quát cho ruleset bất kỳ ----------
 def _generic(rule: dict, text: str):
     m = re.search(r"minimum of \$([\d,]+)", rule.get("quote", ""))
@@ -86,7 +143,8 @@ def _generic(rule: dict, text: str):
 def check(ruleset_id: str, rule: dict, verdict: str, text: str, meta: dict = None):
     """Trả None (không có gì) hoặc dict {action, verdict, reason} để lớp trên áp vào kết luận."""
     meta = meta or {}
-    hit = _career(rule["id"], text, meta) if ruleset_id == "nsf-22-586" else None
+    fund_guard = _FUND_GUARDS.get(ruleset_id)
+    hit = fund_guard(rule["id"], text, meta) if fund_guard else None
     hit = hit or _generic(rule, text)
     if not hit:
         return None
