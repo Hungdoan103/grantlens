@@ -1,0 +1,37 @@
+{
+  "ruleset": "au-wine-tourism-r8",
+  "llm": "qwen3:8b",
+  "accuracy": "41/45",
+  "false_pass": "1/4",
+  "errors": [
+    {
+      "case": "GEN-au-wine-tourism-r8-01-W03",
+      "rule": "W04",
+      "pred": "not_met",
+      "truth": "met",
+      "note": "Quy tắc yêu cầu doanh thu từ cửa hàng chai tại Mudgee vượt quá ngưỡng $1,207,000 (không ba"
+    },
+    {
+      "case": "GEN-au-wine-tourism-r8-02-W06",
+      "rule": "W01",
+      "pred": "not_met",
+      "truth": "met",
+      "note": "Cửa hàng rượu vang không được sở hữu hoặc thuê tại Úc, điều này vi phạm quy tắc yêu cầu ph"
+    },
+    {
+      "case": "GEN-au-wine-tourism-r8-02-W06",
+      "rule": "W06",
+      "pred": "met",
+      "truth": "not_met",
+      "note": "Công ty liên quan sở hữu cửa hàng cellar door vật lý tại Úc, đáp ứng điều kiện của quy tắc"
+    },
+    {
+      "case": "GEN-au-wine-tourism-r8-02-W06",
+      "rule": "W08",
+      "pred": "unclear",
+      "truth": "met",
+      "note": "Có 50% doanh số từ cửa ngõ chai rượu trong nước được sử dụng trong đơn xin tài trợ, nhưng "
+    }
+  ],
+  "labels_approved": false
+}
