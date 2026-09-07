@@ -111,12 +111,16 @@ def load_rulesets() -> dict:
     return out
 
 
-def get_ruleset(ruleset_id: str = None) -> dict:
+def get_ruleset(ruleset_id: str = None, require_approved: bool = False) -> dict:
     all_rs = load_rulesets()
     rid = ruleset_id or all_rs["_default"]
     if rid not in all_rs:
         raise KeyError(f"Không có bộ tiêu chí '{rid}'")
-    return all_rs[rid]
+    rs = all_rs[rid]
+    if require_approved and rs.get("status", "approved") != "approved":
+        raise KeyError(f"Bộ tiêu chí '{rid}' đang ở trạng thái NHÁP — cần quản lý phê chuẩn "
+                       f"(kèm kiểm độ phủ guard) trước khi gán cho hồ sơ")
+    return rs
 
 
 def reload_rulesets():

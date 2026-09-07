@@ -67,7 +67,10 @@ def set_ruleset(case_id, ruleset_id, officer, role="officer"):
     c = _case(case_id)
     if _rank(c["status"]) >= _rank("signed"):
         raise WorkflowError("Hồ sơ đã ký — không đổi được bộ tiêu chí.")
-    rs = core.get_ruleset(ruleset_id)
+    try:
+        rs = core.get_ruleset(ruleset_id, require_approved=True)
+    except KeyError as e:
+        raise WorkflowError(str(e), 409)
     store.clear_verdicts(case_id)
     store.update_case(case_id, ruleset_id=rs["id"], ruleset_version=rs["version"], ruleset_snapshot=None,
                       status="new", review_started_at=None, officer=None,
@@ -101,7 +104,10 @@ def assess_stream(case_id, actor="AI"):
         store.log(actor, f"Dùng bộ tiêu chí ĐÃ KHÓA của hồ sơ: {rs['name']} v{rs['version']}", case_id, "system",
                   {"ruleset": rs["id"], "version": rs["version"], "locked": True})
     else:
-        full = core.get_ruleset(c.get("ruleset_id"))
+        try:
+            full = core.get_ruleset(c.get("ruleset_id"), require_approved=True)
+        except KeyError as e:
+            raise WorkflowError(str(e), 409)
         rs = {k: full[k] for k in ("id", "name", "version", "rules")}
         store.update_case(case_id, ruleset_id=rs["id"], ruleset_version=rs["version"],
                           ruleset_snapshot=json.dumps(rs, ensure_ascii=False))

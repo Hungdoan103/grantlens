@@ -51,11 +51,18 @@ def _ollama(messages, fmt=None, max_tokens=700):
                "options": {"temperature": 0, "num_ctx": NUM_CTX, "num_predict": max_tokens}}
     if fmt is not None:
         payload["format"] = fmt
-    try:
-        r = requests.post(f"{OLLAMA_URL}/api/chat", json=payload, timeout=TIMEOUT)
-        r.raise_for_status()
-    except requests.RequestException as e:
-        raise LLMError(f"Không gọi được Ollama tại {OLLAMA_URL} — kiểm tra `ollama serve` và `ollama pull {MODEL}`. Chi tiết: {e}")
+    last_err = None
+    for attempt in range(3):  # retry lỗi thoáng qua (500/timeout khi GPU bận)
+        try:
+            r = requests.post(f"{OLLAMA_URL}/api/chat", json=payload, timeout=TIMEOUT)
+            r.raise_for_status()
+            break
+        except requests.RequestException as e:
+            last_err = e
+            import time as _t
+            _t.sleep(5 * (attempt + 1))
+    else:
+        raise LLMError(f"Không gọi được Ollama tại {OLLAMA_URL} — kiểm tra `ollama serve` và `ollama pull {MODEL}`. Chi tiết: {last_err}")
     data = r.json()
     if "error" in data:
         raise LLMError(data["error"])

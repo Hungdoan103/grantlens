@@ -1,0 +1,96 @@
+{
+  "ruleset": "au-wine-tourism-r8",
+  "version": "R8",
+  "generated_by": "qwen3:8b",
+  "generated_at": "2026-09-07T15:19:07",
+  "approved": false,
+  "note": "Nhãn gán by-construction (LLM chỉ viết văn bản, không tự gán nhãn); guard đối soát từng case. CHƯA phê chuẩn — cán bộ rà văn bản + nhãn rồi đặt approved=true mới dùng làm chuẩn vàng.",
+  "cases": [
+    {
+      "id": "GEN-au-wine-tourism-r8-00-clean",
+      "file": "generated/au-wine-tourism-r8/GEN-au-wine-tourism-r8-00-clean.txt",
+      "target": null,
+      "labels": {
+        "W01": "met",
+        "W02": "met",
+        "W03": "met",
+        "W04": "met",
+        "W05": "met",
+        "W06": "met",
+        "W07": "met",
+        "W08": "met",
+        "W09": "met"
+      },
+      "guard_agree": null
+    },
+    {
+      "id": "GEN-au-wine-tourism-r8-01-W03",
+      "file": "generated/au-wine-tourism-r8/GEN-au-wine-tourism-r8-01-W03.txt",
+      "target": "W03",
+      "labels": {
+        "W01": "met",
+        "W02": "met",
+        "W03": "not_met",
+        "W04": "met",
+        "W05": "met",
+        "W06": "met",
+        "W07": "met",
+        "W08": "met",
+        "W09": "met"
+      },
+      "guard_agree": true
+    },
+    {
+      "id": "GEN-au-wine-tourism-r8-02-W06",
+      "file": "generated/au-wine-tourism-r8/GEN-au-wine-tourism-r8-02-W06.txt",
+      "target": "W06",
+      "labels": {
+        "W01": "met",
+        "W02": "met",
+        "W03": "met",
+        "W04": "met",
+        "W05": "met",
+        "W06": "not_met",
+        "W07": "met",
+        "W08": "met",
+        "W09": "met"
+      },
+      "guard_agree": false
+    },
+    {
+      "id": "GEN-au-wine-tourism-r8-03-W08",
+      "file": "generated/au-wine-tourism-r8/GEN-au-wine-tourism-r8-03-W08.txt",
+      "target": "W08",
+      "labels": {
+        "W01": "met",
+        "W02": "met",
+        "W03": "met",
+        "W04": "met",
+        "W05": "met",
+        "W06": "met",
+        "W07": "met",
+        "W08": "not_met",
+        "W09": "met"
+      },
+      "guard_agree": false
+    },
+    {
+      "id": "GEN-au-wine-tourism-r8-04-W09",
+      "file": "generated/au-wine-tourism-r8/GEN-au-wine-tourism-r8-04-W09.txt",
+      "target": "W09",
+      "labels": {
+        "W01": "met",
+        "W02": "met",
+        "W03": "met",
+        "W04": "met",
+        "W05": "met",
+        "W06": "met",
+        "W07": "met",
+        "W08": "met",
+        "W09": "not_met"
+      },
+      "guard_agree": true
+    }
+  ],
+  "skipped": []
+}

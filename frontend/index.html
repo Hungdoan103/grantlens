@@ -266,7 +266,11 @@ let META=null,RULES=[],RULESETS=[],CASES=[],CUR=null;   // CUR = {case, verdicts
 const GLBL={"hand+auto":"guard tay + tự biên dịch","hand":"guard tay","auto":"guard tự biên dịch","llm-only":"CHỈ LLM + cán bộ"};
 async function renderRuleset(){
   const rs=RULESETS.find(r=>r.id===$('rulesetsel').value)||RULESETS[0];if(!rs)return;
-  $('rulesetinfo').textContent=`nguồn: ${(rs.source||'—').slice(0,80)} · hồ sơ KHÓA bộ + version tại lần đánh giá đầu`;
+  const draft=(rs.status||'approved')!=='approved';
+  $('rulesetinfo').innerHTML=(draft
+    ?`<span class="chip c-unclear">NHÁP — chưa gán được cho hồ sơ</span> <button class="btn sm green" onclick="approveRuleset('${rs.id}')">Phê chuẩn (quản lý)</button>`
+    :`<span class="chip c-met">ĐÃ PHÊ CHUẨN${rs.approved_by?' · '+esc(rs.approved_by):''}</span>`)
+    +` <span class="conf">· hồ sơ KHÓA bộ + version tại lần đánh giá đầu</span>`;
   let cov={rows:[]};
   try{cov=await api('/rulesets/'+rs.id+'/coverage');}catch(e){}
   const bycov=Object.fromEntries(cov.rows.map(x=>[x.rule,x]));
@@ -276,6 +280,16 @@ async function renderRuleset(){
     const chip=g==='llm-only'?`<span class="chip c-unclear">chỉ LLM + cán bộ</span>`:`<span class="chip c-met">${GLBL[g]}</span>`;
     return `<div class="rulecard"><span class="rid">${r.id}</span><span class="rtype">${r.type}</span> ${chip}${(c.auto_constraints||[]).length?`<span class="conf"> ràng buộc tự dịch: ${esc(c.auto_constraints.join(' · ').slice(0,90))}</span>`:''}<div style="font-weight:600;margin:6px 0 2px">${esc(r.title_vi)}</div><div class="rquote">"${esc(r.quote)}"</div></div>`;
   }).join('');
+}
+async function approveRuleset(rid,ack,reason){
+  const mgr=prompt('Tên QUẢN LÝ phê chuẩn (phải có role manager trong sổ cán bộ):',(META.managers||[])[0]||'');if(!mgr)return;
+  try{const d=await api(`/rulesets/${rid}/approve`,{officer:mgr,role:'manager',acknowledge_low_coverage:!!ack,reason:reason||''});
+    toast(`Đã phê chuẩn ${rid} — độ phủ guard ${d.coverage.n_guarded}/${d.coverage.n_rules}`);
+    RULESETS=(await api('/rulesets')).rulesets;renderRuleset();
+  }catch(e){
+    if(e.status===428){if(confirm(e.message+'\n\nVẫn phê chuẩn?')){const r=prompt('Lý do chấp nhận độ phủ guard thấp (bắt buộc):');if(r)return approveRuleset(rid,true,r);}return;}
+    toast(e.message,true);
+  }
 }
 async function genEvalSet(){
   const rs=$('rulesetsel').value;

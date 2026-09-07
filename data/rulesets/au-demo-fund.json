@@ -25,5 +25,8 @@
       "title_vi": "Không nằm trong danh sách cấm",
       "quote": "Applicants must not appear on any Commonwealth sanctions or disqualification list."
     }
-  ]
+  ],
+  "status": "approved",
+  "approved_by": "Khởi tạo hệ thống",
+  "approved_at": "2026-09-07"
 }

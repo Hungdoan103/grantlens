@@ -74,7 +74,8 @@ def meta():
             "min_seconds_per_rule": workflow.MIN_SECONDS_PER_RULE,
             "letter_template": bool(core.load_letter_template()),
             "rulesets": [{"id": r["id"], "name": r["name"], "version": r["version"], "region": r.get("region", ""),
-                          "n_rules": len(r["rules"]), "default": r["id"] == all_rs["_default"]}
+                          "n_rules": len(r["rules"]), "status": r.get("status", "approved"),
+                          "default": r["id"] == all_rs["_default"]}
                          for k, r in all_rs.items() if k != "_default"],
             "sla_days": coi.sla_days(),
             "managers": [o["name"] for o in coi.load_officers() if o.get("role") == "manager"]}
@@ -125,9 +126,9 @@ def _create_case(applicant, org, directorate, text, officer, filename=None, rule
                        "scenario": "Hồ sơ tải lên" + (f" ({filename})" if filename else ""), "tags": ["upload"],
                        "source": "upload", "text": text})
     try:
-        rs = core.get_ruleset(ruleset_id or None)
-    except KeyError:
-        raise HTTPException(404, f"Không có bộ tiêu chí '{ruleset_id}'")
+        rs = core.get_ruleset(ruleset_id or None, require_approved=True)
+    except KeyError as e:
+        raise HTTPException(409, str(e))
     store.update_case(cid, ruleset_id=rs["id"], ruleset_version=rs["version"])
     store.log(officer, f"Tải lên hồ sơ mới {cid} — {applicant} ({len(text.split())} từ) · bộ tiêu chí {rs['name']} v{rs['version']}",
               cid, "officer", {"filename": filename, "words": len(text.split()), "ruleset": rs["id"]})
@@ -297,17 +298,56 @@ def save_ruleset(req: SaveRulesetReq):
     for r in rules:
         r["type"] = r.get("type") if r.get("type") in ("quantitative", "qualitative") else "qualitative"
     rs = {"id": rid, "name": req.name.strip(), "region": req.region, "version": req.version.strip() or "1",
-          "source": req.source, "saved_by": req.officer, "saved_at": store.now(), "rules": rules}
+          "source": req.source, "saved_by": req.officer, "saved_at": store.now(), "rules": rules,
+          "status": "draft"}  # lưu = NHÁP; đổi/ghi đè bộ đang active cũng về nháp — phải phê chuẩn lại
     (core.RULESETS_DIR / f"{rid}.json").write_text(json.dumps(rs, ensure_ascii=False, indent=2), encoding="utf-8")
     idx = json.loads((core.RULESETS_DIR / "index.json").read_text(encoding="utf-8"))
     idx["rulesets"] = [e for e in idx["rulesets"] if e["id"] != rid] + [
         {"id": rid, "file": f"{rid}.json", "name": rs["name"], "region": rs["region"], "version": rs["version"]}]
     (core.RULESETS_DIR / "index.json").write_text(json.dumps(idx, ensure_ascii=False, indent=2), encoding="utf-8")
     core.reload_rulesets()
-    store.log(req.officer, f"LƯU bộ tiêu chí '{rs['name']}' v{rs['version']} ({len(rules)} rule) — id {rid}. "
-              "Hồ sơ mới chọn được bộ này; hồ sơ cũ giữ bộ đã khóa.", None, req.role,
-              {"ruleset": rid, "version": rs["version"], "n_rules": len(rules)})
+    store.log(req.officer, f"LƯU bộ tiêu chí '{rs['name']}' v{rs['version']} ({len(rules)} rule) — id {rid}, trạng thái NHÁP. "
+              "Chưa gán được cho hồ sơ cho tới khi QUẢN LÝ phê chuẩn (kèm kiểm độ phủ guard); hồ sơ cũ giữ bộ đã khóa.",
+              None, req.role, {"ruleset": rid, "version": rs["version"], "n_rules": len(rules), "status": "draft"})
     return {"ok": True, "ruleset": {k: v for k, v in rs.items() if k != "rules"}, "n_rules": len(rules)}
+
+
+class ApproveRulesetReq(Officer):
+    acknowledge_low_coverage: bool = False
+    reason: str = ""
+
+
+@app.post("/api/rulesets/{ruleset_id}/approve")
+def approve_ruleset(ruleset_id: str, req: ApproveRulesetReq):
+    """QUẢN LÝ phê chuẩn bộ tiêu chí (kiểm độ phủ guard tối thiểu trước khi cho phép gán hồ sơ)."""
+    from . import guards
+    if coi.role_of(req.officer) != "manager":
+        raise HTTPException(403, f"'{req.officer}' không có vai trò quản lý (manager) trong sổ cán bộ — không được phê chuẩn bộ tiêu chí")
+    try:
+        rs = core.get_ruleset(ruleset_id)
+    except KeyError:
+        raise HTTPException(404, f"Không có bộ tiêu chí '{ruleset_id}'")
+    if rs.get("status", "approved") == "approved":
+        raise HTTPException(409, "Bộ tiêu chí này đã được phê chuẩn")
+    cov = guards.coverage(rs)
+    MIN_COV = 0.5
+    if cov["pct"] < MIN_COV and not req.acknowledge_low_coverage:
+        raise HTTPException(428, f"Độ phủ guard {cov['n_guarded']}/{cov['n_rules']} ({cov['pct']:.0%}) dưới mức tối thiểu {MIN_COV:.0%} — "
+                            "các rule 'llm-only' không có lưới đỡ code. Bổ sung ngưỡng/mục cấm tường minh vào quote, "
+                            "hoặc xác nhận chấp nhận rủi ro kèm lý do (acknowledge_low_coverage=true).")
+    if cov["pct"] < MIN_COV and len((req.reason or "").strip()) < 8:
+        raise HTTPException(400, "Chấp nhận độ phủ guard thấp bắt buộc ghi lý do (≥ 8 ký tự)")
+    p = core.RULESETS_DIR / f"{ruleset_id}.json"
+    doc = json.loads(p.read_text(encoding="utf-8"))
+    doc.update(status="approved", approved_by=req.officer, approved_at=store.now(),
+               approved_coverage=f"{cov['n_guarded']}/{cov['n_rules']}")
+    p.write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
+    core.reload_rulesets()
+    store.log(req.officer, f"PHÊ CHUẨN bộ tiêu chí '{rs['name']}' v{rs['version']} — độ phủ guard {cov['n_guarded']}/{cov['n_rules']}"
+              + (f" (DƯỚI ngưỡng, chấp nhận rủi ro — lý do: {req.reason})" if cov["pct"] < MIN_COV else "")
+              + ". Từ giờ gán được cho hồ sơ.", None, "manager",
+              {"ruleset": ruleset_id, "coverage": cov["pct"], "low_cov_ack": cov["pct"] < MIN_COV})
+    return {"ok": True, "status": "approved", "coverage": cov}
 
 
 @app.get("/api/rulesets/{ruleset_id}/coverage")
