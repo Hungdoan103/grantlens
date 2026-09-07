@@ -204,7 +204,8 @@ pre.json{font-family:'IBM Plex Mono',monospace;font-size:11px;background:#F6F7F5
   <!-- ===== RULES ===== -->
   <div class="view" id="v-rules">
     <div class="note">Mỗi tiêu chí giữ <b>nguyên văn tiếng Anh</b> từ solicitation NSF 22-586 CAREER. Trích dẫn phía hồ sơ được sinh theo cơ chế <b>citation-by-retrieval</b>: model chỉ chọn đoạn và cụm từ khóa, câu trích do code cắt nguyên văn.</div>
-    <div class="row"><label><b>Đợt/quỹ tài trợ (bộ tiêu chí):</b></label><select id="rulesetsel" onchange="renderRuleset()"></select><span id="rulesetinfo" class="conf"></span></div>
+    <div class="row"><label><b>Đợt/quỹ tài trợ (bộ tiêu chí):</b></label><select id="rulesetsel" onchange="renderRuleset()"></select><span id="rulesetinfo" class="conf"></span><span class="grow"></span><button class="btn sm ghost" onclick="genEvalSet()">Sinh bộ test có nhãn (AI)</button></div>
+    <div id="covline"></div>
     <div id="rulelist"></div>
   </div>
 
@@ -262,10 +263,27 @@ pre.json{font-family:'IBM Plex Mono',monospace;font-size:11px;background:#F6F7F5
 <script>
 /* ================= state & helpers ================= */
 let META=null,RULES=[],RULESETS=[],CASES=[],CUR=null;   // CUR = {case, verdicts, rules, ruleset, ai_masked}
-function renderRuleset(){
+const GLBL={"hand+auto":"guard tay + tự biên dịch","hand":"guard tay","auto":"guard tự biên dịch","llm-only":"CHỈ LLM + cán bộ"};
+async function renderRuleset(){
   const rs=RULESETS.find(r=>r.id===$('rulesetsel').value)||RULESETS[0];if(!rs)return;
-  $('rulesetinfo').textContent=`nguồn: ${rs.source||'—'} · mỗi hồ sơ KHÓA bộ + version tại lần đánh giá đầu`;
-  $('rulelist').innerHTML=rs.rules.map(r=>`<div class="rulecard"><span class="rid">${r.id}</span><span class="rtype">${r.type}</span><div style="font-weight:600;margin:6px 0 2px">${esc(r.title_vi)}</div><div class="rquote">"${esc(r.quote)}"</div></div>`).join('');
+  $('rulesetinfo').textContent=`nguồn: ${(rs.source||'—').slice(0,80)} · hồ sơ KHÓA bộ + version tại lần đánh giá đầu`;
+  let cov={rows:[]};
+  try{cov=await api('/rulesets/'+rs.id+'/coverage');}catch(e){}
+  const bycov=Object.fromEntries(cov.rows.map(x=>[x.rule,x]));
+  $('covline').innerHTML=cov.n_rules?`<div class="${cov.pct<1?'warn':'note'}"><b>Độ phủ guard chặn false-pass: ${cov.n_guarded}/${cov.n_rules} tiêu chí (${(cov.pct*100).toFixed(0)}%).</b> Tiêu chí gắn nhãn <span class="chip c-unclear">chỉ LLM + cán bộ</span> KHÔNG có lưới đỡ code — kết luận ở đó phụ thuộc model và người thẩm định. Số "false-pass = 0" chỉ có giá trị với bộ đã đo; quỹ mới hãy chạy "Sinh bộ test" để đo trước khi tin.</div>`:'';
+  $('rulelist').innerHTML=rs.rules.map(r=>{
+    const c=bycov[r.id]||{};const g=c.guard||'llm-only';
+    const chip=g==='llm-only'?`<span class="chip c-unclear">chỉ LLM + cán bộ</span>`:`<span class="chip c-met">${GLBL[g]}</span>`;
+    return `<div class="rulecard"><span class="rid">${r.id}</span><span class="rtype">${r.type}</span> ${chip}${(c.auto_constraints||[]).length?`<span class="conf"> ràng buộc tự dịch: ${esc(c.auto_constraints.join(' · ').slice(0,90))}</span>`:''}<div style="font-weight:600;margin:6px 0 2px">${esc(r.title_vi)}</div><div class="rquote">"${esc(r.quote)}"</div></div>`;
+  }).join('');
+}
+async function genEvalSet(){
+  const rs=$('rulesetsel').value;
+  if(!confirm(`AI sẽ sinh bộ test có nhãn cho bộ "${rs}" (1 case sạch + 3 case vi phạm; model local ~1-2 phút/case). Nhãn ở trạng thái CHỜ PHÊ CHUẨN. Chạy?`))return;
+  toast('Đang sinh bộ test — có thể mất vài phút, đừng đóng tab…');
+  try{const d=await api(`/rulesets/${rs}/casegen`,{...officer(),n:3});
+    alert(`Đã sinh ${d.cases.length} case (bỏ ${d.skipped.length}).\n`+d.cases.map(c=>`${c.id}${c.target?` — vi phạm ${c.target}${c.guard_agree?' (guard xác nhận ✓)':''}`:' — sạch'}`).join('\n')+`\n\nLưu: data/labels/generated-${rs}.json (approved=false — cán bộ rà rồi mới dùng làm chuẩn).\nĐo: python -m backend.casegen ${rs} --eval`);
+  }catch(e){toast(e.message,true);}
 }
 const VLBL={met:"ĐẠT",not_met:"KHÔNG ĐẠT",unclear:"CHƯA RÕ",not_addressed:"KHÔNG ĐỀ CẬP"};
 const CLBL={high:"tin cậy cao",medium:"tin cậy vừa",low:"tin cậy THẤP"};

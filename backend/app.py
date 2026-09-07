@@ -310,6 +310,36 @@ def save_ruleset(req: SaveRulesetReq):
     return {"ok": True, "ruleset": {k: v for k, v in rs.items() if k != "rules"}, "n_rules": len(rules)}
 
 
+@app.get("/api/rulesets/{ruleset_id}/coverage")
+def ruleset_coverage(ruleset_id: str):
+    """Độ phủ guard: rule nào được code bảo vệ (tay/tự biên dịch), rule nào CHỈ dựa LLM + cán bộ."""
+    from . import guards
+    try:
+        return guards.coverage(core.get_ruleset(ruleset_id))
+    except KeyError:
+        raise HTTPException(404, f"Không có bộ tiêu chí '{ruleset_id}'")
+
+
+class CasegenReq(Officer):
+    n: int = 3
+
+
+@app.post("/api/rulesets/{ruleset_id}/casegen")
+def ruleset_casegen(ruleset_id: str, req: CasegenReq):
+    """AI sinh bộ test có nhãn cho ruleset (1 case sạch + n case vi phạm; nhãn by-construction, guard đối soát).
+    Model local chậm — mỗi case ~60-90s. Bộ lớn chạy CLI: python -m backend.casegen <id> --gen"""
+    from . import casegen
+    try:
+        core.get_ruleset(ruleset_id)
+    except KeyError:
+        raise HTTPException(404, f"Không có bộ tiêu chí '{ruleset_id}'")
+    doc = casegen.generate(ruleset_id, n_violations=max(1, min(req.n, 5)), officer=req.officer)
+    store.log(req.officer, f"AI sinh bộ test cho '{ruleset_id}': {len(doc['cases'])} case (bỏ {len(doc['skipped'])}) — "
+              "nhãn by-construction + guard đối soát, CHỜ cán bộ phê chuẩn", None, req.role,
+              {"ruleset": ruleset_id, "n_cases": len(doc["cases"]), "skipped": len(doc["skipped"])})
+    return doc
+
+
 # ---------------- ký cấp 2 (quản lý) + vòng bổ sung hồ sơ ----------------
 @app.post("/api/cases/{case_id}/countersign")
 def countersign(case_id: str, req: Officer):

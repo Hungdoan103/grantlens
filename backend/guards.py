@@ -144,6 +144,123 @@ _FUND_GUARDS = {"nsf-22-586": _career, "au-wine-tourism-r8": _au_wine,
                 "au-onfarm-water": _au_onfarm}
 
 
+# ======================================================================
+# GUARD COMPILER TỔNG QUÁT — tự biên dịch ràng buộc từ NGUYÊN VĂN rule.
+# Trả lời phê bình của khách: quỹ mới chỉ cần nạp ruleset là có ngay lớp
+# guard cơ bản (ngưỡng tiền, %, mục cấm, danh sách loại trừ) — không phụ
+# thuộc việc có ai ngồi viết guard tay hay không. Guard tay (nếu có) là
+# lớp tinh chỉnh CHỒNG LÊN, không phải điều kiện tiên quyết.
+# ======================================================================
+_STOP = set("the a an of in for and or to be is are with under have has must you your that this "
+            "any all not no on at by from as it its their they per cent gst exclusive".split())
+
+
+def _anchors(quote: str, pos: int, window: int = 60):
+    """Cụm từ định danh quanh vị trí ràng buộc trong quote — dùng để chỉ so số
+    trong những câu của hồ sơ nói về ĐÚNG chủ đề đó (tránh so nhầm số khác)."""
+    seg = quote[max(0, pos - window):pos + window]
+    words = [w.strip(".,;:()").lower() for w in re.findall(r"[A-Za-z][A-Za-z\-]{3,}", seg)]
+    return [w for w in words if w not in _STOP][:6]
+
+
+def compile_rule_guards(rule: dict):
+    """Biên dịch quote -> danh sách ràng buộc máy kiểm được.
+    Mỗi ràng buộc: {kind, op, value, anchors, label}."""
+    q = rule.get("quote", "")
+    out = []
+    # --- ngưỡng TIỀN ---
+    for m in re.finditer(r"(at least|a minimum of|minimum of|more than|no more than|not exceed|may not exceed|cannot exceed|up to|maximum(?: that can be claimed)? is|expected to total a minimum of)\s*\$\s?([\d,]+)", q, re.I):
+        op = "min" if re.search(r"least|minimum|more than", m.group(1), re.I) else "max"
+        out.append({"kind": "money", "op": op, "value": int(m.group(2).replace(",", "")),
+                    "anchors": _anchors(q, m.start()), "label": m.group(0)[:60]})
+    m = re.search(r"[Ff]rom \$\s?([\d,]+)(?:\.\d+)? to \$\s?([\d,]+)", q)
+    if m:
+        a = _anchors(q, m.start())
+        out.append({"kind": "money", "op": "min", "value": int(m.group(1).replace(",", "")), "anchors": a, "label": "khung dưới"})
+        out.append({"kind": "money", "op": "max", "value": int(m.group(2).replace(",", "")), "anchors": a, "label": "khung trên"})
+    # --- ngưỡng PHẦN TRĂM ---
+    for m in re.finditer(r"(at least|more than|majority[^.]{0,20}?|no more than|up to|minimum of)\s*(\d{1,3})\s*(?:per cent|%)", q, re.I):
+        op = "min" if re.search(r"least|more than|majority|minimum", m.group(1), re.I) else "max"
+        out.append({"kind": "percent", "op": op, "value": int(m.group(2)),
+                    "anchors": _anchors(q, m.start()), "label": m.group(0)[:60]})
+    if re.search(r"majority owned and led by women", q, re.I):
+        out.append({"kind": "percent", "op": "min", "value": 51, "anchors": ["women", "female", "owned", "led"],
+                    "label": "majority owned and led by women (>50%)"})
+    # --- MỤC CẤM: "No X are permitted / is prohibited / must not include X" ---
+    for m in re.finditer(r"\bNo ([\w\- ]{2,30}?) (?:is|are) (?:permitted|allowed)|inclusion of ([\w\- ]{3,40}?) is prohibited|must not (?:include|contain) ([\w\- ]{3,40})", q, re.I):
+        term = next(t for t in m.groups() if t)
+        out.append({"kind": "forbidden", "term": term.strip().rstrip("s"), "label": f"cấm: {term.strip()}"})
+    # --- DANH SÁCH LOẠI TRỪ: "not eligible ... if you are: a; b; c" ---
+    m = re.search(r"not eligible[^:]{0,40}:\s*(.+)", q, re.I | re.S)
+    if m:
+        items = [it.strip(" .;•·") for it in re.split(r";|•|\n|(?<=\))\s*(?=[a-z])", m.group(1)) if 4 < len(it.strip()) < 90]
+        for it in items[:8]:
+            core_term = re.sub(r"^(an?|the)\s+", "", it, flags=re.I)
+            core_term = re.split(r"\(|,| unless | however | including ", core_term)[0].strip()
+            if 4 < len(core_term) < 60:
+                out.append({"kind": "excluded", "term": core_term, "label": f"loại trừ: {core_term}"})
+    return out
+
+
+def _eval_compiled(cons: list, text: str):
+    """Chạy các ràng buộc đã biên dịch trên văn bản hồ sơ. Trả (verdict, reason) hoặc None."""
+    sents = re.split(r"(?<=[.!?])\s+", text)
+    for c in cons:
+        if c["kind"] in ("money", "percent"):
+            pat = r"\$\s?(\d[\d,]*\d|\d)" if c["kind"] == "money" else r"(\d{1,3})\s*(?:per cent|%)"
+            matched_vals = []
+            for s in sents:
+                if not any(a in s.lower() for a in c.get("anchors", [])):
+                    continue
+                for m in re.finditer(pat, s):
+                    matched_vals.append(int(m.group(1).replace(",", "")))
+            if matched_vals:
+                bad = ([v for v in matched_vals if v < c["value"]] if c["op"] == "min"
+                       else [v for v in matched_vals if v > c["value"]])
+                # min: chỉ kết luận khi MỌI giá trị liên quan đều dưới ngưỡng (tránh oan khi có nhiều số)
+                if c["op"] == "min" and bad and len(bad) == len(matched_vals):
+                    return "not_met", f"Giá trị {min(bad):,} dưới ngưỡng {c['value']:,} trong rule ('{c['label']}') — guard tự biên dịch từ nguyên văn"
+                if c["op"] == "max" and bad:
+                    return "not_met", f"Giá trị {max(bad):,} vượt trần {c['value']:,} trong rule ('{c['label']}') — guard tự biên dịch từ nguyên văn"
+        elif c["kind"] in ("forbidden", "excluded"):
+            term = c["term"]
+            hits = [s for s in sents if re.search(re.escape(term), s, re.I)]
+            bad = [s for s in hits if not re.search(r"\bno\b|\bnot\b|\bnone\b|without|sole |do(es)? not", s, re.I)]
+            if bad:
+                return ("not_met" if c["kind"] == "forbidden" else "unclear",
+                        f"Hồ sơ nêu '{term}' — rule {('cấm' if c['kind']=='forbidden' else 'loại trừ')} mục này ('{c['label']}') — guard tự biên dịch từ nguyên văn")
+    return None
+
+
+# Các rule đã có guard TAY (lớp tinh chỉnh) — dùng cho báo cáo độ phủ
+HAND_COVERAGE = {
+    "nsf-22-586": {"R04", "R05", "R07", "R08", "R09", "R10", "R11", "R12"},
+    "au-wine-tourism-r8": {"W03", "W06", "W08", "W09"},
+    "au-cyber-skills-r2": {"C01", "C07"},
+    "au-female-founders-r1": {"F01", "F05", "F06"},
+    "au-onfarm-water": {"O01", "O05", "O06", "O07"},
+}
+
+
+def coverage(ruleset: dict) -> dict:
+    """Độ phủ guard của một bộ tiêu chí: rule nào được code bảo vệ (auto/tay), rule nào CHỈ dựa LLM + người.
+    Đây là câu trả lời trung thực cho câu hỏi 'false-pass=0 có đúng với quỹ mới không'."""
+    hand = HAND_COVERAGE.get(ruleset["id"], set())
+    rows = []
+    for r in ruleset["rules"]:
+        auto = compile_rule_guards(r)
+        kind = ("hand+auto" if r["id"] in hand and auto else
+                "hand" if r["id"] in hand else
+                "auto" if auto else "llm-only")
+        rows.append({"rule": r["id"], "title_vi": r["title_vi"], "guard": kind,
+                     "auto_constraints": [c["label"] for c in auto]})
+    n_guarded = sum(1 for x in rows if x["guard"] != "llm-only")
+    return {"ruleset": ruleset["id"], "n_rules": len(rows), "n_guarded": n_guarded,
+            "pct": round(n_guarded / max(len(rows), 1), 2), "rows": rows,
+            "note": "Rule 'llm-only' KHÔNG có lưới đỡ code — false-pass ở đó phụ thuộc LLM + cán bộ. "
+                    "Muốn nâng độ phủ: viết guard tay hoặc sửa quote cho chứa ngưỡng/mục cấm tường minh."}
+
+
 # ---------- guard tổng quát cho ruleset bất kỳ ----------
 def _generic(rule: dict, text: str):
     m = re.search(r"minimum of \$([\d,]+)", rule.get("quote", ""))
@@ -167,6 +284,12 @@ def check(ruleset_id: str, rule: dict, verdict: str, text: str, meta: dict = Non
     fund_guard = _FUND_GUARDS.get(ruleset_id)
     hit = fund_guard(rule["id"], text, meta) if fund_guard else None
     hit = hit or _generic(rule, text)
+    hand_covered = rule["id"] in HAND_COVERAGE.get(ruleset_id, set())
+    if not hit and not hand_covered:
+        # Lớp nền cho MỌI ruleset: ràng buộc TỰ BIÊN DỊCH từ nguyên văn rule.
+        # Rule đã có guard tay thì KHÔNG chạy compiler đè lên — guard tay hiểu ngữ cảnh
+        # (vd ngưỡng theo directorate) mà compiler tổng quát không hiểu.
+        hit = _eval_compiled(compile_rule_guards(rule), text)
     if not hit:
         return None
     g_verdict, reason = hit
