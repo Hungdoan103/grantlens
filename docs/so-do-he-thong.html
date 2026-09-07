@@ -38,7 +38,7 @@ footer{margin-top:40px;font-size:12.5px;color:var(--muted);border-top:1px solid 
     <div class="brand">Grant<em>Lens</em></div>
     <div class="sub">Sơ đồ hệ thống — trợ lý thẩm định điều kiện hồ sơ tài trợ. AI đưa bằng chứng, con người quyết định.</div>
   </div>
-  <div class="meta">Phiên bản 2.1 · 09/2026<br>Lõi AI: Qwen3-8B chạy local<br>Bộ tiêu chí mẫu: NSF 22-586 CAREER</div>
+  <div class="meta">Phiên bản 2.3 · 09/2026<br>Lõi AI: Qwen3-8B chạy local<br>Đa bộ tiêu chí: NSF CAREER (US) + 4 quỹ Úc</div>
 </header>
 
 <!-- ===================== 1. KIẾN TRÚC ===================== -->
@@ -222,7 +222,7 @@ footer{margin-top:40px;font-size:12.5px;color:var(--muted);border-top:1px solid 
 <section>
   <div class="eyebrow">Hình 3</div>
   <h2>Luồng nghiệp vụ — các chốt kiểm soát nằm trên mũi tên</h2>
-  <p class="lede">Một hồ sơ là một ca đi qua sáu trạng thái. Điều kiện chuyển trạng thái được máy chủ kiểm tra; giao diện không thể bỏ qua.</p>
+  <p class="lede">Một hồ sơ là một ca đi qua các trạng thái có máy chủ kiểm soát điều kiện chuyển; từ v2.2 thêm trạng thái <b>Chờ bổ sung hồ sơ</b> (nhiều vòng, có hạn SLA) giữa Thẩm định và Ký, và bước <b>ký cấp 2 của quản lý</b> trước khi phát hành thư loại.</p>
   <figure>
   <svg viewBox="0 0 1100 330" role="img" aria-label="Sáu trạng thái từ Mới tới Thư đã phê duyệt; mỗi mũi tên chuyển trạng thái ghi rõ điều kiện: AI đánh giá, spot-check mù, 12/12 xác nhận và thời gian tối thiểu, AI soạn thư, cán bộ phê duyệt; mũi tên quay lại từ Đã ký duyệt về Đang thẩm định yêu cầu lý do">
     <defs>
@@ -310,6 +310,18 @@ footer{margin-top:40px;font-size:12.5px;color:var(--muted);border-top:1px solid 
   <h2>Các cơ chế bổ sung (đã cài đặt và kiểm thử)</h2>
   <div class="grid">
     <div class="card">
+      <h3>Multi-GO + versioning + kho quỹ Úc</h3>
+      <p>Mỗi đợt/quỹ tài trợ có bộ tiêu chí riêng kèm version; hồ sơ <b>khóa cứng snapshot bộ tiêu chí tại lần đánh giá đầu</b> — đổi rule giữa đợt không ảnh hưởng case đang xử lý. Đã nạp sẵn 4 quỹ Úc thật trích nguyên văn guideline: Wine Tourism R8, Cyber Skills R2, Boosting Female Founders R1, On-farm Water — phủ đủ 4 nhóm quỹ (program-specific, industry, cross-industry, location-based).</p>
+    </div>
+    <div class="card">
+      <h3>Guard chặn false-pass bằng mã nguồn</h3>
+      <p>Rule đo được bằng số (ngân sách, %, số trang, co-PI, cellar door, liên danh, 51% nữ…) được code kiểm lại sau AI: AI nói "đạt" mà số liệu vi phạm ⇒ ghi đè "không đạt" và ghi nhật ký. Số đo bằng Qwen thật trên các hồ sơ chứa đủ lỗi trượt: <b>false-pass giảm từ 1/6 xuống 0/6, accuracy 24/24</b>.</p>
+    </div>
+    <div class="card">
+      <h3>Ký cấp 2 · vòng bổ sung · SLA</h3>
+      <p>Hồ sơ có tiêu chí không đạt/chưa rõ chỉ phát hành thư sau khi <b>quản lý (khác người thẩm định, qua kiểm COI) ký xác nhận cấp 2</b>. Cán bộ yêu cầu bổ sung theo danh mục + hạn nộp, nhiều vòng có đếm; SLA từng trạng thái hiện ngay hàng đợi, quá hạn cảnh báo đỏ. Ngưỡng chống ký ẩu nâng lên 15 giây/tiêu chí.</p>
+    </div>
+    <div class="card">
       <h3>Đối chiếu chéo chống gian lận</h3>
       <p>Một hồ sơ có thể gồm nhiều tài liệu (đơn khai, báo cáo tài chính, lý lịch…). Mã nguồn bóc và <b>so trực tiếp các con số cùng loại giữa các tài liệu</b> — tổng ngân sách, doanh thu, năm nhận bằng, số trang — kèm kiểm tra ngày tháng vô lý. Khai $480k nhưng báo cáo đính kèm ghi $1,52 triệu → gắn cờ "không khớp — nghi vấn", kèm trích ngữ cảnh từng nguồn để cán bộ yêu cầu giải trình.</p>
     </div>
@@ -348,5 +360,5 @@ footer{margin-top:40px;font-size:12.5px;color:var(--muted);border-top:1px solid 
   </table></div>
 </section>
 
-<footer>GrantLens v2.0 · Bộ tiêu chí mẫu trích nguyên văn NSF 22-586 CAREER (nsf.gov, tài liệu công vụ Hoa Kỳ, phạm vi công cộng) · Hồ sơ mẫu là dữ liệu tổng hợp có nhãn, không phải hồ sơ thật.</footer>
+<footer>GrantLens v2.3 · Bộ tiêu chí trích nguyên văn từ NSF 22-586 CAREER (nsf.gov) và các guideline quỹ Úc do khách hàng cung cấp (Wine Australia, Dept. of Industry, NSW RAA, GrantConnect) · Hồ sơ mẫu là dữ liệu tổng hợp có nhãn, không phải hồ sơ thật.</footer>
 </div>

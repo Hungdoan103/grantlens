@@ -44,7 +44,7 @@ footer{margin-top:26px;border-top:1px solid var(--line);padding-top:8px;font-siz
     <div class="brand">Grant<em>Lens</em></div>
     <div class="sub">Mô tả hệ thống — trợ lý thẩm định điều kiện hồ sơ tài trợ.<br>AI đưa bằng chứng, con người quyết định.</div>
   </div>
-  <div class="meta">Phiên bản 2.1 · 09/2026<br>Đã cập nhật theo phản hồi thẩm định của khách hàng<br>Lõi AI: Qwen3-8B chạy local (Ollama)</div>
+  <div class="meta">Phiên bản 2.3 · 09/2026<br>Đã cập nhật theo phản hồi thẩm định của khách hàng<br>Lõi AI: Qwen3-8B chạy local (Ollama)</div>
 </header>
 
 <h1>1. Định vị và nguyên tắc</h1>
@@ -129,6 +129,15 @@ footer{margin-top:26px;border-top:1px solid var(--line);padding-top:8px;font-siz
 <tr><td>Đầu ra chuẩn mực (Rejection/Feedback Templates)</td><td>Thư kết quả soạn theo <b>đúng mẫu thư của đơn vị</b> (thay một file mẫu là đổi format toàn bộ thư đầu ra)</td><td>Đã có khung mẫu; chờ đơn vị gửi mẫu thật để thay vào</td></tr>
 </table>
 
+<h1>6. Bổ sung đợt 2–3 theo phản hồi thẩm định (09/2026)</h1>
+<table>
+<tr><th>Hạng mục</th><th>Cơ chế</th><th>Kiểm chứng</th></tr>
+<tr><td>Multi-GO + versioning</td><td>Mỗi quỹ một bộ tiêu chí có version; hồ sơ khóa snapshot bộ tại lần đánh giá đầu, nhật ký ghi "ĐÃ KHÓA"; nạp bộ mới từ guideline ngay trên UI (trích nguyên văn → cán bộ rà → lưu)</td><td>E2E: đổi bộ giữa chừng không ảnh hưởng case đã khóa</td></tr>
+<tr><td>Kho quỹ Úc</td><td>4 bộ trích nguyên văn guideline khách cung cấp: Wine Tourism R8, Cyber Skills R2, Female Founders R1, On-farm Water — phủ đủ 4 nhóm quỹ khách phân loại</td><td>2 hồ sơ bẫy dựng theo phân tích của khách: bắt đúng cellar-door/wholesale, vượt trần tài sản & rebate</td></tr>
+<tr><td>Guard chặn false-pass</td><td>Code kiểm lại rule định lượng sau AI; "đạt" sai số liệu ⇒ ghi đè "không đạt"; cán bộ bác cảnh báo phải ghi lý do</td><td>Qwen thật: false-pass 1/6 → <b>0/6</b>, accuracy 24/24 trên hồ sơ chứa đủ lỗi trượt</td></tr>
+<tr><td>Ký cấp 2 (quản lý)</td><td>Hồ sơ loại/chưa rõ: thư bị chặn tới khi manager (khác người thẩm định, qua kiểm COI) ký xác nhận</td><td>E2E: tự ký bị chặn 400, không phải manager bị chặn 403</td></tr>
+<tr><td>Vòng bổ sung + SLA</td><td>Trạng thái "Chờ bổ sung": danh mục + hạn nộp, nhiều vòng có đếm; SLA từng trạng thái, quá hạn đỏ</td><td>E2E vòng bổ sung #1 hoàn tất, đánh giá lại tự động</td></tr>
+</table>
 <div class="warnbox"><b>Phạm vi bản demo:</b> đăng nhập/phân quyền nhiều cấp, PostgreSQL, OCR đầy đủ, và fine-tune từ kho feedback thuộc giai đoạn MVP/Hoàn thiện theo lộ trình đã báo giá. Danh sách cấm hiện dùng nguồn công khai của Úc để chứng minh năng lực — thay theo thị trường của quý đơn vị khi triển khai.</div>
 
 <footer>GrantLens v2.1 · Bộ tiêu chí mẫu trích nguyên văn NSF 22-586 CAREER (nsf.gov, tài liệu công vụ Hoa Kỳ, phạm vi công cộng) · Hồ sơ mẫu là dữ liệu tổng hợp có nhãn, không phải hồ sơ thật · Danh sách sàng lọc: nguồn công khai ASIC / DFAT / ABR.</footer>

@@ -35,6 +35,13 @@
       "name": "Boosting Female Founders Initiative — Round 1 (AU, GO3792)",
       "region": "AU",
       "version": "R1-2020"
+    },
+    {
+      "id": "au-onfarm-water",
+      "file": "au-onfarm-water.json",
+      "name": "On-farm Emergency Water Infrastructure Rebate Scheme (AU/NSW)",
+      "region": "AU",
+      "version": "V2.7-2020"
     }
   ]
 }

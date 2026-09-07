@@ -207,6 +207,19 @@
         "fraud",
         "fund-trap"
       ]
+    },
+    {
+      "id": "HS-AU-02",
+      "file": "HS-AU-02-onfarm-cropping-trap.txt",
+      "applicant": "Mallee Plains Holdings Pty Ltd",
+      "org": "Mallee Plains Holdings Pty Ltd",
+      "directorate": "NSW RAA",
+      "ruleset": "au-onfarm-water",
+      "scenario": "Bẫy quỹ Úc #2 — trồng trọt thuần túy xin quỹ chăn nuôi, vượt trần tài sản + trần rebate",
+      "tags": [
+        "au",
+        "fund-trap"
+      ]
     }
   ]
 }

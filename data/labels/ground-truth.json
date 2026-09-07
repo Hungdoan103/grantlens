@@ -250,6 +250,16 @@
       "W07": "met",
       "W08": "unclear",
       "W09": "met"
+    },
+    "HS-AU-02": {
+      "O01": "not_met",
+      "O02": "met",
+      "O03": "met",
+      "O04": "met",
+      "O05": "met",
+      "O06": "not_met",
+      "O07": "not_met",
+      "O08": "not_met"
     }
   },
   "notes": {
@@ -267,6 +277,7 @@
     "HS-12": "Edge pass: non-profit museum (R01 met), 50% tenure-track-equivalent appointment certified by the organization (R04 met), third competition (allowed, R07 met), GEO budget $405k ≥ $400k (R11 met).",
     "HS-13": "Plain-English pass: community college, budget exactly $400,000 meets the minimum (R11 met). All 12 rules met — tests that plain register does not lower a passing verdict.",
     "HS-14": "Fraud test: cover declares budget $480k and PD 15 pages, but the attached financial report totals $1,520,000 and the CV says PD is 18 pages and PhD year 2016 vs 2019 on the cover. Cross-check layer must flag; R10/R11 unclear because the dossier contradicts itself — officer must request clarification.",
-    "HS-AU-01": "AU fund-trap (Wine Tourism R8): cover claims a physical cellar door and $310k cellar-door revenue at 62% physical sales, but the attached financial statements show cellar-door revenue $95k, operations ceased in July, wholesale only thereafter. W06 not_met (no cellar door held for remainder of year), W04/W08 unclear (dossier contradicts itself). Cross-check must flag the revenue mismatch."
+    "HS-AU-01": "AU fund-trap (Wine Tourism R8): cover claims a physical cellar door and $310k cellar-door revenue at 62% physical sales, but the attached financial statements show cellar-door revenue $95k, operations ceased in July, wholesale only thereafter. W06 not_met (no cellar door held for remainder of year), W04/W08 unclear (dossier contradicts itself). Cross-check must flag the revenue mismatch.",
+    "HS-AU-02": "AU fund-trap #2 (On-farm Water): cropping-only enterprise with no livestock (O01 not_met, O08 not_met — infrastructure for spray water, not livestock), off-farm assets $6.2M > $5M cap (O06), claim $32,750 > $25,000 ceiling (O07). O02-O05 genuinely met. Guards must catch O01/O06/O07."
   }
 }

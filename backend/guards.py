@@ -70,7 +70,7 @@ def _career(rule_id: str, text: str, meta: dict):
 def _au_wine(rule_id: str, text: str, meta: dict):
     if rule_id == "W03":  # ngưỡng doanh số rượu rebatable $1,207,000
         for s in _sentences_with(text, r"rebatable wine"):
-            m = re.search(r"\$\s?([\d,]+)", s)
+            m = re.search(r"\$\s?(\d[\d,]*\d|\d)", s)
             if m and int(m.group(1).replace(",", "")) < 1_207_000:
                 return "not_met", f"Doanh số rượu rebatable {m.group(1)}$ < ngưỡng $1,207,000 (code so số liệu)"
     if rule_id == "W06":  # BẪY: chỉ bán buôn / không có cellar door vật lý
@@ -81,7 +81,7 @@ def _au_wine(rule_id: str, text: str, meta: dict):
         if m and int(m.group(1)) < 50:
             return "not_met", f"Chỉ {m.group(1)}% doanh số từ cellar door vật lý < 50% (code so số liệu)"
     if rule_id == "W09":
-        m = re.search(r"grant (?:amount )?(?:requested|of)[^.\n]{0,25}\$\s?([\d,]+)", text, re.I)
+        m = re.search(r"grant (?:amount )?(?:requested|of)[^.\n]{0,25}\$\s?(\d[\d,]*\d|\d)", text, re.I)
         if m and int(m.group(1).replace(",", "")) > 100_000:
             return "not_met", f"Số tiền xin {m.group(1)}$ vượt trần $100,000 (code so số liệu)"
     return None
@@ -93,7 +93,7 @@ def _au_cyber(rule_id: str, text: str, meta: dict):
             return "not_met", "Hồ sơ nêu nộp đơn lẻ / không có project partner — quỹ bắt buộc liên danh (code khớp mẫu chữ)"
     if rule_id == "C07":
         for s in _sentences_with(text, r"eligible expenditure"):
-            m = re.search(r"\$\s?([\d,]+)", s)
+            m = re.search(r"\$\s?(\d[\d,]*\d|\d)", s)
             if m and int(m.group(1).replace(",", "")) < 500_000:
                 return "not_met", f"Chi tiêu hợp lệ {m.group(1)}$ < mức tối thiểu $500,000 (code so số liệu)"
     return None
@@ -111,7 +111,7 @@ def _au_bff(rule_id: str, text: str, meta: dict):
             if not re.search(r"\bnot\b|\bno\b", s, re.I):
                 return "not_met", "Hồ sơ nêu tổ chức thuộc diện income tax exempt — bị loại trừ (code khớp mẫu chữ)"
     if rule_id == "F06":
-        m = re.search(r"grant (?:amount )?(?:requested|of)[^.\n]{0,25}\$\s?([\d,]+)", text, re.I)
+        m = re.search(r"grant (?:amount )?(?:requested|of)[^.\n]{0,25}\$\s?(\d[\d,]*\d|\d)", text, re.I)
         if m:
             v = int(m.group(1).replace(",", ""))
             if v < 25_000 or v > 480_000:
@@ -119,8 +119,29 @@ def _au_bff(rule_id: str, text: str, meta: dict):
     return None
 
 
+def _au_onfarm(rule_id: str, text: str, meta: dict):
+    if rule_id == "O01":  # BẪY: nông trại trồng trọt thuần túy, không chăn nuôi
+        if re.search(r"cropping only|solely (grows|crops)|no livestock|does not (run|keep|hold)[^.\n]{0,30}(livestock|stock)|grain[- ]only", text, re.I):
+            return "not_met", "Hồ sơ nêu trồng trọt thuần túy / không có vật nuôi — quỹ chỉ dành cho ngành chăn nuôi (code khớp mẫu chữ)"
+    if rule_id == "O05":
+        m = re.search(r"(\d{1,2})\s?(?:per cent|%)[^.\n]{0,70}(gross income|income from)", text, re.I)
+        if m and int(m.group(1)) <= 50:
+            return "not_met", f"Chỉ {m.group(1)}% thu nhập từ sản xuất nông nghiệp — không vượt 50% (code so số liệu)"
+    if rule_id == "O06":
+        for s in _sentences_with(text, r"off[- ]farm assets"):
+            m = re.search(r"\$\s?(\d[\d,]*\d|\d)", s)
+            if m and int(m.group(1).replace(",", "")) > 5_000_000:
+                return "not_met", f"Tài sản ngoài nông trại {m.group(1)}$ vượt trần $5,000,000 (code so số liệu)"
+    if rule_id == "O07":
+        m = re.search(r"(?:rebate|claim(?:ed|ing)?|amount)[^.\n]{0,40}\$\s?(\d[\d,]*\d|\d)", text, re.I)
+        if m and int(m.group(1).replace(",", "")) > 25_000:
+            return "not_met", f"Số tiền xin {m.group(1)}$ vượt trần $25,000 (code so số liệu)"
+    return None
+
+
 _FUND_GUARDS = {"nsf-22-586": _career, "au-wine-tourism-r8": _au_wine,
-                "au-cyber-skills-r2": _au_cyber, "au-female-founders-r1": _au_bff}
+                "au-cyber-skills-r2": _au_cyber, "au-female-founders-r1": _au_bff,
+                "au-onfarm-water": _au_onfarm}
 
 
 # ---------- guard tổng quát cho ruleset bất kỳ ----------
