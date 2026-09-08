@@ -44,7 +44,7 @@ footer{margin-top:40px;font-size:12.5px;color:var(--muted);border-top:1px solid 
     <div class="brand">Grant<em>Lens</em></div>
     <div class="sub">Sơ đồ hệ thống — trợ lý thẩm định điều kiện hồ sơ tài trợ. AI đưa bằng chứng, con người quyết định.</div>
   </div>
-  <div class="meta">Phiên bản 2.3 · 09/2026<br>Lõi AI: Qwen3-8B chạy local<br>Đa bộ tiêu chí: NSF CAREER (US) + 4 quỹ Úc</div>
+  <div class="meta">Phiên bản 2.5 · 09/2026<br>Lõi AI: Qwen3-8B chạy local<br>Đa bộ tiêu chí: NSF CAREER (US) + 4 quỹ Úc</div>
 </header>
 
 <!-- ===================== 1. KIẾN TRÚC ===================== -->
@@ -315,6 +315,10 @@ footer{margin-top:40px;font-size:12.5px;color:var(--muted);border-top:1px solid 
   <div class="eyebrow">Cập nhật 09/2026 — theo phản hồi thẩm định</div>
   <h2>Các cơ chế bổ sung (đã cài đặt và kiểm thử)</h2>
   <div class="grid">
+    <div class="card">
+      <h3>Giới hạn được công bố, không giấu</h3>
+      <p>Mỗi bộ tiêu chí có <b>báo cáo độ phủ 3 mức</b>: tiêu chí có lưới đỡ mã nguồn / <b>cần guard viết tay</b> (logic dẫn xuất, nhánh thay thế, ngưỡng điều kiện — mã nguồn tự nhận là không diễn đạt nổi) / chỉ dựa mô hình + cán bộ. Số "false-pass = 0" chỉ có giá trị với <b>đúng quỹ đã đo bằng bộ test đã được cán bộ phê chuẩn nhãn</b> — hệ thống tự gắn nhãn "tạm tính" cho mọi số đo chưa qua phê chuẩn.</p>
+    </div>
     <div class="card">
       <h3>Multi-GO + versioning + kho quỹ Úc</h3>
       <p>Mỗi đợt/quỹ tài trợ có bộ tiêu chí riêng kèm version; hồ sơ <b>khóa cứng snapshot bộ tiêu chí tại lần đánh giá đầu</b> — đổi rule giữa đợt không ảnh hưởng case đang xử lý. Đã nạp sẵn 4 quỹ Úc thật trích nguyên văn guideline: Wine Tourism R8, Cyber Skills R2, Boosting Female Founders R1, On-farm Water — phủ đủ 4 nhóm quỹ (program-specific, industry, cross-industry, location-based).</p>

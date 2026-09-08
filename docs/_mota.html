@@ -44,7 +44,7 @@ footer{margin-top:26px;border-top:1px solid var(--line);padding-top:8px;font-siz
     <div class="brand">Grant<em>Lens</em></div>
     <div class="sub">Mô tả hệ thống — trợ lý thẩm định điều kiện hồ sơ tài trợ.<br>AI đưa bằng chứng, con người quyết định.</div>
   </div>
-  <div class="meta">Phiên bản 2.3 · 09/2026<br>Đã cập nhật theo phản hồi thẩm định của khách hàng<br>Lõi AI: Qwen3-8B chạy local (Ollama)</div>
+  <div class="meta">Phiên bản 2.5 · 09/2026<br>Đã cập nhật theo phản hồi thẩm định của khách hàng<br>Lõi AI: Qwen3-8B chạy local (Ollama)</div>
 </header>
 
 <h1>1. Định vị và nguyên tắc</h1>
@@ -137,6 +137,15 @@ footer{margin-top:26px;border-top:1px solid var(--line);padding-top:8px;font-siz
 <tr><td>Guard chặn false-pass</td><td>Code kiểm lại rule định lượng sau AI; "đạt" sai số liệu ⇒ ghi đè "không đạt"; cán bộ bác cảnh báo phải ghi lý do</td><td>Qwen thật: false-pass 1/6 → <b>0/6</b>, accuracy 24/24 trên hồ sơ chứa đủ lỗi trượt</td></tr>
 <tr><td>Ký cấp 2 (quản lý)</td><td>Hồ sơ loại/chưa rõ: thư bị chặn tới khi manager (khác người thẩm định, qua kiểm COI) ký xác nhận</td><td>E2E: tự ký bị chặn 400, không phải manager bị chặn 403</td></tr>
 <tr><td>Vòng bổ sung + SLA</td><td>Trạng thái "Chờ bổ sung": danh mục + hạn nộp, nhiều vòng có đếm; SLA từng trạng thái, quá hạn đỏ</td><td>E2E vòng bổ sung #1 hoàn tất, đánh giá lại tự động</td></tr>
+</table>
+<h1>7. Giới hạn được công bố minh bạch (đợt rà kỹ thuật 3)</h1>
+<p>Phần này viết ra để <b>không ai hiểu nhầm phạm vi bảo đảm</b> của hệ thống — theo đúng yêu cầu rà soát của quý đơn vị.</p>
+<table>
+<tr><th>Câu hỏi</th><th>Trả lời trung thực</th><th>Cơ chế trong hệ thống</th></tr>
+<tr><td>Guard có bảo vệ mọi tiêu chí của mọi quỹ không?</td><td><b>Không.</b> Chỉ tiêu chí mà mã nguồn diễn đạt được (ngưỡng tiền/%, mục cấm, danh sách loại trừ). Tiêu chí có logic dẫn xuất, nhánh thay thế, ngưỡng theo điều kiện thì mã nguồn không diễn đạt nổi.</td><td>Báo cáo <b>độ phủ 3 mức</b> hiện ngay màn hình từng bộ tiêu chí: có lưới đỡ code / <b>cần guard tay</b> / chỉ LLM + cán bộ. Chỗ không diễn đạt được được ghi rõ lý do, không im lặng bỏ qua.</td></tr>
+<tr><td>Quỹ mới nạp vào có an toàn ngay không?</td><td><b>Chỉ an toàn ở lớp cơ bản.</b> Hệ tự biên dịch ràng buộc từ nguyên văn tiêu chí, nhưng phần "cần guard tay" vẫn phụ thuộc mô hình và cán bộ.</td><td>Cổng phê chuẩn bộ tiêu chí kiểm độ phủ tối thiểu; dưới ngưỡng thì quản lý phải xác nhận chấp nhận rủi ro kèm lý do, ghi nhật ký vĩnh viễn.</td></tr>
+<tr><td>Số "false-pass = 0" áp dụng cho quỹ nào?</td><td><b>Chỉ cho đúng quỹ đã đo, bằng bộ test đã được cán bộ phê chuẩn nhãn.</b> Không suy rộng sang quỹ khác.</td><td>Bộ test do AI sinh mặc định ở trạng thái <i>chưa phê chuẩn</i>; mọi kết quả đo trên đó được đánh dấu <b>tạm tính</b> trong báo cáo và trên giao diện cho tới khi có người rà và ký duyệt nhãn.</td></tr>
+<tr><td>Đề thi tự sinh có làm nhiễu số đo không?</td><td><b>Có nếu không lọc</b> — nên hệ thống lọc sẵn.</td><td>Một lượt kiểm độc lập soát từng tiêu chí phụ xem văn bản có bằng chứng rõ ràng không; tiêu chí "yếu" bị loại khỏi điểm. Báo cáo tách <b>chỉ số mục tiêu</b> (bắt vi phạm — thước đo thật) khỏi <b>chỉ số phụ</b> (tham khảo). Case sai nhãn bị loại kèm lý do, vẫn lưu để truy vết.</td></tr>
 </table>
 <div class="warnbox"><b>Phạm vi bản demo:</b> đăng nhập/phân quyền nhiều cấp, PostgreSQL, OCR đầy đủ, và fine-tune từ kho feedback thuộc giai đoạn MVP/Hoàn thiện theo lộ trình đã báo giá. Danh sách cấm hiện dùng nguồn công khai của Úc để chứng minh năng lực — thay theo thị trường của quý đơn vị khi triển khai.</div>
 
