@@ -4,7 +4,7 @@
   "generated_by": "qwen3:8b",
   "generated_at": "2026-09-07T15:19:07",
   "approved": false,
-  "note": "Nhãn gán by-construction (LLM chỉ viết văn bản, không tự gán nhãn); guard đối soát từng case. CHƯA phê chuẩn — cán bộ rà văn bản + nhãn rồi đặt approved=true mới dùng làm chuẩn vàng.",
+  "note": "Nhãn gán by-construction; guard đối soát + verifier độc lập. CHƯA PHÊ CHUẨN — số đo là TẠM. Case W06 đã bị LOẠI: nhãn sai do rule cho phép related entity (bằng chứng cơ chế dispute hoạt động).",
   "cases": [
     {
       "id": "GEN-au-wine-tourism-r8-00-clean",
@@ -21,7 +21,10 @@
         "W08": "met",
         "W09": "met"
       },
-      "guard_agree": null
+      "guard_agree": null,
+      "weak_labels": [],
+      "verifier": {},
+      "status": "pending_review"
     },
     {
       "id": "GEN-au-wine-tourism-r8-01-W03",
@@ -38,7 +41,10 @@
         "W08": "met",
         "W09": "met"
       },
-      "guard_agree": true
+      "guard_agree": true,
+      "weak_labels": [],
+      "verifier": {},
+      "status": "pending_review"
     },
     {
       "id": "GEN-au-wine-tourism-r8-02-W06",
@@ -55,7 +61,11 @@
         "W08": "met",
         "W09": "met"
       },
-      "guard_agree": false
+      "guard_agree": false,
+      "weak_labels": [],
+      "verifier": {},
+      "status": "disputed",
+      "dispute_reason": "Nhãn sai: case nêu related entity sở hữu cellar door — rule W06 cho phép 'and/or their related entity/ies', nên đúng ra là ĐẠT. AI chấm đúng, đề thi sai."
     },
     {
       "id": "GEN-au-wine-tourism-r8-03-W08",
@@ -72,7 +82,10 @@
         "W08": "not_met",
         "W09": "met"
       },
-      "guard_agree": false
+      "guard_agree": false,
+      "weak_labels": [],
+      "verifier": {},
+      "status": "pending_review"
     },
     {
       "id": "GEN-au-wine-tourism-r8-04-W09",
@@ -89,8 +102,13 @@
         "W08": "met",
         "W09": "not_met"
       },
-      "guard_agree": true
+      "guard_agree": true,
+      "weak_labels": [],
+      "verifier": {},
+      "status": "pending_review"
     }
   ],
-  "skipped": []
+  "skipped": [],
+  "approved_by": null,
+  "approved_at": null
 }

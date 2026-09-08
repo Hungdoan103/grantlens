@@ -380,6 +380,58 @@ def ruleset_casegen(ruleset_id: str, req: CasegenReq):
     return doc
 
 
+@app.get("/api/rulesets/{ruleset_id}/testset")
+def get_testset(ruleset_id: str):
+    """Trạng thái bộ test sinh cho ruleset: đã phê chuẩn nhãn chưa, case nào nhãn yếu/disputed."""
+    from . import casegen
+    try:
+        _, doc = casegen._load(ruleset_id)
+    except FileNotFoundError:
+        return {"exists": False, "ruleset": ruleset_id}
+    return {"exists": True, "ruleset": ruleset_id, "approved": doc.get("approved", False),
+            "approved_by": doc.get("approved_by"), "generated_by": doc.get("generated_by"),
+            "cases": [{"id": c["id"], "target": c.get("target"), "status": c.get("status", "pending_review"),
+                       "weak_labels": c.get("weak_labels", []), "guard_agree": c.get("guard_agree")}
+                      for c in doc["cases"]]}
+
+
+class ApproveLabelsReq(Officer):
+    pass
+
+
+@app.post("/api/rulesets/{ruleset_id}/testset/approve")
+def approve_testset(ruleset_id: str, req: ApproveLabelsReq):
+    """Cán bộ phê chuẩn nhãn bộ test — sau bước này số đo mới hết 'tạm/provisional'."""
+    from . import casegen
+    try:
+        res = casegen.approve(ruleset_id, req.officer)
+    except FileNotFoundError as e:
+        raise HTTPException(404, str(e))
+    store.log(req.officer, f"PHÊ CHUẨN nhãn bộ test '{ruleset_id}' ({res['n_cases']} case) — "
+              "từ đây số đo trên bộ này không còn là tạm tính", None, req.role, {"ruleset": ruleset_id})
+    return res
+
+
+class DisputeReq(Officer):
+    case_id: str
+    reason: str
+
+
+@app.post("/api/rulesets/{ruleset_id}/testset/dispute")
+def dispute_testcase(ruleset_id: str, req: DisputeReq):
+    """Loại một case sinh khỏi metric (nhãn sai / đề thi không rõ) — giữ lại để truy vết."""
+    from . import casegen
+    if len((req.reason or "").strip()) < 8:
+        raise HTTPException(400, "Loại case khỏi bộ test bắt buộc ghi lý do (≥ 8 ký tự)")
+    try:
+        res = casegen.dispute(ruleset_id, req.case_id, req.reason)
+    except (FileNotFoundError, KeyError) as e:
+        raise HTTPException(404, str(e))
+    store.log(req.officer, f"LOẠI case '{req.case_id}' khỏi bộ test '{ruleset_id}' — lý do: {req.reason}",
+              None, req.role, {"ruleset": ruleset_id, "case": req.case_id})
+    return res
+
+
 # ---------------- ký cấp 2 (quản lý) + vòng bổ sung hồ sơ ----------------
 @app.post("/api/cases/{case_id}/countersign")
 def countersign(case_id: str, req: Officer):

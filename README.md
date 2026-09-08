@@ -51,6 +51,15 @@ Dữ liệu tham chiếu công khai của Úc trong `data/external/` (xem README
 - **Ký cấp 2**: hồ sơ có tiêu chí không đạt/chưa rõ ⇒ thư chỉ phát hành sau khi một **manager** (data/officers.json, khác người thẩm định, qua kiểm COI) ký xác nhận. Ngưỡng chống ký nhanh nâng 8→15s/tiêu chí (`GRANTLENS_MIN_SECONDS_PER_RULE`).
 - **Vòng bổ sung hồ sơ**: trạng thái mới `awaiting_supplement` — cán bộ ghi danh mục cần bổ sung + hạn; đính kèm tài liệu là quay lại đánh giá, đếm số vòng. **SLA** theo trạng thái (data/officers.json `sla_days`) — quá hạn UI cảnh báo đỏ.
 
+## Sửa theo phê bình kỹ thuật đợt 3 (09/2026) — giới hạn của guard được nói thẳng
+- **Compiler biết tự thú nhận** (`guards.compile_rule_guards`): rule có *logic dẫn xuất* ("in excess of any such sales used to meet…" — W04), *nhánh thay thế* ("and/or their related entity" — W06) hoặc *ngưỡng theo điều kiện* (NSF R11: $400k chung / $500k BIO-ENG-OPP) được đánh dấu `uncompilable` kèm lý do, thay vì im lặng bỏ qua. Ngưỡng điều kiện: compiler chỉ dùng ngưỡng **an toàn nhất** để không báo oan, và ghi rõ là cần guard tay.
+- **Độ phủ 3 mức** (`guards.coverage`, hiện trên UI + API): `code-guarded` / **`needs-manual-guard`** (có logic định lượng mà code không diễn đạt nổi — chỗ false-pass dễ lọt nhất) / `llm-only`. Kèm danh sách `partial_rules` = rule đã có guard tay nhưng vẫn còn khoảng trống.
+- **Guard tay + compiler chạy SONG SONG** (trước đây có tay là tắt compiler → regex trượt wording là mất lưới, đúng ca W06 `does **not** own` có markdown chen giữa). Quy tắc hợp nhất: cả hai bắt → `not_met`; chỉ compiler bắt trên rule đã có tay → hạ `unclear` (cảnh báo, không ghi đè). Thêm `guards.normalise()` bỏ markdown/dấu nháy cong trước khi khớp.
+- **Casegen chống nhiễu** (`casegen.py`): thêm **verifier độc lập** (lượt LLM riêng, không thấy nhãn) kiểm từng rule phụ có bằng chứng rõ không → rule "yếu" bị **loại khỏi metric**; eval **tách `[MỤC TIÊU]` (thước đo thật) khỏi `[PHỤ]` (tham khảo)**.
+- **Nhãn phải qua phê chuẩn**: bộ sinh mặc định `approved=false`; eval in cảnh báo và ghi `provisional: true`. Có `--approve` (ghi tên người duyệt) và `--dispute` (loại case nhãn sai khỏi metric, giữ để truy vết). Ví dụ thật: case Wine W06 đã bị dispute vì nhãn sai — rule cho phép related entity, AI chấm đúng.
+
+**Ranh giới trung thực để nói với khách:** số false-pass chỉ có giá trị với **đúng quỹ đã đo bằng bộ test đã phê chuẩn nhãn**; quỹ mới chỉ được đảm bảo lớp compiler cơ bản, và các rule `needs-manual-guard` vẫn cần guard tay + cán bộ.
+
 ## Điểm phương pháp
 **Chống thiên lệch văn phong (2 lượt gọi thật):** lượt 1 chỉ trích *dữ kiện* trung tính (số liệu, ngày, directorate…) kèm chunk_id + key_phrase; lượt 2 phán quyết **chỉ nhìn danh sách dữ kiện**, không nhìn văn gốc ⇒ ngữ pháp/độ trôi chảy không thể ảnh hưởng. Kiểm chứng bằng 2 cặp HS-04A/B và HS-11A/B (Bias Lab + eval).
 

@@ -20,8 +20,27 @@ def _budget_values(text: str):
     return [v for cat, v, _, _ in extract_values("x", text) if cat == "budget_total"]
 
 
+def normalise(text: str) -> str:
+    """Chuẩn hoá trước khi cho guard chạy — regex tay hay trượt vì wording/định dạng:
+    bỏ markdown (**bold**, *nghiêng*, `code`), gộp khoảng trắng/xuống dòng, chuẩn hoá gạch nối và
+    dấu nháy cong. Sửa đúng ca W06 lọt trong eval Wine ('does **not** own' không khớp 'does not own')."""
+    t = re.sub(r"[*_`]{1,3}", "", text or "")
+    t = t.replace("’", "'").replace("‘", "'").replace("–", "-").replace("—", "-")
+    t = re.sub(r"[ \t]+", " ", t)
+    return t
+
+
 def _sentences_with(text: str, pat: str):
     return [s for s in re.split(r"(?<=[.!?])\s+", text) if re.search(pat, s, re.I)]
+
+
+def _alt_satisfied(text: str, alt_pat: str, need_pat: str) -> bool:
+    """Có câu nào cho thấy NHÁNH THAY THẾ đã thỏa mãn không (vd related entity sở hữu cellar door)?
+    Nếu có, guard KHÔNG được kết luận vi phạm từ câu phủ định về chủ thể chính."""
+    for s in _sentences_with(text, alt_pat):
+        if re.search(need_pat, s, re.I) and not re.search(r"\b(no|not|none|without)\b", s, re.I):
+            return True
+    return False
 
 
 # ---------- guard đặc thù NSF 22-586 CAREER ----------
@@ -74,8 +93,15 @@ def _au_wine(rule_id: str, text: str, meta: dict):
             if m and int(m.group(1).replace(",", "")) < 1_207_000:
                 return "not_met", f"Doanh số rượu rebatable {m.group(1)}$ < ngưỡng $1,207,000 (code so số liệu)"
     if rule_id == "W06":  # BẪY: chỉ bán buôn / không có cellar door vật lý
-        if re.search(r"wholesale only|only .{0,25}wholesale|no (physical )?cellar door|does not (own|operate|have)[^.\n]{0,40}cellar door|ceased .{0,30}cellar door", text, re.I):
-            return "not_met", "Hồ sơ/tài liệu nêu chỉ bán buôn hoặc không còn/không có cellar door vật lý — bẫy đặc thù quỹ (code khớp mẫu chữ)"
+        # Rule cho phép THAY THẾ: "and/or their related entity/ies have owned or leased..."
+        # -> nếu hồ sơ nêu related entity có cellar door thì KHÔNG được kết luận vi phạm.
+        if _alt_satisfied(text, r"related entit|associated entit|subsidiar|parent (company|entity)",
+                          r"(own|lease|operat)\w*[^.]{0,60}cellar door"):
+            return None
+        if re.search(r"wholesale only|only .{0,25}wholesale|no (physical )?cellar door|"
+                     r"does not (own|operate|lease|have)[^.\n]{0,60}cellar door|ceased .{0,40}cellar door|"
+                     r"(sold|closed|disposed of)[^.\n]{0,40}(cellar door|tasting room)", text, re.I):
+            return "not_met", "Hồ sơ/tài liệu nêu chỉ bán buôn hoặc không còn/không có cellar door vật lý (và không có nhánh related entity thay thế) — bẫy đặc thù quỹ (code khớp mẫu chữ)"
     if rule_id == "W08":  # <50% doanh số từ cellar door vật lý
         m = re.search(r"(\d{1,2})\s?(?:per cent|%)[^.\n]{0,80}(physical )?cellar door", text, re.I)
         if m and int(m.group(1)) < 50:
@@ -163,16 +189,46 @@ def _anchors(quote: str, pos: int, window: int = 60):
     return [w for w in words if w not in _STOP][:6]
 
 
+# Dấu hiệu rule có cấu trúc mà REGEX KHÔNG diễn đạt nổi -> phải thú nhận, không được im lặng.
+# (phê bình #1 của khách: W04 "in excess of any such sales used to meet the threshold" là logic 2 lớp)
+_DERIVED_PAT = re.compile(
+    r"in excess of any such|in excess of (?:the|those|any)|relative to|proportion of the|"
+    r"used to meet the|after (?:deducting|excluding)|net of|remainder of|balance of|"
+    r"as a (?:share|percentage) of|calculated by reference to|equivalent to the (?:sum|total)", re.I)
+# Nhánh THAY THẾ: thỏa một trong nhiều chủ thể/cách -> không được kết luận vi phạm từ một câu
+# (phê bình #1: W06 cho phép applicant HOẶC related entity)
+_ALT_PAT = re.compile(r"and/or|(?<!\w)or their\b|or (?:its|his|her|the) related|"
+                      r"related entit|or equivalent|or (?:an?\s+)?alternative|either .{2,40} or ", re.I)
+
+
 def compile_rule_guards(rule: dict):
-    """Biên dịch quote -> danh sách ràng buộc máy kiểm được.
-    Mỗi ràng buộc: {kind, op, value, anchors, label}."""
+    """Biên dịch quote -> ràng buộc máy kiểm được + GHI NHẬN chỗ không biên dịch được.
+    Mỗi ràng buộc: {kind, op, value, anchors, label, [conditional], [alt]}.
+    kind='uncompilable' = rule có dấu hiệu định lượng/logic nhưng regex không diễn đạt nổi."""
     q = rule.get("quote", "")
     out = []
+    has_alt = bool(_ALT_PAT.search(q))
     # --- ngưỡng TIỀN ---
+    money = []
     for m in re.finditer(r"(at least|a minimum of|minimum of|more than|no more than|not exceed|may not exceed|cannot exceed|up to|maximum(?: that can be claimed)? is|expected to total a minimum of)\s*\$\s?([\d,]+)", q, re.I):
         op = "min" if re.search(r"least|minimum|more than", m.group(1), re.I) else "max"
-        out.append({"kind": "money", "op": op, "value": int(m.group(2).replace(",", "")),
-                    "anchors": _anchors(q, m.start()), "label": m.group(0)[:60]})
+        money.append({"kind": "money", "op": op, "value": int(m.group(2).replace(",", "")),
+                      "anchors": _anchors(q, m.start()), "label": m.group(0)[:60]})
+    # NGƯỠNG CÓ ĐIỀU KIỆN: nhiều ngưỡng cùng chiều trong một quote (vd $400k chung, $500k cho BIO/ENG/OPP).
+    # Compiler KHÔNG biết hồ sơ thuộc nhánh nào -> chỉ giữ ngưỡng AN TOÀN NHẤT (min của các "min",
+    # max của các "max") để không bao giờ báo oan; đồng thời gắn cờ conditional -> cần guard tay.
+    for op in ("min", "max"):
+        same = [c for c in money if c["op"] == op]
+        if len(same) > 1:
+            keep = min(same, key=lambda c: c["value"]) if op == "min" else max(same, key=lambda c: c["value"])
+            keep = dict(keep, conditional=True,
+                        label=keep["label"] + f" (rule có {len(same)} ngưỡng theo điều kiện — dùng ngưỡng an toàn nhất)")
+            money = [c for c in money if c["op"] != op] + [keep]
+            vals = ", ".join("${:,}".format(c["value"]) for c in same)
+            out.append({"kind": "uncompilable", "label": "ngưỡng điều kiện",
+                        "reason": f"rule có {len(same)} ngưỡng '{op}' theo điều kiện ({vals}) — compiler chỉ dùng "
+                                  "ngưỡng an toàn nhất để không báo oan; cần guard tay để phân nhánh chính xác"})
+    out.extend(money)
     m = re.search(r"[Ff]rom \$\s?([\d,]+)(?:\.\d+)? to \$\s?([\d,]+)", q)
     if m:
         a = _anchors(q, m.start())
@@ -199,13 +255,31 @@ def compile_rule_guards(rule: dict):
             core_term = re.split(r"\(|,| unless | however | including ", core_term)[0].strip()
             if 4 < len(core_term) < 60:
                 out.append({"kind": "excluded", "term": core_term, "label": f"loại trừ: {core_term}"})
+    # --- THÚ NHẬN: logic dẫn xuất/2 lớp mà regex không diễn đạt nổi ---
+    if _DERIVED_PAT.search(q):
+        out.append({"kind": "uncompilable", "label": "logic dẫn xuất",
+                    "reason": "rule so sánh giá trị DẪN XUẤT (phần vượt/phần đã dùng/tỷ lệ của tổng) — "
+                              "regex không diễn đạt được; cần guard tay hoặc để LLM + cán bộ quyết"})
+    # --- Gắn cờ nhánh thay thế cho mọi ràng buộc dạng chữ ---
+    if has_alt:
+        for c in out:
+            if c["kind"] in ("forbidden", "excluded"):
+                c["alt"] = True
+        out.append({"kind": "uncompilable", "label": "nhánh thay thế (OR)",
+                    "reason": "rule cho phép thỏa qua chủ thể/cách THAY THẾ (and/or, related entity, or equivalent) — "
+                              "một câu phủ định trong hồ sơ KHÔNG đủ kết luận vi phạm"})
     return out
 
 
 def _eval_compiled(cons: list, text: str):
-    """Chạy các ràng buộc đã biên dịch trên văn bản hồ sơ. Trả (verdict, reason) hoặc None."""
+    """Chạy các ràng buộc đã biên dịch trên văn bản hồ sơ. Trả (verdict, reason) hoặc None.
+    Ràng buộc kind='uncompilable' KHÔNG đánh giá (chỉ dùng cho báo cáo độ phủ);
+    ràng buộc có alt=True (rule cho phép nhánh thay thế) chỉ được hạ 'unclear', không kết luận not_met."""
+    text = normalise(text)
     sents = re.split(r"(?<=[.!?])\s+", text)
     for c in cons:
+        if c["kind"] == "uncompilable":
+            continue
         if c["kind"] in ("money", "percent"):
             pat = r"\$\s?(\d[\d,]*\d|\d)" if c["kind"] == "money" else r"(\d{1,3})\s*(?:per cent|%)"
             matched_vals = []
@@ -227,8 +301,11 @@ def _eval_compiled(cons: list, text: str):
             hits = [s for s in sents if re.search(re.escape(term), s, re.I)]
             bad = [s for s in hits if not re.search(r"\bno\b|\bnot\b|\bnone\b|without|sole |do(es)? not", s, re.I)]
             if bad:
-                return ("not_met" if c["kind"] == "forbidden" else "unclear",
-                        f"Hồ sơ nêu '{term}' — rule {('cấm' if c['kind']=='forbidden' else 'loại trừ')} mục này ('{c['label']}') — guard tự biên dịch từ nguyên văn")
+                strong = c["kind"] == "forbidden" and not c.get("alt")
+                return ("not_met" if strong else "unclear",
+                        f"Hồ sơ nêu '{term}' — rule {('cấm' if c['kind']=='forbidden' else 'loại trừ')} mục này ('{c['label']}')"
+                        + (" — rule có nhánh thay thế nên chỉ gắn CHƯA RÕ để cán bộ quyết" if c.get("alt") else "")
+                        + " — guard tự biên dịch từ nguyên văn")
     return None
 
 
@@ -243,22 +320,41 @@ HAND_COVERAGE = {
 
 
 def coverage(ruleset: dict) -> dict:
-    """Độ phủ guard của một bộ tiêu chí: rule nào được code bảo vệ (auto/tay), rule nào CHỈ dựa LLM + người.
-    Đây là câu trả lời trung thực cho câu hỏi 'false-pass=0 có đúng với quỹ mới không'."""
+    """Độ phủ guard TRUNG THỰC — 3 mức, để không ai hiểu nhầm 'có compiler = an toàn mọi quỹ':
+      code-guarded       : có guard tay và/hoặc ràng buộc tự biên dịch chạy được.
+      needs-manual-guard : rule CÓ cấu trúc định lượng/logic nhưng compiler KHÔNG diễn đạt nổi
+                           (logic dẫn xuất kiểu W04, nhánh thay thế kiểu W06, ngưỡng theo điều kiện)
+                           và chưa ai viết guard tay -> ĐÂY LÀ CHỖ RỦI RO NHẤT, phải ưu tiên xử lý.
+      llm-only           : rule thuần định tính, không có gì để code kiểm -> dựa LLM + cán bộ.
+    """
     hand = HAND_COVERAGE.get(ruleset["id"], set())
     rows = []
     for r in ruleset["rules"]:
-        auto = compile_rule_guards(r)
-        kind = ("hand+auto" if r["id"] in hand and auto else
-                "hand" if r["id"] in hand else
-                "auto" if auto else "llm-only")
+        cons = compile_rule_guards(r)
+        runnable = [c for c in cons if c["kind"] != "uncompilable"]
+        gaps = [c for c in cons if c["kind"] == "uncompilable"]
+        has_hand = r["id"] in hand
+        if has_hand or runnable:
+            kind = "code-guarded"
+        elif gaps:
+            kind = "needs-manual-guard"
+        else:
+            kind = "llm-only"
         rows.append({"rule": r["id"], "title_vi": r["title_vi"], "guard": kind,
-                     "auto_constraints": [c["label"] for c in auto]})
-    n_guarded = sum(1 for x in rows if x["guard"] != "llm-only")
+                     "hand": has_hand, "auto_constraints": [c["label"] for c in runnable],
+                     "gaps": [{"label": c["label"], "reason": c["reason"]} for c in gaps]})
+    n_guarded = sum(1 for x in rows if x["guard"] == "code-guarded")
+    n_manual = sum(1 for x in rows if x["guard"] == "needs-manual-guard")
+    n_llm = sum(1 for x in rows if x["guard"] == "llm-only")
+    # rule vừa có guard tay vừa còn khoảng trống compiler -> vẫn nên rà lại
+    partial = [x["rule"] for x in rows if x["guard"] == "code-guarded" and x["gaps"]]
     return {"ruleset": ruleset["id"], "n_rules": len(rows), "n_guarded": n_guarded,
+            "n_needs_manual": n_manual, "n_llm_only": n_llm, "partial_rules": partial,
             "pct": round(n_guarded / max(len(rows), 1), 2), "rows": rows,
-            "note": "Rule 'llm-only' KHÔNG có lưới đỡ code — false-pass ở đó phụ thuộc LLM + cán bộ. "
-                    "Muốn nâng độ phủ: viết guard tay hoặc sửa quote cho chứa ngưỡng/mục cấm tường minh."}
+            "note": "'needs-manual-guard' = rule có logic định lượng mà compiler KHÔNG diễn đạt nổi và chưa có "
+                    "guard tay — đây là chỗ false-pass dễ lọt nhất, ưu tiên viết guard tay. 'llm-only' = rule "
+                    "định tính, dựa LLM + cán bộ. Số liệu false-pass chỉ có giá trị với bộ đã đo bằng bộ test "
+                    "đã được cán bộ phê chuẩn nhãn."}
 
 
 # ---------- guard tổng quát cho ruleset bất kỳ ----------
@@ -279,22 +375,41 @@ def _generic(rule: dict, text: str):
 
 
 def check(ruleset_id: str, rule: dict, verdict: str, text: str, meta: dict = None):
-    """Trả None (không có gì) hoặc dict {action, verdict, reason} để lớp trên áp vào kết luận."""
+    """Trả None hoặc {action, verdict, reason, source}.
+
+    HỢP NHẤT hai lớp thay vì loại trừ nhau (sửa phê bình: "có guard tay thì tắt compiler"):
+      - Guard TAY và COMPILER luôn chạy CẢ HAI. Guard tay trượt wording thì compiler vẫn đỡ.
+      - Cả hai cùng bắt        -> not_met (bằng chứng kép, mạnh nhất).
+      - Chỉ guard tay bắt      -> theo guard tay (hiểu ngữ cảnh đặc thù).
+      - Chỉ compiler bắt & rule ĐÃ có guard tay -> hạ CHƯA RÕ, không ghi đè: compiler có thể
+        không hiểu ngoại lệ mà guard tay biết, nhưng cũng KHÔNG được im lặng bỏ qua.
+      - Chỉ compiler bắt & rule chưa có guard tay -> theo loại rule (định lượng: ghi đè; định tính: chưa rõ).
+    """
     meta = meta or {}
+    ntext = normalise(text)
     fund_guard = _FUND_GUARDS.get(ruleset_id)
-    hit = fund_guard(rule["id"], text, meta) if fund_guard else None
-    hit = hit or _generic(rule, text)
+    hand = fund_guard(rule["id"], ntext, meta) if fund_guard else None
+    hand = hand or _generic(rule, ntext)
+    comp = _eval_compiled(compile_rule_guards(rule), ntext)
     hand_covered = rule["id"] in HAND_COVERAGE.get(ruleset_id, set())
-    if not hit and not hand_covered:
-        # Lớp nền cho MỌI ruleset: ràng buộc TỰ BIÊN DỊCH từ nguyên văn rule.
-        # Rule đã có guard tay thì KHÔNG chạy compiler đè lên — guard tay hiểu ngữ cảnh
-        # (vd ngưỡng theo directorate) mà compiler tổng quát không hiểu.
-        hit = _eval_compiled(compile_rule_guards(rule), text)
-    if not hit:
+
+    if hand and comp:
+        source, hit = "hand+compiler", (("not_met" if "not_met" in (hand[0], comp[0]) else hand[0]),
+                                        f"{hand[1]} | Lớp tự biên dịch xác nhận: {comp[1]}")
+    elif hand:
+        source, hit = "hand", hand
+    elif comp:
+        source, hit = "compiler", comp
+    else:
         return None
     g_verdict, reason = hit
+
     if verdict == "met":  # LLM cho qua trong khi code thấy vi phạm -> chặn false-pass
-        if rule.get("type") == "quantitative":
-            return {"action": "override", "verdict": g_verdict, "reason": reason}
-        return {"action": "flag", "verdict": "unclear", "reason": reason}
-    return {"action": "confirm", "verdict": verdict, "reason": reason}
+        # compiler đơn độc trên rule đã có guard tay: cảnh báo chứ không ghi đè
+        if source == "compiler" and hand_covered:
+            return {"action": "flag", "verdict": "unclear", "source": source,
+                    "reason": reason + " — guard tay không bắt ca này; lớp tự biên dịch nghi vấn, cần cán bộ quyết"}
+        if rule.get("type") == "quantitative" and g_verdict == "not_met":
+            return {"action": "override", "verdict": "not_met", "source": source, "reason": reason}
+        return {"action": "flag", "verdict": "unclear", "source": source, "reason": reason}
+    return {"action": "confirm", "verdict": verdict, "source": source, "reason": reason}

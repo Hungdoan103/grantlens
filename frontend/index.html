@@ -263,7 +263,8 @@ pre.json{font-family:'IBM Plex Mono',monospace;font-size:11px;background:#F6F7F5
 <script>
 /* ================= state & helpers ================= */
 let META=null,RULES=[],RULESETS=[],CASES=[],CUR=null;   // CUR = {case, verdicts, rules, ruleset, ai_masked}
-const GLBL={"hand+auto":"guard tay + tự biên dịch","hand":"guard tay","auto":"guard tự biên dịch","llm-only":"CHỈ LLM + cán bộ"};
+const GLBL={"code-guarded":"có lưới đỡ code","needs-manual-guard":"CẦN GUARD TAY — code không diễn đạt nổi","llm-only":"chỉ LLM + cán bộ"};
+const GCLS={"code-guarded":"c-met","needs-manual-guard":"c-not_met","llm-only":"c-unclear"};
 async function renderRuleset(){
   const rs=RULESETS.find(r=>r.id===$('rulesetsel').value)||RULESETS[0];if(!rs)return;
   const draft=(rs.status||'approved')!=='approved';
@@ -274,11 +275,23 @@ async function renderRuleset(){
   let cov={rows:[]};
   try{cov=await api('/rulesets/'+rs.id+'/coverage');}catch(e){}
   const bycov=Object.fromEntries(cov.rows.map(x=>[x.rule,x]));
-  $('covline').innerHTML=cov.n_rules?`<div class="${cov.pct<1?'warn':'note'}"><b>Độ phủ guard chặn false-pass: ${cov.n_guarded}/${cov.n_rules} tiêu chí (${(cov.pct*100).toFixed(0)}%).</b> Tiêu chí gắn nhãn <span class="chip c-unclear">chỉ LLM + cán bộ</span> KHÔNG có lưới đỡ code — kết luận ở đó phụ thuộc model và người thẩm định. Số "false-pass = 0" chỉ có giá trị với bộ đã đo; quỹ mới hãy chạy "Sinh bộ test" để đo trước khi tin.</div>`:'';
+  let ts={exists:false};try{ts=await api('/rulesets/'+rs.id+'/testset');}catch(e){}
+  const tsLine=ts.exists
+    ?(ts.approved?`<span class="chip c-met">Bộ test: nhãn ĐÃ PHÊ CHUẨN bởi ${esc(ts.approved_by||'')}</span>`
+                 :`<span class="chip c-not_met">Bộ test: nhãn CHƯA PHÊ CHUẨN — mọi số đo là TẠM TÍNH</span> <button class="btn sm green" onclick="approveTestset('${rs.id}')">Phê chuẩn nhãn</button>`)
+    :`<span class="conf">Chưa có bộ test cho quỹ này — chưa có số đo nào cho nó.</span>`;
+  $('covline').innerHTML=cov.n_rules?`<div class="${cov.n_needs_manual?'err':(cov.n_llm_only?'warn':'note')}">
+    <b>Độ phủ guard: ${cov.n_guarded}/${cov.n_rules} tiêu chí có lưới đỡ code.</b>
+    ${cov.n_needs_manual?`<br><b style="color:var(--red)">${cov.n_needs_manual} tiêu chí CẦN GUARD TAY</b> — code nhận ra có logic định lượng nhưng không diễn đạt nổi (logic dẫn xuất, nhánh thay thế, ngưỡng điều kiện). Đây là chỗ false-pass dễ lọt nhất.`:''}
+    ${cov.n_llm_only?`<br>${cov.n_llm_only} tiêu chí định tính — dựa LLM + cán bộ.`:''}
+    ${(cov.partial_rules||[]).length?`<br><span class="conf">Có guard tay nhưng vẫn còn khoảng trống cần rà: ${cov.partial_rules.join(', ')}</span>`:''}
+    <br><span class="conf">Số "false-pass = 0" chỉ đúng với quỹ đã đo bằng bộ test đã phê chuẩn nhãn — không suy rộng cho quỹ khác.</span>
+    <div style="margin-top:6px">${tsLine}</div></div>`:'';
   $('rulelist').innerHTML=rs.rules.map(r=>{
     const c=bycov[r.id]||{};const g=c.guard||'llm-only';
-    const chip=g==='llm-only'?`<span class="chip c-unclear">chỉ LLM + cán bộ</span>`:`<span class="chip c-met">${GLBL[g]}</span>`;
-    return `<div class="rulecard"><span class="rid">${r.id}</span><span class="rtype">${r.type}</span> ${chip}${(c.auto_constraints||[]).length?`<span class="conf"> ràng buộc tự dịch: ${esc(c.auto_constraints.join(' · ').slice(0,90))}</span>`:''}<div style="font-weight:600;margin:6px 0 2px">${esc(r.title_vi)}</div><div class="rquote">"${esc(r.quote)}"</div></div>`;
+    const chip=`<span class="chip ${GCLS[g]}">${GLBL[g]}</span>`+(c.hand?'<span class="conf"> +tay</span>':'');
+    const gaps=(c.gaps||[]).map(x=>`<div class="conf" style="color:var(--red)">⚠ ${esc(x.label)}: ${esc(x.reason.slice(0,150))}</div>`).join('');
+    return `<div class="rulecard"><span class="rid">${r.id}</span><span class="rtype">${r.type}</span> ${chip}${(c.auto_constraints||[]).length?`<span class="conf"> ràng buộc tự dịch: ${esc(c.auto_constraints.join(' · ').slice(0,90))}</span>`:''}<div style="font-weight:600;margin:6px 0 2px">${esc(r.title_vi)}</div><div class="rquote">"${esc(r.quote)}"</div>${gaps}</div>`;
   }).join('');
 }
 async function approveRuleset(rid,ack,reason){
@@ -290,6 +303,12 @@ async function approveRuleset(rid,ack,reason){
     if(e.status===428){if(confirm(e.message+'\n\nVẫn phê chuẩn?')){const r=prompt('Lý do chấp nhận độ phủ guard thấp (bắt buộc):');if(r)return approveRuleset(rid,true,r);}return;}
     toast(e.message,true);
   }
+}
+async function approveTestset(rid){
+  askOfficer(false);if(!OFFICER)return;
+  if(!confirm(`Xác nhận: bạn ĐÃ RÀ văn bản và nhãn của bộ test "${rid}"?\n\nSau khi phê chuẩn, số đo trên bộ này không còn gắn nhãn "tạm tính".`))return;
+  try{const d=await api(`/rulesets/${rid}/testset/approve`,officer());toast(`Đã phê chuẩn nhãn (${d.n_cases} case)`);renderRuleset();}
+  catch(e){toast(e.message,true);}
 }
 async function genEvalSet(){
   const rs=$('rulesetsel').value;
