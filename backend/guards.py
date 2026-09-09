@@ -92,6 +92,28 @@ def _au_wine(rule_id: str, text: str, meta: dict):
             m = re.search(r"\$\s?(\d[\d,]*\d|\d)", s)
             if m and int(m.group(1).replace(",", "")) < 1_207_000:
                 return "not_met", f"Doanh số rượu rebatable {m.group(1)}$ < ngưỡng $1,207,000 (code so số liệu)"
+    if rule_id == "W04":
+        # LOGIC 2 LỚP (backlog needs-manual-guard đã đóng bằng guard tay):
+        # cellar door sales phải CÒN PHẦN VƯỢT sau khi đã dùng để đạt ngưỡng $1,207,000.
+        # => phần doanh số KHÔNG phải cellar door (tổng rebatable - cellar door) phải tự nó đạt ngưỡng;
+        #    nếu không, mọi doanh số cellar door đã bị dùng hết để chạm ngưỡng -> không còn "in excess".
+        if re.search(r"(all|entire|whole)[^.\n]{0,40}cellar door sales[^.\n]{0,60}(used|applied|counted)[^.\n]{0,40}(threshold|meet)|"
+                     r"cellar door sales[^.\n]{0,50}(were|was|are|is)[^.\n]{0,30}(entirely|fully|wholly)[^.\n]{0,30}used", text, re.I):
+            return "not_met", "Hồ sơ nêu toàn bộ doanh số cellar door đã dùng để đạt ngưỡng — không còn phần vượt (code khớp mẫu chữ)"
+        THR = 1_207_000
+        total = next((int(m.group(1).replace(",", "")) for s in _sentences_with(text, r"rebatable wine")
+                      for m in [re.search(r"\$\s?(\d[\d,]*\d)", s)] if m), None)
+        cellar = next((int(m.group(1).replace(",", "")) for s in _sentences_with(text, r"cellar door sales")
+                       for m in [re.search(r"\$\s?(\d[\d,]*\d)", s)] if m), None)
+        # Phần cellar door CÒN DƯ sau khi đã dùng để chạm ngưỡng = min(cellar, total − ngưỡng).
+        # Chỉ kết luận khi ngưỡng đã đạt (total ≥ THR) — nếu chưa đạt thì đó là vi phạm W03,
+        # không bắn chồng sang W04 để khỏi nhiễu.
+        if total is not None and cellar is not None and total >= THR:
+            excess = min(cellar, total - THR)
+            if excess <= 0:
+                return "not_met", (f"Không còn doanh số cellar door vượt ngưỡng: tổng {total:,}$ − ngưỡng {THR:,}$ "
+                                   f"= {total - THR:,}$, cellar door {cellar:,}$ → phần vượt {max(excess, 0):,}$ "
+                                   "(code tính 2 lớp theo đúng câu chữ 'in excess of')")
     if rule_id == "W06":  # BẪY: chỉ bán buôn / không có cellar door vật lý
         # Rule cho phép THAY THẾ: "and/or their related entity/ies have owned or leased..."
         # -> nếu hồ sơ nêu related entity có cellar door thì KHÔNG được kết luận vi phạm.
@@ -117,6 +139,19 @@ def _au_cyber(rule_id: str, text: str, meta: dict):
     if rule_id == "C01":  # BẪY: nộp đơn lẻ, không liên danh
         if re.search(r"sole applicant|apply(ing)? alone|no project partner|without (a |any )?partner|single (organisation|entity) appl", text, re.I):
             return "not_met", "Hồ sơ nêu nộp đơn lẻ / không có project partner — quỹ bắt buộc liên danh (code khớp mẫu chữ)"
+    if rule_id == "C06":
+        # "board supports ... (or CEO or equivalent if there is no board)" — nhánh thay thế:
+        # chỉ kết luận vi phạm khi hồ sơ nói rõ KHÔNG có xác nhận từ CẢ board LẪN CEO/tương đương.
+        if _alt_satisfied(text, r"chief executive|CEO|equivalent|managing director|board",
+                          r"(certif|support|approv|endorse)\w*"):
+            return None
+        if re.search(r"(board|chief executive|CEO)[^.\n]{0,60}(has not|have not|not yet|did not|declin\w+)[^.\n]{0,40}"
+                     r"(approv|support|certif|endors)|no (board|CEO|executive) (approval|certification|support|endorsement)|"
+                     r"without (board|CEO|executive) (approval|support|certification)", text, re.I):
+            return "not_met", "Hồ sơ nêu không có xác nhận của board/CEO hỗ trợ dự án — rule bắt buộc (code khớp mẫu chữ)"
+        if re.search(r"cannot (meet|cover|fund)[^.\n]{0,50}(costs|expenditure) not covered|"
+                     r"unable to (meet|cover)[^.\n]{0,40}remaining (costs|cost)", text, re.I):
+            return "not_met", "Hồ sơ nêu không cam kết được phần chi phí ngoài tài trợ — rule bắt buộc (code khớp mẫu chữ)"
     if rule_id == "C07":
         for s in _sentences_with(text, r"eligible expenditure"):
             m = re.search(r"\$\s?(\d[\d,]*\d|\d)", s)
@@ -282,9 +317,15 @@ def _eval_compiled(cons: list, text: str):
             continue
         if c["kind"] in ("money", "percent"):
             pat = r"\$\s?(\d[\d,]*\d|\d)" if c["kind"] == "money" else r"(\d{1,3})\s*(?:per cent|%)"
+            # Ràng buộc 'max' báo vi phạm ngay khi thấy MỘT giá trị vượt -> rất dễ báo oan nếu câu chỉ
+            # tình cờ chứa một từ khóa (vd trần grant $100k bị so với doanh thu $1,5tr trong câu có chữ
+            # "cellar door sales"). Vì vậy 'max' đòi câu phải khớp ÍT NHẤT 2 từ khóa của rule;
+            # 'min' chỉ kết luận khi MỌI giá trị đều dưới ngưỡng nên 1 từ khóa là đủ an toàn.
+            need_anchors = 2 if c["op"] == "max" else 1
             matched_vals = []
             for s in sents:
-                if not any(a in s.lower() for a in c.get("anchors", [])):
+                low = s.lower()
+                if sum(1 for a in set(c.get("anchors", [])) if a in low) < need_anchors:
                     continue
                 for m in re.finditer(pat, s):
                     matched_vals.append(int(m.group(1).replace(",", "")))
@@ -312,8 +353,8 @@ def _eval_compiled(cons: list, text: str):
 # Các rule đã có guard TAY (lớp tinh chỉnh) — dùng cho báo cáo độ phủ
 HAND_COVERAGE = {
     "nsf-22-586": {"R04", "R05", "R07", "R08", "R09", "R10", "R11", "R12"},
-    "au-wine-tourism-r8": {"W03", "W06", "W08", "W09"},
-    "au-cyber-skills-r2": {"C01", "C07"},
+    "au-wine-tourism-r8": {"W03", "W04", "W06", "W08", "W09"},
+    "au-cyber-skills-r2": {"C01", "C06", "C07"},
     "au-female-founders-r1": {"F01", "F05", "F06"},
     "au-onfarm-water": {"O01", "O05", "O06", "O07"},
 }

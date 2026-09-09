@@ -20,6 +20,7 @@ Quy tắc bắt buộc kiểm tra Ở SERVER (không tin frontend):
 import json, os, random
 from datetime import date, timedelta
 from . import store, core, rag, coi, feedback, crosscheck
+from . import verify as verify_mod
 
 STATES = ["new", "assessed", "in_review", "awaiting_supplement", "signed", "letter_drafted", "letter_approved"]
 STATE_VI = {"new": "Mới", "assessed": "AI đã đánh giá (nháp)", "in_review": "Đang thẩm định",
@@ -27,8 +28,14 @@ STATE_VI = {"new": "Mới", "assessed": "AI đã đánh giá (nháp)", "in_revie
             "letter_drafted": "Thư nháp", "letter_approved": "Thư đã phê duyệt"}
 FINAL_ALLOWED = ["met", "not_met", "unclear"]
 MIN_SECONDS_PER_RULE = int(os.environ.get("GRANTLENS_MIN_SECONDS_PER_RULE", "15"))
-# Xác nhận ĐẠT trên tiêu chí KHÔNG có lưới đỡ mã nguồn phải kèm bằng chứng tự kiểm chứng
+# Xác nhận ĐẠT trên tiêu chí KHÔNG có lưới đỡ mã nguồn phải kèm bằng chứng tự kiểm chứng.
+# Ma sát chia theo tầng rủi ro để không làm phiền vô ích chỗ đã có lưới đỡ:
+#   needs-manual-guard : phải TỰ nhập, dài hơn, không được mượn câu trích của AI
+#   llm-only           : nhập ngắn hơn HOẶC xác nhận đúng câu trích AI đã cắt (phải mở ra đọc)
+# Cả hai trường hợp tự nhập đều bị mã nguồn kiểm: phải chứa đoạn NGUYÊN VĂN có thật trong hồ sơ.
 ATTESTATION_MIN_CHARS = int(os.environ.get("GRANTLENS_ATTESTATION_MIN_CHARS", "25"))
+ATTESTATION_MIN_CHARS_LLM_ONLY = int(os.environ.get("GRANTLENS_ATTESTATION_MIN_CHARS_LLM", "15"))
+ATTESTATION_MIN_QUOTE_WORDS = int(os.environ.get("GRANTLENS_ATTESTATION_MIN_QUOTE_WORDS", "5"))
 
 
 class WorkflowError(Exception):
@@ -243,7 +250,11 @@ def spot_check(case_id, verdict, officer, role="officer"):
     return {"rule": c["spot_rule"], "officer": verdict, "ai": c["spot_ai"], "agree": agree}
 
 
-def confirm(case_id, rule_id, final_verdict, reason, officer, role="officer"):
+def _norm_reason(s: str) -> str:
+    return " ".join((s or "").lower().split())
+
+
+def confirm(case_id, rule_id, final_verdict, reason, officer, role="officer", evidence_ack: bool = False):
     c = _case(case_id)
     if c["status"] != "in_review":
         raise WorkflowError("Chỉ xác nhận được khi hồ sơ đang thẩm định")
@@ -262,22 +273,53 @@ def confirm(case_id, rule_id, final_verdict, reason, officer, role="officer"):
         raise WorkflowError("Tiêu chí này bắt buộc ghi lý do (≥ 8 ký tự) trước khi xác nhận", 400)
     if guarded and final_verdict == "met" and len(reason) < 8:
         raise WorkflowError("Tiêu chí này bị guard cảnh báo vi phạm — chọn ĐẠT phải ghi rõ lý do bác cảnh báo", 400)
-    # --- KHÔNG ĐỂ AI MỘT MÌNH Ở TIÊU CHÍ KHÔNG CÓ LƯỚI ĐỠ CODE ---
-    # Tiêu chí 'needs-manual-guard' (logic dẫn xuất / nhánh thay thế / ngưỡng điều kiện) mà xác nhận ĐẠT
-    # -> bắt buộc cán bộ TỰ CHỨNG THỰC bằng bằng chứng cụ thể, không được bấm qua theo AI.
-    if v.get("guard_level") == "needs-manual-guard" and final_verdict == "met" and len(reason) < ATTESTATION_MIN_CHARS:
-        raise WorkflowError(
-            f"Tiêu chí {rule_id} KHÔNG có lưới đỡ mã nguồn (logic mã nguồn không diễn đạt nổi) — mọi kết luận ĐẠT ở "
-            f"đây chỉ dựa vào AI. Bạn phải tự kiểm chứng và ghi rõ bằng chứng trong hồ sơ (≥ {ATTESTATION_MIN_CHARS} "
-            "ký tự: trích số liệu/câu văn bạn đã đối chiếu). Nội dung này vào nhật ký kiểm toán.",
-            400, {"need_attestation": True, "rule": rule_id, "min_chars": ATTESTATION_MIN_CHARS})
+    # --- MA SÁT THEO TẦNG RỦI RO: không để AI một mình ở BẤT KỲ tiêu chí nào thiếu lưới đỡ code ---
+    attest_kind = None
+    level = v.get("guard_level") or "llm-only"
+    if final_verdict == "met" and level in ("needs-manual-guard", "llm-only"):
+        strict = level == "needs-manual-guard"     # vùng rủi ro cao nhất: phải TỰ nhập, không được mượn AI
+        min_chars = ATTESTATION_MIN_CHARS if strict else ATTESTATION_MIN_CHARS_LLM_ONLY
+        if not strict and evidence_ack and (v.get("aq") or "").strip():
+            # llm-only: cho phép xác nhận đúng câu trích AI đã cắt (cán bộ phải mở ra đọc mới bấm được),
+            # hệ thống tự ghi câu đó làm bằng chứng và gắn nhãn loại chứng thực để hậu kiểm đếm được.
+            reason = (reason + " | " if reason else "") + f"[Xác nhận trích dẫn AI] \"{v['aq']}\""
+            attest_kind = "ai_quote_ack"
+        else:
+            why = ("KHÔNG có lưới đỡ mã nguồn (logic mã nguồn không diễn đạt nổi)" if strict
+                   else "thuần định tính — mã nguồn không có số liệu nào để kiểm")
+            if len(reason) < min_chars:
+                raise WorkflowError(
+                    f"Tiêu chí {rule_id} {why}, nên kết luận ĐẠT ở đây chỉ dựa vào AI. Bạn phải tự đối chiếu hồ sơ và "
+                    f"ghi bằng chứng (≥ {min_chars} ký tự, có DÁN đoạn nguyên văn từ hồ sơ)."
+                    + ("" if strict else " Hoặc bấm nút xác nhận đúng câu trích dẫn AI đã cắt."),
+                    400, {"need_attestation": True, "rule": rule_id, "min_chars": min_chars,
+                          "level": level, "can_ack_ai_quote": not strict and bool(v.get("aq"))})
+            # CHỐNG GÕ RÁC: lời chứng thực phải chứa đoạn NGUYÊN VĂN có thật trong hồ sơ (kiểm bằng code)
+            ev = verify_mod.attestation_evidence(reason, c["text"], ATTESTATION_MIN_QUOTE_WORDS)
+            if not ev:
+                raise WorkflowError(
+                    f"Lời chứng thực cho {rule_id} không chứa đoạn trích nào có thật trong hồ sơ. Hãy DÁN nguyên văn "
+                    f"≥ {ATTESTATION_MIN_QUOTE_WORDS} từ liên tiếp từ hồ sơ (chỗ bạn dựa vào để kết luận ĐẠT) — "
+                    "hệ thống đối chiếu bằng mã nguồn, viết cho đủ chữ sẽ không qua được.",
+                    400, {"need_verbatim_quote": True, "rule": rule_id,
+                          "min_quote_words": ATTESTATION_MIN_QUOTE_WORDS})
+            # CHỐNG DÁN TRÙNG: không cho copy một câu dùng cho nhiều tiêu chí
+            dup = next((x for x in store.get_verdicts(case_id)
+                        if x["rule_id"] != rule_id and x.get("officer_reason")
+                        and _norm_reason(x["officer_reason"]) == _norm_reason(reason)), None)
+            if dup:
+                raise WorkflowError(
+                    f"Lời chứng thực này trùng nguyên văn với tiêu chí {dup['rule_id']} — mỗi tiêu chí cần bằng chứng "
+                    "riêng đúng nội dung của nó.", 400, {"duplicate_of": dup["rule_id"], "rule": rule_id})
+            attest_kind = "officer_quote"
     store.confirm_verdict(case_id, rule_id, final_verdict, reason, officer)
-    attested = v.get("guard_level") == "needs-manual-guard" and final_verdict == "met"
+    ATT_LBL = {"officer_quote": "[TỰ CHỨNG THỰC — cán bộ dán trích dẫn từ hồ sơ, mã nguồn đã đối chiếu]",
+               "ai_quote_ack": "[XÁC NHẬN TRÍCH DẪN AI — cán bộ đọc và đồng ý câu AI cắt]"}
     store.log(officer, f"Xác nhận {rule_id} = {final_verdict}" + (f" (AI: {v['ai_verdict']} → SỬA)" if changed else "")
-              + (" [TỰ CHỨNG THỰC — tiêu chí không có lưới đỡ mã nguồn]" if attested else "")
+              + (" " + ATT_LBL[attest_kind] if attest_kind else "")
               + (f" — lý do: {reason}" if reason else ""), case_id, role,
               {"rule": rule_id, "ai": v["ai_verdict"], "final": final_verdict, "override": changed,
-               "reason": reason, "guard_level": v.get("guard_level"), "attestation": attested})
+               "reason": reason, "guard_level": level, "attestation": attest_kind})
     return store.get_verdict(case_id, rule_id)
 
 

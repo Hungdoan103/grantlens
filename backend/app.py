@@ -73,6 +73,8 @@ def meta():
             "embed_backend": rag.EMBED_BACKEND, "states": workflow.STATES, "state_vi": workflow.STATE_VI,
             "min_seconds_per_rule": workflow.MIN_SECONDS_PER_RULE,
             "attestation_min_chars": workflow.ATTESTATION_MIN_CHARS,
+            "attestation_min_chars_llm": workflow.ATTESTATION_MIN_CHARS_LLM_ONLY,
+            "attestation_min_quote_words": workflow.ATTESTATION_MIN_QUOTE_WORDS,
             "letter_template": bool(core.load_letter_template()),
             "rulesets": [{"id": r["id"], "name": r["name"], "version": r["version"], "region": r.get("region", ""),
                           "n_rules": len(r["rules"]), "status": r.get("status", "approved"),
@@ -209,11 +211,13 @@ class ConfirmReq(Officer):
     rule_id: str
     verdict: str
     reason: str = ""
+    evidence_ack: bool = False   # llm-only: cán bộ xác nhận đúng câu trích dẫn AI đã cắt
 
 
 @app.post("/api/cases/{case_id}/confirm")
 def confirm(case_id: str, req: ConfirmReq):
-    return workflow.confirm(case_id, req.rule_id, req.verdict, req.reason, req.officer, req.role)
+    return workflow.confirm(case_id, req.rule_id, req.verdict, req.reason, req.officer, req.role,
+                            evidence_ack=req.evidence_ack)
 
 
 class RuleReq(Officer):
@@ -379,6 +383,41 @@ def ruleset_casegen(ruleset_id: str, req: CasegenReq):
               "nhãn by-construction + guard đối soát, CHỜ cán bộ phê chuẩn", None, req.role,
               {"ruleset": ruleset_id, "n_cases": len(doc["cases"]), "skipped": len(doc["skipped"])})
     return doc
+
+
+@app.get("/api/guard-backlog")
+def guard_backlog():
+    """Danh sách việc phải làm để giảm rủi ro false-pass: mọi tiêu chí chưa có lưới đỡ code trên
+    MỌI bộ tiêu chí, xếp theo mức nguy hiểm. Đây là backlog được quản lý công khai, không để trôi."""
+    from . import guards
+    all_rs = core.load_rulesets()
+    items = []
+    for k, rs in all_rs.items():
+        if k == "_default":
+            continue
+        cov = guards.coverage(rs)
+        for r in cov["rows"]:
+            if r["guard"] == "needs-manual-guard":
+                items.append({"ruleset": rs["id"], "ruleset_name": rs["name"], "rule": r["rule"],
+                              "title_vi": r["title_vi"], "priority": "cao", "reason": "; ".join(g["reason"] for g in r["gaps"]),
+                              "action": "viết guard tay cho tiêu chí này"})
+            elif r["guard"] == "code-guarded" and r["gaps"]:
+                items.append({"ruleset": rs["id"], "ruleset_name": rs["name"], "rule": r["rule"],
+                              "title_vi": r["title_vi"], "priority": "trung bình",
+                              "reason": "; ".join(g["reason"] for g in r["gaps"]),
+                              "action": "rà lại guard tay xem đã phủ hết nhánh chưa"})
+            elif r["guard"] == "llm-only":
+                items.append({"ruleset": rs["id"], "ruleset_name": rs["name"], "rule": r["rule"],
+                              "title_vi": r["title_vi"], "priority": "thấp",
+                              "reason": "tiêu chí thuần định tính — không có số liệu để mã nguồn kiểm",
+                              "action": "dựa LLM + bắt buộc cán bộ chứng thực bằng trích dẫn (đã bật)"})
+    order = {"cao": 0, "trung bình": 1, "thấp": 2}
+    items.sort(key=lambda x: (order[x["priority"]], x["ruleset"], x["rule"]))
+    return {"total": len(items), "by_priority": {p: sum(1 for i in items if i["priority"] == p) for p in order},
+            "items": items,
+            "note": "Ưu tiên 'cao' = tiêu chí có logic định lượng mà mã nguồn chưa diễn đạt được: phải viết guard tay "
+                    "cho đúng quỹ đó. Trong lúc chưa có guard, hệ thống ép cán bộ chứng thực bằng trích dẫn nguyên văn "
+                    "và ghi nhật ký để hậu kiểm."}
 
 
 @app.get("/api/rulesets/{ruleset_id}/testset")

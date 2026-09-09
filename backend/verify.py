@@ -37,3 +37,27 @@ def extract_quote(chunk_text: str, key_phrase: str, max_words: int = 40) -> str:
 def quote_in_source(quote: str, source: str) -> bool:
     q = _norm(quote.replace(" ...", ""))
     return bool(q) and q in _norm(source)
+
+
+def attestation_evidence(attestation: str, source: str, min_words: int = 5):
+    """Kiểm CƠ HỌC (không dùng LLM) xem lời chứng thực của cán bộ có TRÍCH THẬT từ hồ sơ không.
+
+    Trả về đoạn trích nguyên văn dài nhất (≥ min_words từ liên tiếp) mà cán bộ đã dán vào lời
+    chứng thực và thực sự tồn tại trong hồ sơ; None nếu không có. Đây là lớp chống "gõ đủ chữ
+    cho qua cổng": muốn xác nhận ĐẠT thì phải dán được bằng chứng có thật, mắt phải chạm hồ sơ.
+    Không phán đoán ngữ nghĩa nên không có false positive kiểu LLM.
+    """
+    src = _norm(source)
+    words = _norm(attestation).split()
+    if len(words) < min_words or not src:
+        return None
+    best = None
+    for i in range(len(words) - min_words + 1):
+        for j in range(len(words), i + min_words - 1, -1):   # thử đoạn dài trước
+            seg = " ".join(words[i:j])
+            if len(seg.split()) <= len(best.split() if best else []):
+                break
+            if seg in src:
+                best = seg
+                break
+    return best

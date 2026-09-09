@@ -44,7 +44,7 @@ footer{margin-top:26px;border-top:1px solid var(--line);padding-top:8px;font-siz
     <div class="brand">Grant<em>Lens</em></div>
     <div class="sub">Mô tả hệ thống — trợ lý thẩm định điều kiện hồ sơ tài trợ.<br>AI đưa bằng chứng, con người quyết định.</div>
   </div>
-  <div class="meta">Phiên bản 2.6 · 09/2026<br>Đã cập nhật theo phản hồi thẩm định của khách hàng<br>Lõi AI: Qwen3-8B chạy local (Ollama)</div>
+  <div class="meta">Phiên bản 2.7 · 09/2026<br>Đã cập nhật theo phản hồi thẩm định của khách hàng<br>Lõi AI: Qwen3-8B chạy local (Ollama)</div>
 </header>
 
 <h1>1. Định vị và nguyên tắc</h1>
@@ -146,6 +146,8 @@ footer{margin-top:26px;border-top:1px solid var(--line);padding-top:8px;font-siz
 <tr><td>Quỹ mới nạp vào có an toàn ngay không?</td><td><b>Chỉ an toàn ở lớp cơ bản.</b> Hệ tự biên dịch ràng buộc từ nguyên văn tiêu chí, nhưng phần "cần guard tay" vẫn phụ thuộc mô hình và cán bộ.</td><td>Cổng phê chuẩn bộ tiêu chí kiểm độ phủ tối thiểu; dưới ngưỡng thì quản lý phải xác nhận chấp nhận rủi ro kèm lý do, ghi nhật ký vĩnh viễn.</td></tr>
 <tr><td>Số "false-pass = 0" áp dụng cho quỹ nào?</td><td><b>Chỉ cho đúng quỹ đã đo, bằng bộ test đã được cán bộ phê chuẩn nhãn.</b> Không suy rộng sang quỹ khác.</td><td>Bộ test do AI sinh mặc định ở trạng thái <i>chưa phê chuẩn</i>; mọi kết quả đo trên đó được đánh dấu <b>tạm tính</b> trong báo cáo và trên giao diện cho tới khi có người rà và ký duyệt nhãn.</td></tr>
 <tr><td>Tiêu chí không có lưới đỡ mã nguồn thì sao? Cán bộ tin AI bấm qua được không?</td><td><b>Không bấm qua được.</b> Đây là chỗ rủi ro cao nhất nên hệ thống ép ma sát ở máy chủ, không chỉ hiển thị cảnh báo.</td><td>Kết luận ĐẠT ở tiêu chí không có lưới đỡ <b>bắt buộc kèm bằng chứng tự kiểm chứng</b> (máy chủ từ chối nếu thiếu); tiêu chí đó luôn nằm trong diện "cần chú ý"; nội dung chứng thực vào nhật ký mang tên cán bộ; màn Tổng quan đếm số lần để quản lý giám sát.</td></tr>
+<tr><td>Cán bộ có thể "gõ đủ chữ" cho qua cổng chứng thực không?</td><td><b>Không.</b> Cổng không chỉ đếm ký tự.</td><td>Lời chứng thực phải <b>chứa đoạn nguyên văn có thật trong hồ sơ</b> (mã nguồn đối chiếu lại, không dùng AI nên không có phán đoán sai), và <b>không được dán trùng</b> giữa các tiêu chí. Với tiêu chí rủi ro cao nhất thì không được mượn câu trích của AI, phải tự dán. Mọi lời chứng thực vào nhật ký chuỗi băm mang tên người ký để hậu kiểm.</td></tr>
+<tr><td>Tiêu chí thuần định tính (ABN, GST, giấy phép…) thì sao?</td><td><b>Cũng bị ép ma sát.</b> Đây là nhóm dễ "AI bảo đủ, cán bộ bấm theo" nhất.</td><td>Kết luận ĐẠT phải kèm bằng chứng trích dẫn, hoặc bấm xác nhận đúng câu AI đã cắt (phải mở ra đọc mới bấm được, hệ thống ghi rõ loại chứng thực). Tiêu chí đã có lưới đỡ mã nguồn thì không bị làm phiền thêm — ma sát tỷ lệ với rủi ro.</td></tr>
 <tr><td>Bộ kiểm nhãn cũng là AI — nó sai thì sao?</td><td><b>Không tin một lượt.</b></td><td>Kiểm <b>2 lượt độc lập</b>, chỉ loại nhãn khi mọi lượt đồng ý; hai lượt mâu thuẫn thì giữ lại và gắn cờ cho người rà. <b>Mã nguồn có quyền phủ quyết</b> khi bắt được vi phạm bằng số liệu cụ thể.</td></tr>
 <tr><td>Đề thi tự sinh có làm nhiễu số đo không?</td><td><b>Có nếu không lọc</b> — nên hệ thống lọc sẵn.</td><td>Một lượt kiểm độc lập soát từng tiêu chí phụ xem văn bản có bằng chứng rõ ràng không; tiêu chí "yếu" bị loại khỏi điểm. Báo cáo tách <b>chỉ số mục tiêu</b> (bắt vi phạm — thước đo thật) khỏi <b>chỉ số phụ</b> (tham khảo). Case sai nhãn bị loại kèm lý do, vẫn lưu để truy vết.</td></tr>
 </table>

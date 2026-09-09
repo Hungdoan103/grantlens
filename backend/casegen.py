@@ -162,6 +162,21 @@ def approve(ruleset_id: str, officer: str):
     return {"ok": True, "approved_by": officer, "n_cases": len(live)}
 
 
+def flag_weak(ruleset_id: str, case_id: str, rule_id: str, reason: str):
+    """Người rà đánh dấu MỘT nhãn phụ là không đáng tin -> loại khỏi metric (giữ case).
+    Dùng khi chỉ một tiêu chí phụ của case bị sai/không rõ, không cần bỏ cả case."""
+    p, doc = _load(ruleset_id)
+    hit = next((c for c in doc["cases"] if c["id"] == case_id), None)
+    if not hit:
+        raise KeyError(case_id)
+    hit.setdefault("weak_labels", [])
+    if rule_id not in hit["weak_labels"]:
+        hit["weak_labels"].append(rule_id)
+    hit.setdefault("weak_reasons", {})[rule_id] = reason
+    p.write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
+    return {"ok": True, "case": case_id, "rule": rule_id, "reason": reason}
+
+
 def dispute(ruleset_id: str, case_id: str, reason: str):
     """Đánh dấu một case là sai/đáng ngờ -> loại khỏi mọi metric (giữ lại để truy vết)."""
     p, doc = _load(ruleset_id)

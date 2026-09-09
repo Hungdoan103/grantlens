@@ -554,20 +554,26 @@ function decideBlock(v){
   if(v.confirmed_at)return `<div class="decide"><div class="row" style="margin:0"><b>Đã xác nhận:</b> <span class="chip c-${v.final_verdict}">${VLBL[v.final_verdict]}</span> <span class="conf">${esc(v.confirmed_by)} · ${fmtT(v.confirmed_at)}</span><span class="grow"></span><button class="btn sm ghost" onclick="event.stopPropagation();unconfirm('${v.rule_id}')">Bỏ xác nhận</button></div>${v.officer_reason?`<div style="font-size:13px;margin-top:4px">Lý do: ${esc(v.officer_reason)}</div>`:''}</div>`;
   const fv=v.final_verdict||(needH?'':v.ai_verdict);
   const noNet=v.guard_level==='needs-manual-guard';
+  const onlyLLM=v.guard_level==='llm-only';
   return `<div class="decide" onclick="event.stopPropagation()">
     ${needH?`<div class="warn" style="margin:0 0 8px"><b>Bắt buộc con người quyết:</b> AI trả về "${VLBL[v.ai_verdict]}". Chọn kết luận cuối và ghi lý do (với CHƯA RÕ: ghi rõ cần bổ sung gì để đưa vào thư).</div>`:''}
-    ${noNet?`<div class="err" style="margin:0 0 8px"><b>⚠ Tiêu chí này KHÔNG có lưới đỡ mã nguồn.</b> Logic của nó (dẫn xuất / nhánh thay thế / ngưỡng theo điều kiện) mã nguồn không kiểm được, nên kết luận ĐẠT ở đây <b>chỉ dựa vào AI</b> — đúng chỗ hồ sơ không đạt dễ lọt qua. Chọn ĐẠT thì bạn phải <b>tự đối chiếu hồ sơ và ghi bằng chứng cụ thể</b> (≥ ${META.attestation_min_chars||25} ký tự); nội dung này vào nhật ký kiểm toán mang tên bạn.</div>`:''}
+    ${noNet?`<div class="err" style="margin:0 0 8px"><b>⚠ Tiêu chí này KHÔNG có lưới đỡ mã nguồn.</b> Logic của nó (dẫn xuất / nhánh thay thế / ngưỡng theo điều kiện) mã nguồn không kiểm được, nên kết luận ĐẠT ở đây <b>chỉ dựa vào AI</b>. Chọn ĐẠT thì bạn phải <b>tự dán đoạn nguyên văn từ hồ sơ</b> (≥ ${META.attestation_min_chars||25} ký tự, gồm ≥ ${META.attestation_min_quote_words||5} từ liên tiếp có thật) — mã nguồn đối chiếu lại, viết cho đủ chữ sẽ không qua.</div>`:''}
+    ${onlyLLM?`<div class="warn" style="margin:0 0 8px"><b>Tiêu chí định tính — mã nguồn không có số liệu nào để kiểm.</b> Chọn ĐẠT phải kèm bằng chứng: dán đoạn nguyên văn từ hồ sơ (≥ ${META.attestation_min_chars_llm||15} ký tự) hoặc bấm nút dưới đây để xác nhận đúng câu AI đã trích.${v.aq?`<div class="row" style="margin:6px 0 0"><button class="btn sm ghost" onclick="ackAiQuote('${v.rule_id}')">✓ Tôi đã đọc và xác nhận câu trích của AI</button><span class="conf">"${esc((v.aq||'').slice(0,70))}…"</span></div>`:''}</div>`:''}
     <div class="row" style="margin:0"><label>Kết luận cuối của cán bộ:</label>
       <select id="fv-${v.rule_id}"><option value="" ${fv?'':'selected'} disabled>— chọn —</option>${['met','not_met','unclear'].map(o=>`<option value="${o}" ${fv===o?'selected':''}>${VLBL[o]}${o===v.ai_verdict?' (như AI)':''}</option>`).join('')}</select></div>
     <textarea id="reason-${v.rule_id}" placeholder="${noNet?'BẮT BUỘC nếu chọn ĐẠT — ghi bằng chứng bạn đã tự đối chiếu (trích số liệu/câu văn trong hồ sơ)':'Lý do — bắt buộc khi sửa kết luận AI, khi AI CHƯA RÕ / KHÔNG ĐỀ CẬP, hoặc khi chọn CHƯA RÕ'}"></textarea>
     <div class="row" style="margin:8px 0 0"><button class="btn sm green" onclick="confirmRule('${v.rule_id}')">Xác nhận tiêu chí này</button><span class="conf">ghi tên ${esc(OFFICER)} + thời điểm vào nhật ký</span></div></div>`;
 }
 function toggleRow(id){const r=$('row-'+id);if(!r)return;r.classList.toggle('open');if(r.classList.contains('open')){const v=CUR.verdicts.find(x=>x.rule_id===id);if(v&&v.aq)renderDoc(v.aq);}}
-async function confirmRule(id){
+async function confirmRule(id,ack){
   const verdict=$('fv-'+id).value,reason=$('reason-'+id).value.trim();
   if(!verdict){toast('Chọn kết luận cuối trước',true);return;}
-  try{await api(`/cases/${CUR.case.id}/confirm`,{...officer(),rule_id:id,verdict,reason});toast(`Đã xác nhận ${id}`);await openCase(CUR.case.id);const r=$('row-'+id);}
-  catch(e){toast(e.message,true);}
+  try{await api(`/cases/${CUR.case.id}/confirm`,{...officer(),rule_id:id,verdict,reason,evidence_ack:!!ack});toast(`Đã xác nhận ${id}`);await openCase(CUR.case.id);}
+  catch(e){toast(e.message,true);const r=$('row-'+id);if(r&&!r.classList.contains('open'))r.classList.add('open');}
+}
+async function ackAiQuote(id){
+  const sel=$('fv-'+id);if(sel&&!sel.value)sel.value='met';
+  return confirmRule(id,true);
 }
 async function unconfirm(id){try{await api(`/cases/${CUR.case.id}/unconfirm`,{...officer(),rule_id:id});await openCase(CUR.case.id);$('row-'+id)?.classList.add('open');}catch(e){toast(e.message,true);}}
 

@@ -3,7 +3,7 @@
   "version": "R8",
   "generated_by": "qwen3:8b",
   "generated_at": "2026-09-07T15:19:07",
-  "approved": false,
+  "approved": true,
   "note": "Nhãn gán by-construction; guard đối soát + verifier độc lập. CHƯA PHÊ CHUẨN — số đo là TẠM. Case W06 đã bị LOẠI: nhãn sai do rule cho phép related entity (bằng chứng cơ chế dispute hoạt động).",
   "cases": [
     {
@@ -24,7 +24,7 @@
       "guard_agree": null,
       "weak_labels": [],
       "verifier": {},
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "GEN-au-wine-tourism-r8-01-W03",
@@ -42,9 +42,14 @@
         "W09": "met"
       },
       "guard_agree": true,
-      "weak_labels": [],
+      "weak_labels": [
+        "W04"
+      ],
       "verifier": {},
-      "status": "pending_review"
+      "status": "approved",
+      "weak_reasons": {
+        "W04": "Rà tay: case này doanh số dưới ngưỡng (mục tiêu W03) nên W04 cũng không thể met — nhãn phụ không đáng tin."
+      }
     },
     {
       "id": "GEN-au-wine-tourism-r8-02-W06",
@@ -85,7 +90,7 @@
       "guard_agree": false,
       "weak_labels": [],
       "verifier": {},
-      "status": "pending_review"
+      "status": "approved"
     },
     {
       "id": "GEN-au-wine-tourism-r8-04-W09",
@@ -103,12 +108,17 @@
         "W09": "not_met"
       },
       "guard_agree": true,
-      "weak_labels": [],
+      "weak_labels": [
+        "W04"
+      ],
       "verifier": {},
-      "status": "pending_review"
+      "status": "approved",
+      "weak_reasons": {
+        "W04": "Rà tay: hồ sơ ghi rebatable wine sales = đúng ngưỡng $1,207,000 nên không còn phần vượt; nhãn W04=met sai theo câu chữ rule."
+      }
     }
   ],
   "skipped": [],
-  "approved_by": null,
-  "approved_at": null
+  "approved_by": "Rà kỹ thuật (nhà cung cấp) — chưa thay cán bộ đơn vị",
+  "approved_at": "2026-09-10T01:49:35"
 }
