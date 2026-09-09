@@ -319,6 +319,19 @@ HAND_COVERAGE = {
 }
 
 
+def rule_guard_level(ruleset_id: str, rule: dict) -> str:
+    """Mức bảo vệ của MỘT tiêu chí — dùng để ép ma sát ở tầng nghiệp vụ, không chỉ hiển thị:
+      code-guarded       : có guard tay và/hoặc ràng buộc chạy được -> có lưới đỡ.
+      needs-manual-guard : có logic định lượng mà code KHÔNG diễn đạt nổi -> AI một mình là rủi ro.
+      llm-only           : tiêu chí thuần định tính.
+    """
+    cons = compile_rule_guards(rule)
+    runnable = [c for c in cons if c["kind"] != "uncompilable"]
+    if rule["id"] in HAND_COVERAGE.get(ruleset_id, set()) or runnable:
+        return "code-guarded"
+    return "needs-manual-guard" if cons else "llm-only"
+
+
 def coverage(ruleset: dict) -> dict:
     """Độ phủ guard TRUNG THỰC — 3 mức, để không ai hiểu nhầm 'có compiler = an toàn mọi quỹ':
       code-guarded       : có guard tay và/hoặc ràng buộc tự biên dịch chạy được.

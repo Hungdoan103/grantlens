@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS verdicts (
   case_id TEXT, rule_id TEXT,
   ai_verdict TEXT, ai_confidence TEXT, facts TEXT, rq TEXT, aq TEXT,
   chunk_id INTEGER, cite_ok INTEGER, note TEXT, retrieval TEXT, needs_attention INTEGER DEFAULT 0,
+  guard_level TEXT,
   final_verdict TEXT, officer_reason TEXT, confirmed_by TEXT, confirmed_at TEXT,
   PRIMARY KEY (case_id, rule_id)
 );
@@ -63,6 +64,9 @@ def db():
     if _db is None:
         _db = _conn()
         _db.executescript(SCHEMA)
+        vcols = {r[1] for r in _db.execute("PRAGMA table_info(verdicts)")}
+        if "guard_level" not in vcols:
+            _db.execute("ALTER TABLE verdicts ADD COLUMN guard_level TEXT")
         cols = {r[1] for r in _db.execute("PRAGMA table_info(cases)")}
         for col, typ in [("screening", "TEXT"), ("crosscheck", "TEXT"), ("ruleset_id", "TEXT"),
                          ("ruleset_version", "TEXT"), ("ruleset_snapshot", "TEXT"),
@@ -148,15 +152,17 @@ def save_ai_verdict(case_id: str, v: dict):
     with _lock:
         db().execute(
             """INSERT INTO verdicts (case_id, rule_id, ai_verdict, ai_confidence, facts, rq, aq, chunk_id, cite_ok, note, retrieval, needs_attention,
-                                     final_verdict, officer_reason, confirmed_by, confirmed_at)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,NULL,NULL,NULL,NULL)
+                                     guard_level, final_verdict, officer_reason, confirmed_by, confirmed_at)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,NULL,NULL,NULL,NULL)
                ON CONFLICT(case_id, rule_id) DO UPDATE SET ai_verdict=excluded.ai_verdict, ai_confidence=excluded.ai_confidence,
                  facts=excluded.facts, rq=excluded.rq, aq=excluded.aq, chunk_id=excluded.chunk_id, cite_ok=excluded.cite_ok,
                  note=excluded.note, retrieval=excluded.retrieval, needs_attention=excluded.needs_attention,
+                 guard_level=excluded.guard_level,
                  final_verdict=NULL, officer_reason=NULL, confirmed_by=NULL, confirmed_at=NULL""",
             (case_id, v["r"], v["v"], v.get("confidence"), json.dumps(v.get("facts", []), ensure_ascii=False),
              v["rq"], v["aq"], v.get("chunk_id"), int(bool(v.get("cite_app_ok"))), v.get("note", ""),
-             json.dumps(v.get("retrieval_scores", [])), int(bool(v.get("needs_attention")))),
+             json.dumps(v.get("retrieval_scores", [])), int(bool(v.get("needs_attention"))),
+             v.get("guard_level")),
         )
         db().commit()
 
@@ -240,6 +246,9 @@ def stats():
     cites = d.execute("SELECT COUNT(*) n, SUM(cite_ok) ok FROM verdicts WHERE aq != ''").fetchone()
     rev = d.execute(
         "SELECT AVG((julianday(signed_at)-julianday(review_started_at))*86400) s FROM cases WHERE signed_at IS NOT NULL").fetchone()["s"]
+    unguarded = d.execute(
+        "SELECT COUNT(*) n FROM verdicts WHERE confirmed_at IS NOT NULL AND final_verdict='met' "
+        "AND guard_level='needs-manual-guard'").fetchone()["n"]
     spot = d.execute(
         "SELECT COUNT(*) n, SUM(spot_answer = spot_ai) agree FROM cases WHERE spot_answer IS NOT NULL").fetchone()
     return {
@@ -250,5 +259,6 @@ def stats():
         "citation_ok_rate": ((cites["ok"] or 0) / cites["n"]) if cites["n"] else None,
         "avg_review_seconds": rev,
         "spot_checks": {"n": spot["n"] or 0, "agree": spot["agree"] or 0},
+        "unguarded_met_confirmations": unguarded,
         "audit": verify_chain(),
     }

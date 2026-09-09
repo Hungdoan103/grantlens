@@ -72,6 +72,7 @@ def meta():
     return {"rules": core.load_rules(), "llm": llm.describe(), "llm_health": llm.health(),
             "embed_backend": rag.EMBED_BACKEND, "states": workflow.STATES, "state_vi": workflow.STATE_VI,
             "min_seconds_per_rule": workflow.MIN_SECONDS_PER_RULE,
+            "attestation_min_chars": workflow.ATTESTATION_MIN_CHARS,
             "letter_template": bool(core.load_letter_template()),
             "rulesets": [{"id": r["id"], "name": r["name"], "version": r["version"], "region": r.get("region", ""),
                           "n_rules": len(r["rules"]), "status": r.get("status", "approved"),

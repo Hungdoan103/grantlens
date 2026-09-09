@@ -53,22 +53,40 @@ def _gen_text(ruleset: dict, target_rule: dict = None) -> str:
     return guards.normalise(txt).strip()
 
 
-def _verify(ruleset: dict, text: str, target_id: str):
-    """Lượt LLM ĐỘC LẬP kiểm từng rule. Trả (weak_labels, verdicts) —
-    weak = rule phụ mà văn bản KHÔNG nêu bằng chứng rõ ràng (=> nhãn 'met' không đáng tin)."""
-    weak, detail = [], {}
+def _verify(ruleset: dict, text: str, target_id: str, votes: int = 2):
+    """Kiểm nhãn phụ — verifier CŨNG là LLM nên không được tin tuyệt đối (phê bình của khách):
+      • Bỏ phiếu {votes} lượt độc lập: chỉ đánh 'weak' khi MỌI lượt đều nói không có bằng chứng rõ.
+        Hai lượt mâu thuẫn -> 'disagreement': GIỮ trong metric nhưng gắn cờ cho người rà.
+      • Mã nguồn có quyền PHỦ QUYẾT: nếu guard/compiler khẳng định rule đó vi phạm hoặc thoả bằng
+        số liệu cụ thể, kết luận của code thắng phiếu LLM (code không mơ hồ như LLM).
+    """
+    weak, detail, disagree = [], {}, []
     for r in ruleset["rules"]:
-        try:
-            v = llm.chat_json(SYS_VERIFY, f"RULE {r['id']}: \"{r['quote']}\"\n\nAPPLICATION TEXT:\n{text}\n\nIs this rule satisfied by explicit evidence?", VERIFY_SCHEMA, max_tokens=220)
-        except Exception:
+        answers = []
+        for _ in range(max(1, votes)):
+            try:
+                v = llm.chat_json(SYS_VERIFY, f"RULE {r['id']}: \"{r['quote']}\"\n\nAPPLICATION TEXT:\n{text}\n\nIs this rule satisfied by explicit evidence?", VERIFY_SCHEMA, max_tokens=220)
+                answers.append(v.get("answer", "unclear"))
+            except Exception:
+                continue
+        if not answers:
             continue
-        ans = v.get("answer", "unclear")
-        detail[r["id"]] = ans
+        detail[r["id"]] = answers
         if r["id"] == target_id:
             continue  # rule mục tiêu: nhãn not_met do thiết kế, verifier chỉ tham khảo
-        if ans != "yes":
-            weak.append(r["id"])
-    return weak, detail
+        # code phủ quyết: guard bắt được vi phạm rõ ràng -> nhãn 'met' chắc chắn SAI, không phải "yếu"
+        g = guards.check(ruleset["id"], r, "met", text, {})
+        if g and g["action"] == "override":
+            detail[r["id"]] = answers + ["code:violation"]
+            weak.append(r["id"])   # nhãn met không đúng -> loại khỏi metric, người rà xử lý
+            continue
+        if all(a == "yes" for a in answers):
+            continue               # mọi lượt nói có bằng chứng -> nhãn met đáng tin
+        if any(a == "yes" for a in answers):
+            disagree.append(r["id"])  # lượt khác nhau -> giữ metric nhưng gắn cờ
+            continue
+        weak.append(r["id"])       # mọi lượt nói không rõ -> loại khỏi metric
+    return weak, detail, disagree
 
 
 def _guard_crosscheck(ruleset: dict, text: str, target_id: str):
@@ -101,17 +119,19 @@ def generate(ruleset_id: str, n_violations: int = None, officer: str = "casegen"
         if not ok:
             skipped.append({"id": cid, "reason": "guard bắn vào rule ngoài mục tiêu sau 2 lần sinh", "fired": fired})
             continue
-        weak, vdetail = _verify(rs, text, tid) if verify else ([], {})
+        weak, vdetail, disagree = _verify(rs, text, tid) if verify else ([], {}, [])
         labels = {r["id"]: "met" for r in rules}
         if tgt:
             labels[tgt["id"]] = "not_met"
         (out_dir / f"{cid}.txt").write_text(text + "\n", encoding="utf-8")
         cases.append({"id": cid, "file": f"generated/{ruleset_id}/{cid}.txt", "target": tgt["id"] if tgt else None,
                       "labels": labels, "guard_agree": bool(agree) if tgt else None,
-                      "weak_labels": weak, "verifier": vdetail, "status": "pending_review"})
+                      "weak_labels": weak, "verifier_disagreement": disagree, "verifier": vdetail,
+                      "status": "pending_review"})
         print(f"  {cid}: {'sạch' if not tgt else 'vi phạm ' + tgt['id']}"
               + (f" · guard {'XÁC NHẬN' if agree else 'không bắt'}" if tgt else "")
-              + (f" · {len(weak)} nhãn phụ YẾU (loại khỏi metric): {weak}" if weak else " · nhãn phụ đều có bằng chứng"), flush=True)
+              + (f" · {len(weak)} nhãn phụ YẾU (loại metric): {weak}" if weak else " · nhãn phụ đều có bằng chứng")
+              + (f" · {len(disagree)} nhãn verifier MÂU THUẪN (giữ metric, gắn cờ): {disagree}" if disagree else ""), flush=True)
     doc = {"ruleset": ruleset_id, "version": rs["version"], "generated_by": llm.describe()["model"],
            "generated_at": datetime.now().isoformat(timespec="seconds"),
            "approved": False, "approved_by": None, "approved_at": None,
@@ -195,17 +215,32 @@ def evaluate(ruleset_id: str):
                 errors.append({"case": c["id"], "rule": v["r"], "kind": "target" if is_target else "secondary",
                                "pred": v["v"], "truth": truth, "note": (v["note"] or "")[:80]})
         print()
-    print(f"\n[MỤC TIÊU] bắt vi phạm đúng: {T['ok']}/{T['n']}"
-          + (f" = {T['ok']/T['n']:.0%}" if T["n"] else "") + f" | FALSE-PASS: {T['fp']}/{T['n']} (kỳ vọng 0)")
-    print(f"[PHỤ]      rule phụ có bằng chứng: {S['ok']}/{S['n']}" + (f" = {S['ok']/S['n']:.0%}" if S["n"] else ""))
-    print(f"[LOẠI]     {excluded} lượt rule bị loại khỏi metric (nhãn phụ yếu — đề thi tự sinh không đủ rõ)")
+    total_seen = T["n"] + S["n"] + excluded
+    excl_rate = excluded / max(total_seen, 1)
+    print("\n" + "#" * 70)
+    print("# THƯỚC ĐO CHÍNH — [MỤC TIÊU]: mỗi case có đúng 1 vi phạm cài sẵn, hệ có bắt được không")
+    print(f"#   Bắt đúng vi phạm : {T['ok']}/{T['n']}" + (f" = {T['ok']/T['n']:.0%}" if T["n"] else ""))
+    print(f"#   FALSE-PASS       : {T['fp']}/{T['n']} (kỳ vọng 0 — chỉ số quan trọng nhất)")
+    print("#" * 70)
+    print(f"[THAM KHẢO] rule phụ có bằng chứng rõ: {S['ok']}/{S['n']}" + (f" = {S['ok']/S['n']:.0%}" if S["n"] else "")
+          + "  — KHÔNG dùng làm thước đo chất lượng: rule phụ do đề thi tự sinh, dễ nhiễu.")
+    print(f"[LOẠI]      {excluded}/{total_seen} lượt rule bị loại khỏi metric ({excl_rate:.0%}) — nhãn phụ yếu.")
+    if excl_rate > 0.3:
+        print("!! CẢNH BÁO: loại >30% — bộ test tự sinh chất lượng thấp, đừng dùng số phụ để kết luận gì.")
+    if not approved:
+        print("!! NHẮC LẠI: nhãn chưa phê chuẩn -> mọi số trên là TẠM TÍNH (provisional).")
     for e in errors:
         print(f"  [{e['kind']}] {e['case']} {e['rule']}: {e['pred']} / nhãn {e['truth']} — {e['note']}")
     out = {"ruleset": ruleset_id, "llm": info["model"], "provisional": not approved,
            "labels_approved": approved, "approved_by": doc.get("approved_by"),
-           "target": {"correct": T["ok"], "total": T["n"], "false_pass": T["fp"]},
-           "secondary": {"correct": S["ok"], "total": S["n"], "false_pass": S["fp"]},
-           "excluded_weak_labels": excluded, "disputed_cases": n_disputed, "errors": errors}
+           "primary_metric": "target",
+           "target": {"correct": T["ok"], "total": T["n"], "false_pass": T["fp"],
+                      "note": "THƯỚC ĐO CHÍNH — vi phạm cài sẵn có bị bắt không"},
+           "secondary": {"correct": S["ok"], "total": S["n"], "false_pass": S["fp"],
+                         "note": "chỉ tham khảo — rule phụ do đề thi tự sinh, dễ nhiễu"},
+           "excluded_weak_labels": excluded, "excluded_rate": round(excl_rate, 3),
+           "low_quality_testset": excl_rate > 0.3,
+           "disputed_cases": n_disputed, "errors": errors}
     (core.DATA.parent / f"eval-generated-{ruleset_id}.json").write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
     return out
 

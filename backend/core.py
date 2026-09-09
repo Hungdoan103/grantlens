@@ -216,10 +216,16 @@ def assess_rule(case_id: str, text: str, rule: dict, k: int = 3, ruleset_id: str
         note = f"[NGHI FALSE-PASS] {guard['reason']} — hạ xuống CHƯA RÕ, bắt buộc cán bộ quyết. | LLM: {note}"
         verdict, confidence = "unclear", "low"
 
-    needs_attention = verdict in ("unclear", "not_addressed") or confidence == "low" or not cite_ok or bool(guard)
+    # Mức bảo vệ của tiêu chí này -> lớp trên dùng để ép ma sát khi cán bộ xác nhận ĐẠT
+    guard_level = guards.rule_guard_level(ruleset_id or get_ruleset()["id"], rule)
+    # Tiêu chí không có lưới đỡ code mà AI nói ĐẠT: luôn kéo vào diện cần chú ý —
+    # đây đúng là chỗ false-pass lọt nếu cán bộ lướt nhanh (phê bình của khách).
+    unguarded_pass = guard_level == "needs-manual-guard" and verdict == "met"
+    needs_attention = (verdict in ("unclear", "not_addressed") or confidence == "low"
+                       or not cite_ok or bool(guard) or unguarded_pass)
 
     return {
-        "guard": guard,
+        "guard": guard, "guard_level": guard_level,
         "r": rule["id"], "title": rule["title_vi"], "type": rule["type"],
         "v": verdict, "confidence": confidence,
         "facts": facts, "coverage": coverage, "supporting_fact": idx,

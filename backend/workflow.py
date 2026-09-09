@@ -27,6 +27,8 @@ STATE_VI = {"new": "Mới", "assessed": "AI đã đánh giá (nháp)", "in_revie
             "letter_drafted": "Thư nháp", "letter_approved": "Thư đã phê duyệt"}
 FINAL_ALLOWED = ["met", "not_met", "unclear"]
 MIN_SECONDS_PER_RULE = int(os.environ.get("GRANTLENS_MIN_SECONDS_PER_RULE", "15"))
+# Xác nhận ĐẠT trên tiêu chí KHÔNG có lưới đỡ mã nguồn phải kèm bằng chứng tự kiểm chứng
+ATTESTATION_MIN_CHARS = int(os.environ.get("GRANTLENS_ATTESTATION_MIN_CHARS", "25"))
 
 
 class WorkflowError(Exception):
@@ -260,10 +262,22 @@ def confirm(case_id, rule_id, final_verdict, reason, officer, role="officer"):
         raise WorkflowError("Tiêu chí này bắt buộc ghi lý do (≥ 8 ký tự) trước khi xác nhận", 400)
     if guarded and final_verdict == "met" and len(reason) < 8:
         raise WorkflowError("Tiêu chí này bị guard cảnh báo vi phạm — chọn ĐẠT phải ghi rõ lý do bác cảnh báo", 400)
+    # --- KHÔNG ĐỂ AI MỘT MÌNH Ở TIÊU CHÍ KHÔNG CÓ LƯỚI ĐỠ CODE ---
+    # Tiêu chí 'needs-manual-guard' (logic dẫn xuất / nhánh thay thế / ngưỡng điều kiện) mà xác nhận ĐẠT
+    # -> bắt buộc cán bộ TỰ CHỨNG THỰC bằng bằng chứng cụ thể, không được bấm qua theo AI.
+    if v.get("guard_level") == "needs-manual-guard" and final_verdict == "met" and len(reason) < ATTESTATION_MIN_CHARS:
+        raise WorkflowError(
+            f"Tiêu chí {rule_id} KHÔNG có lưới đỡ mã nguồn (logic mã nguồn không diễn đạt nổi) — mọi kết luận ĐẠT ở "
+            f"đây chỉ dựa vào AI. Bạn phải tự kiểm chứng và ghi rõ bằng chứng trong hồ sơ (≥ {ATTESTATION_MIN_CHARS} "
+            "ký tự: trích số liệu/câu văn bạn đã đối chiếu). Nội dung này vào nhật ký kiểm toán.",
+            400, {"need_attestation": True, "rule": rule_id, "min_chars": ATTESTATION_MIN_CHARS})
     store.confirm_verdict(case_id, rule_id, final_verdict, reason, officer)
+    attested = v.get("guard_level") == "needs-manual-guard" and final_verdict == "met"
     store.log(officer, f"Xác nhận {rule_id} = {final_verdict}" + (f" (AI: {v['ai_verdict']} → SỬA)" if changed else "")
+              + (" [TỰ CHỨNG THỰC — tiêu chí không có lưới đỡ mã nguồn]" if attested else "")
               + (f" — lý do: {reason}" if reason else ""), case_id, role,
-              {"rule": rule_id, "ai": v["ai_verdict"], "final": final_verdict, "override": changed, "reason": reason})
+              {"rule": rule_id, "ai": v["ai_verdict"], "final": final_verdict, "override": changed,
+               "reason": reason, "guard_level": v.get("guard_level"), "attestation": attested})
     return store.get_verdict(case_id, rule_id)
 
 
