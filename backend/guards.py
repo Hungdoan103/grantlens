@@ -27,6 +27,11 @@ def normalise(text: str) -> str:
     t = re.sub(r"[*_`]{1,3}", "", text or "")
     t = t.replace("’", "'").replace("‘", "'").replace("–", "-").replace("—", "-")
     t = re.sub(r"[ \t]+", " ", t)
+    # Tiền tệ Úc viết nhiều kiểu — quy hết về "$1,250,000" để MỌI guard (tay lẫn compiler) đọc được,
+    # thay vì phải sửa từng regex: "A$1,250,000" / "AUD 1,250,000" / "1,250,000 AUD" / "... dollars".
+    t = re.sub(r"\bA\$\s*(?=\d)", "$", t)
+    t = re.sub(r"\bAUD\s*\$?\s*(?=\d)", "$", t, flags=re.I)
+    t = re.sub(r"(?<![$\d.])(\d[\d,]*\d|\d)\s*(?:AUD|australian dollars|dollars)\b", r"$\1", t, flags=re.I)
     return t
 
 

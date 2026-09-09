@@ -57,7 +57,16 @@ Dữ liệu tham chiếu công khai của Úc trong `data/external/` (xem README
 - **Guard tay + compiler chạy SONG SONG** (trước đây có tay là tắt compiler → regex trượt wording là mất lưới, đúng ca W06 `does **not** own` có markdown chen giữa). Quy tắc hợp nhất: cả hai bắt → `not_met`; chỉ compiler bắt trên rule đã có tay → hạ `unclear` (cảnh báo, không ghi đè). Thêm `guards.normalise()` bỏ markdown/dấu nháy cong trước khi khớp.
 - **Casegen chống nhiễu** (`casegen.py`): thêm **verifier độc lập** (lượt LLM riêng, không thấy nhãn) kiểm từng rule phụ có bằng chứng rõ không → rule "yếu" bị **loại khỏi metric**; eval **tách `[MỤC TIÊU]` (thước đo thật) khỏi `[PHỤ]` (tham khảo)**.
 - **Nhãn phải qua phê chuẩn**: bộ sinh mặc định `approved=false`; eval in cảnh báo và ghi `provisional: true`. Có `--approve` (ghi tên người duyệt) và `--dispute` (loại case nhãn sai khỏi metric, giữ để truy vết). Ví dụ thật: case Wine W06 đã bị dispute vì nhãn sai — rule cho phép related entity, AI chấm đúng.
-- **Số Wine cũ (41/45, FP 1/4) đã lỗi thời và chưa bao giờ là chuẩn vàng**: nhãn `approved=false`, một case đã bị loại vì sai nhãn. Số hợp lệ duy nhất để trích dẫn là **metric MỤC TIÊU** sau khi cán bộ phê chuẩn nhãn.
+- **Số Wine chính thức (nhãn ĐÃ phê chuẩn, qwen3:8b, 09/2026)** — chạy đúng pipeline khách đề nghị (rà văn bản → dispute/flag → approve → `--eval` → chỉ trích metric MỤC TIÊU):
+
+  ```
+  [MỤC TIÊU] bắt đúng vi phạm cài sẵn : 3/3  = 100%
+  [MỤC TIÊU] FALSE-PASS               : 0/3            <- chỉ số quan trọng nhất
+  [THAM KHẢO] rule phụ có bằng chứng rõ: 31/31 (KHÔNG dùng làm thước đo)
+  [LOẠI]      2/36 lượt (6%) nhãn phụ yếu đã gắn cờ; 1 case bị dispute
+  ```
+
+  Số Wine cũ (41/45, FP 1/4) **đã lỗi thời và chưa bao giờ là chuẩn vàng** — khi đó nhãn `approved=false` và chứa 1 case sai nhãn (W06/related entity) + 2 nhãn phụ sai (W04 ở case doanh số đúng bằng ngưỡng nên không thể có phần vượt). Chỉ trích dẫn khối số ở trên.
 
 **Ranh giới trung thực để nói với khách:** số false-pass chỉ có giá trị với **đúng quỹ đã đo bằng bộ test đã phê chuẩn nhãn**; quỹ mới chỉ được đảm bảo lớp compiler cơ bản, và các rule `needs-manual-guard` vẫn cần guard tay + cán bộ.
 
@@ -70,6 +79,7 @@ Dữ liệu tham chiếu công khai của Úc trong `data/external/` (xem README
 - **`llm-only` giờ cũng bị ép ma sát** (trước chỉ `needs-manual-guard`): xác nhận ĐẠT ở tiêu chí thuần định tính phải kèm bằng chứng ≥ 15 ký tự **hoặc** bấm nút "xác nhận đúng câu trích dẫn AI đã cắt" (phải mở dòng ra mới bấm được, nhật ký ghi rõ loại `ai_quote_ack` để hậu kiểm đếm). Tiêu chí `code-guarded` **không** bị làm phiền thêm.
 - **Chống "gõ đủ chữ cho qua cổng"** — kiểm bằng mã nguồn, không dùng LLM nên không có false positive ngữ nghĩa: lời chứng thực phải **chứa đoạn nguyên văn ≥ 5 từ liên tiếp có thật trong hồ sơ** (`verify.attestation_evidence`); và **không được dán trùng** lời chứng thực giữa các tiêu chí. Vùng `needs-manual-guard` **không cho mượn câu trích của AI** — phải tự dán.
 - **Đóng backlog guard tay**: viết guard cho `W04` (logic 2 lớp "in excess of" — tính `min(cellar, total − ngưỡng) ≤ 0`) và `C06` (nhánh "board **or** CEO or equivalent"). Backlog ưu tiên **cao = 0** trên cả 5 bộ tiêu chí; API `GET /api/guard-backlog` liệt kê công khai phần còn lại theo mức ưu tiên.
+- **Chuẩn hoá tiền tệ trước khi guard chạy** (lỗ hổng tự bắt được khi viết test hồi quy): guard chỉ đọc `$1,250,000`, hồ sơ ghi `1,250,000 AUD` / `AUD 1,250,000` / `A$1,250,000` / `... dollars` là lọt hết. Nay `guards.normalise()` quy mọi cách viết về một dạng, nên **mọi guard tay lẫn compiler cùng hưởng** thay vì phải sửa từng regex. Đã kiểm không đụng số thường (năm 2019 giữ nguyên) và không làm đổi bộ test Wine — số eval bên dưới vẫn còn giá trị.
 - **Hai lỗi tự phát hiện khi rà và đã sửa**: (1) guard W04 bản đầu tính sai chiều logic (dùng `total − cellar` thay vì phần vượt ngưỡng) → sửa đúng câu chữ rule; (2) compiler báo oan trần grant $100k khi câu chỉ tình cờ chứa một từ khóa → ràng buộc `max` nay đòi **≥ 2 từ khóa** trong câu mới kết luận (`min` giữ 1 vì vốn đã an toàn).
 - **Bộ test Wine đã qua pipeline đầy đủ**: rà từng case → `dispute` 1 case sai nhãn (W06/related entity) → `flag_weak` 2 nhãn phụ sai (W04 ở case W03 và W09, vì doanh số đúng bằng ngưỡng nên không thể có phần vượt) → `approve` → `--eval` lấy **metric MỤC TIÊU**.
 
