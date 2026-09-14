@@ -1,0 +1,190 @@
+{
+  "ruleset": "au-onfarm-water",
+  "version": "V2.7-2020",
+  "label_scope": "target",
+  "generator_model": "gemma3:4b",
+  "verifier_model": "gemma3:4b",
+  "planner_model": "qwen3:4b",
+  "generated_by": "gemma3:4b",
+  "targets": [
+    "O01",
+    "O05",
+    "O06",
+    "O07"
+  ],
+  "generated_at": "2026-09-14T15:46:12",
+  "approved": true,
+  "approved_by": "Rà kỹ thuật (nhà cung cấp) — chưa thay cán bộ đơn vị",
+  "approved_at": "2026-09-14T15:48:53",
+  "n_needs_review": 0,
+  "note": "Vi phạm do mã nguồn chốt trước (câu dữ kiện được guard/verifier xác nhận, văn bản phải chứa nguyên văn); chặn lộ đáp án bằng mã nguồn; verifier dùng model tách khỏi hệ bị đo. CHƯA PHÊ CHUẨN — số đo từ bộ này là TẠM (provisional). Rà văn bản, xử lý hết cờ rồi --approve.",
+  "cases": [
+    {
+      "id": "GEN-au-onfarm-water-00-clean",
+      "file": "generated/au-onfarm-water/GEN-au-onfarm-water-00-clean.txt",
+      "target": null,
+      "labels": {
+        "O01": "met",
+        "O02": "met",
+        "O03": "met",
+        "O04": "met",
+        "O05": "met",
+        "O06": "met",
+        "O07": "met",
+        "O08": "met"
+      },
+      "violation_fact": null,
+      "fact_confirmed_by": null,
+      "fact_placement": null,
+      "removed_meta_sentences": [],
+      "rest_without_fact_votes": null,
+      "guard_agree": null,
+      "target_label_clear": null,
+      "weak_labels": [
+        "O01",
+        "O05",
+        "O07"
+      ],
+      "verifier_disagreement": [],
+      "verifier": {
+        "O01": [
+          "yes",
+          "yes"
+        ],
+        "O05": [
+          "yes",
+          "yes"
+        ],
+        "O06": [
+          "yes",
+          "yes"
+        ],
+        "O07": [
+          "yes",
+          "yes"
+        ]
+      },
+      "status": "approved",
+      "control_rules": [
+        "O06"
+      ],
+      "weak_reasons": {
+        "O01": "Người rà đọc văn bản: không nêu tư cách property owner / share-farmer / lessee, không nhắc Land and Stock Return — O01 KHÔNG được thoả rõ, verifier gemma trả yes/yes là sai; bỏ khỏi đối chứng",
+        "O05": "Soát lại bằng bộ lọc hiện hành: câu về thu nhập kèm bình luận 'aligning with the specified benchmark' gợi ý O05 đạt — bỏ O05 khỏi đối chứng",
+        "O07": "Soát lại bằng bộ lọc hiện hành: câu về khoản hoàn kèm bình luận 'the maximum allowable claim under this scheme' gợi ý O07 đạt — bỏ O07 khỏi đối chứng. Dấu [[FACT]] sót trong văn bản là lỗi hình thức, không gắn tiêu chí nào; giữ O06 (câu tài sản nêu trơn)"
+      }
+    },
+    {
+      "id": "GEN-au-onfarm-water-02-O05",
+      "file": "generated/au-onfarm-water/GEN-au-onfarm-water-02-O05.txt",
+      "target": "O05",
+      "labels": {
+        "O01": "met",
+        "O02": "met",
+        "O03": "met",
+        "O04": "met",
+        "O05": "not_met",
+        "O06": "met",
+        "O07": "met",
+        "O08": "met"
+      },
+      "violation_fact": "The applicant's primary production enterprise generated 42% of their gross income in the last financial year, with the remainder coming from other activities.",
+      "fact_confirmed_by": "code",
+      "fact_placement": "marker",
+      "removed_meta_sentences": [],
+      "rest_without_fact_votes": [
+        "unclear",
+        "yes"
+      ],
+      "guard_agree": true,
+      "target_label_clear": true,
+      "weak_labels": [],
+      "verifier_disagreement": [],
+      "verifier": {
+        "O05": [
+          "no",
+          "no"
+        ]
+      },
+      "status": "disputed",
+      "dispute_reason": "Đáp án mơ hồ: rule đo thu nhập 'under normal seasonal circumstances' nhưng câu vi phạm lấy số 'last financial year' trong khi hồ sơ nêu đang hạn hán kéo dài — cán bộ cẩn thận sẽ kết luận 'chưa rõ', không phải 'không đạt'"
+    },
+    {
+      "id": "GEN-au-onfarm-water-03-O06",
+      "file": "generated/au-onfarm-water/GEN-au-onfarm-water-03-O06.txt",
+      "target": "O06",
+      "labels": {
+        "O01": "met",
+        "O02": "met",
+        "O03": "met",
+        "O04": "met",
+        "O05": "met",
+        "O06": "not_met",
+        "O07": "met",
+        "O08": "met"
+      },
+      "violation_fact": "The applicant's gross off-farm assets total $5,200,000, excluding superannuation funds.",
+      "fact_confirmed_by": "code",
+      "fact_placement": "marker",
+      "removed_meta_sentences": [],
+      "rest_without_fact_votes": [
+        "unclear",
+        "no"
+      ],
+      "guard_agree": true,
+      "target_label_clear": true,
+      "weak_labels": [],
+      "verifier_disagreement": [],
+      "verifier": {
+        "O06": [
+          "no",
+          "no"
+        ]
+      },
+      "status": "approved"
+    },
+    {
+      "id": "GEN-au-onfarm-water-04-O07",
+      "file": "generated/au-onfarm-water/GEN-au-onfarm-water-04-O07.txt",
+      "target": "O07",
+      "labels": {
+        "O01": "met",
+        "O02": "met",
+        "O03": "met",
+        "O04": "met",
+        "O05": "met",
+        "O06": "met",
+        "O07": "not_met",
+        "O08": "met"
+      },
+      "violation_fact": "The applicant's water infrastructure installation cost, including labour, exceeds $25,000.",
+      "fact_confirmed_by": "verifier",
+      "fact_placement": "marker",
+      "removed_meta_sentences": [],
+      "rest_without_fact_votes": [
+        "yes",
+        "unclear"
+      ],
+      "guard_agree": false,
+      "target_label_clear": false,
+      "weak_labels": [],
+      "verifier_disagreement": [],
+      "verifier": {
+        "O07": [
+          "yes",
+          "no"
+        ]
+      },
+      "status": "disputed",
+      "dispute_reason": "Nhãn SAI: rule giới hạn SỐ TIỀN HOÀN ($25,000), không giới hạn chi phí lắp đặt; chi phí $100,000 thì hoàn 25% = $25,000 là đúng quy định — câu vi phạm đọc sai rule"
+    }
+  ],
+  "skipped": [
+    {
+      "id": "GEN-au-onfarm-water-01-O01",
+      "reason": "guard bắn vào rule ngoài mục tiêu: ['O05'] (sau 3 lần viết)",
+      "fact": "The applicant's Land and Stock Return shows they are a tenant farmer, not a property owner, share-farmer or lessee in the grazing industry.",
+      "last_text": "Applicant, Entity and Registration Details\n\nApplicant Name: Riverbend Grazing Pty Ltd\nContact Person: Mr. Samuel Harding\nAddress: 123 Willow Creek Road, Gundagai, NSW 2624\nABN: 12 345 678 901\nEntity Type: Private Company\n\nWater Availability Assessment\n\nThe applicant's Land and Stock Return shows they are a tenant farmer, not a property owner, share-farmer or lessee in the grazing industry. Riverbend Grazing Pty Ltd operates as a private company trading agricultural products. The company is registered with the Australian Taxation Office as a primary producer, holding ABN 12 345 678 901. A completed water availability statement was submitted alongside this application, detailing a critical shortfall in water supply to the property due to recent drought conditions, as assessed by an independent veterinarian.\n\nIncome Verification and Asset Disclosure\n\nThe applicant, Riverbend Grazing Pty Ltd, confirms that over 50% of its gross income is derived from primary production activities under typical seasonal conditions. Furthermore, a review of company records indicates that gross off-farm assets, excluding funds held within a registered superannuation fund, do not exceed $5,000,000. The proposed rebate of $25,000 per farm enterprise will cover the cost of installing new water infrastructure.\n\nInfrastructure Details\n\nThe planned water infrastructure installation is intended for permanent livestock residing on the Riverbend Grazing Pty Ltd property and is not currently used for agistment purposes. The rebate applies to the purchase, delivery and installation labour costs associated with this project."
+    }
+  ]
+}

@@ -31,6 +31,9 @@ th,td{padding:6px 9px;border:1px solid var(--line);text-align:left;vertical-alig
 th{background:var(--band);font-weight:600;font-size:9pt;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
 .note{background:var(--band);border-left:3px solid var(--green);padding:8px 12px;border-radius:0 4px 4px 0;margin:10px 0;font-size:10.5pt;break-inside:avoid}
 .warnbox{background:var(--amber-soft);border-left:3px solid var(--amber);padding:8px 12px;border-radius:0 4px 4px 0;margin:10px 0;font-size:10.5pt;break-inside:avoid}
+.chain{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 10px;font-size:9.5pt}
+.chain span{border:1px solid var(--green);border-radius:6px;padding:3px 8px;background:var(--green-soft)}
+.chain i{font-style:normal;color:var(--muted)}
 ul{margin:0 0 8px 18px}
 li{margin-bottom:3px}
 footer{margin-top:26px;border-top:1px solid var(--line);padding-top:8px;font-size:8.5pt;color:var(--muted)}
@@ -44,11 +47,11 @@ footer{margin-top:26px;border-top:1px solid var(--line);padding-top:8px;font-siz
     <div class="brand">Grant<em>Lens</em></div>
     <div class="sub">Mô tả hệ thống — trợ lý thẩm định điều kiện hồ sơ tài trợ.<br>AI đưa bằng chứng, con người quyết định.</div>
   </div>
-  <div class="meta">Phiên bản 2.7 · 09/2026<br>Đã cập nhật theo phản hồi thẩm định của khách hàng<br>Lõi AI: Qwen3-8B chạy local (Ollama)</div>
+  <div class="meta">Phiên bản 2.8 · 09/2026<br>Đã cập nhật theo phản hồi thẩm định của khách hàng<br>Lõi AI: Qwen3-8B chạy local (Ollama)</div>
 </header>
 
 <h1>1. Định vị và nguyên tắc</h1>
-<p>GrantLens giúp cán bộ xét duyệt tài trợ đối chiếu từng hồ sơ với bộ tiêu chí đã công bố một cách <b>nhất quán, có trích dẫn hai chiều nguyên văn và có thể khiếu nại</b>. AI làm phần việc tốn thời gian (đọc, đối chiếu, trích dẫn, soạn nháp); cán bộ làm phần việc quan trọng (thẩm định, quyết định, chịu trách nhiệm). Toàn bộ xử lý — kể cả mô hình ngôn ngữ — chạy trong máy chủ nội bộ của đơn vị: <b>hồ sơ không rời máy, không phí API</b>. Bộ demo dùng 12 tiêu chí nguyên văn từ NSF 22-586 CAREER và 15 hồ sơ mẫu có nhãn chuẩn.</p>
+<p>GrantLens giúp cán bộ xét duyệt tài trợ đối chiếu từng hồ sơ với bộ tiêu chí đã công bố một cách <b>nhất quán, có trích dẫn hai chiều nguyên văn và có thể khiếu nại</b>. AI làm phần việc tốn thời gian (đọc, đối chiếu, trích dẫn, soạn nháp); cán bộ làm phần việc quan trọng (thẩm định, quyết định, chịu trách nhiệm). Toàn bộ xử lý — kể cả mô hình ngôn ngữ — chạy trong máy chủ nội bộ của đơn vị: <b>hồ sơ không rời máy, không phí API</b>. Bộ demo dùng 12 tiêu chí nguyên văn từ NSF 22-586 CAREER, 15 hồ sơ mẫu có nhãn chuẩn, 4 bộ tiêu chí quỹ Úc thật và 1 quỹ minh hoạ.</p>
 
 <h1>2. Hành trình một hồ sơ</h1>
 
@@ -80,17 +83,17 @@ footer{margin-top:26px;border-top:1px solid var(--line);padding-top:8px;font-siz
 
 <div class="step"><div class="n">3</div><div>
 <h2>Thẩm định — chống đóng dấu tự động</h2>
-<p>Mở màn bằng <b>spot-check mù</b>: hệ thống chọn ngẫu nhiên một tiêu chí và che toàn bộ đề xuất AI cho tới khi cán bộ tự kết luận (đo mức độc lập của người so với máy). Sau đó cán bộ mở từng tiêu chí — thấy dữ kiện AI trích, trích dẫn hai chiều (bấm là tô sáng đúng câu trong hồ sơ gốc), điểm truy hồi, độ tin cậy — và <b>xác nhận từng dòng, không có nút "duyệt tất cả"</b>. Sửa kết luận AI, hoặc AI trả Chưa rõ / Không đề cập ⇒ bắt buộc ghi lý do.</p>
+<p>Mở màn bằng <b>spot-check mù</b>: hệ thống chọn ngẫu nhiên một tiêu chí và che toàn bộ đề xuất AI cho tới khi cán bộ tự kết luận (đo mức độc lập của người so với máy). Sau đó cán bộ mở từng tiêu chí — thấy dữ kiện AI trích, trích dẫn hai chiều (bấm là tô sáng đúng câu trong hồ sơ gốc), điểm truy hồi, độ tin cậy — và <b>xác nhận từng dòng, không có nút "duyệt tất cả"</b>. Sửa kết luận AI, hoặc AI trả Chưa rõ / Không đề cập ⇒ bắt buộc ghi lý do. Xác nhận ĐẠT ở tiêu chí mã nguồn không kiểm được ⇒ bắt buộc dán đoạn trích nguyên văn từ hồ sơ, máy chủ kiểm cơ học.</p>
 </div></div>
 
 <div class="step"><div class="n">4</div><div>
 <h2>Ký duyệt — kích hoạt vòng phản hồi <span class="tag new">MỚI theo yêu cầu khách</span></h2>
-<p>Chỉ ký được khi 12/12 tiêu chí đã xác nhận; ký nhanh hơn 8 giây/tiêu chí → cảnh báo, ghi nhật ký, phải xác nhận lần hai. Đúng lúc ký, mọi tiêu chí <b>cán bộ sửa tay so với AI</b> (hoặc phải quyết thay AI) tự động vào <b>kho ground-truth</b> kèm dữ kiện, kết luận đúng và lý do. Kho này (1) được dùng ngay làm ví dụ sửa sai cho các hồ sơ sau, và (2) xuất được ra định dạng chuẩn để tinh chỉnh (fine-tune) model định kỳ — hệ thống càng dùng càng khớp với chuẩn mực của đơn vị.</p>
+<p>Chỉ ký được khi mọi tiêu chí đã xác nhận; ký nhanh hơn 15 giây/tiêu chí → cảnh báo, ghi nhật ký, phải xác nhận lần hai. Đúng lúc ký, mọi tiêu chí <b>cán bộ sửa tay so với AI</b> (hoặc phải quyết thay AI) tự động vào <b>kho ground-truth</b> kèm dữ kiện, kết luận đúng và lý do. Kho này (1) được dùng ngay làm ví dụ sửa sai cho các hồ sơ sau, và (2) xuất được ra định dạng chuẩn để tinh chỉnh (fine-tune) model định kỳ — hệ thống càng dùng càng khớp với chuẩn mực của đơn vị. Hồ sơ có tiêu chí không đạt/chưa rõ còn phải qua <b>ký cấp 2 của quản lý</b> (khác người thẩm định, qua kiểm COI) trước khi phát hành thư.</p>
 </div></div>
 
 <div class="step"><div class="n">5</div><div>
 <h2>Thư kết quả</h2>
-<p>AI soạn thư tiếng Anh phổ thông (chuẩn B1) từ các kết luận đã ký: nêu đúng tiêu chí không đạt kèm trích dẫn nguyên văn hai phía, mục "cách bổ sung hồ sơ" và "cách khiếu nại trong 30 ngày". Thư là NHÁP — cán bộ sửa tay được (nhật ký ghi "có chỉnh sửa"), phê duyệt xong mới thành chính thức, in/lưu PDF. Hồ sơ đã ký muốn đánh giá lại phải <b>Mở lại có lý do</b>.</p>
+<p>AI soạn thư tiếng Anh phổ thông (chuẩn B1) từ các kết luận đã ký: nêu đúng tiêu chí không đạt kèm trích dẫn nguyên văn hai phía, mục "cách bổ sung hồ sơ" và "cách khiếu nại trong 30 ngày", theo đúng mẫu thư của đơn vị. Thư là NHÁP — cán bộ sửa tay được (nhật ký ghi "có chỉnh sửa"), phê duyệt xong mới thành chính thức, in/lưu PDF. Hồ sơ đã ký muốn đánh giá lại phải <b>Mở lại có lý do</b>.</p>
 </div></div>
 
 <div class="note"><b>Xuyên suốt — nhật ký kiểm toán chuỗi băm:</b> mọi hành động (AI đề xuất gì, ai sửa gì vì sao, spot-check, cảnh báo COI, ai ký, lúc nào) được ghi kèm SHA-256 của sự kiện trước. Sửa hoặc xoá một dòng ở giữa làm chuỗi đứt và bị phát hiện bằng một nút kiểm tra — căn cứ giải trình khi thanh tra hoặc giải quyết khiếu nại.</div>
@@ -100,7 +103,7 @@ footer{margin-top:26px;border-top:1px solid var(--line);padding-top:8px;font-siz
 <tr><th>Khu</th><th>Nội dung</th></tr>
 <tr><td><b>Tổng quan</b></td><td>Hàng đợi + KPI: tỉ lệ cán bộ sửa AI, trích dẫn khớp nguyên văn, spot-check trùng AI, chuỗi nhật ký toàn vẹn, số mẫu feedback đã thu.</td></tr>
 <tr><td><b>Hồ sơ</b></td><td>Danh sách ca theo trạng thái; màn thẩm định gồm ma trận 12 tiêu chí + văn bản hồ sơ gốc (tô sáng trích dẫn) + panel sàng lọc danh sách cấm.</td></tr>
-<tr><td><b>Bộ tiêu chí</b></td><td>12 điều kiện nguyên văn tiếng Anh từ solicitation, phân loại định lượng/định tính.</td></tr>
+<tr><td><b>Bộ tiêu chí</b></td><td>Tiêu chí nguyên văn của từng quỹ kèm version, trạng thái phê chuẩn, độ phủ guard mã nguồn và <b>trạng thái đo theo từng quỹ</b> (mục 8).</td></tr>
 <tr><td><b>Bias Lab</b></td><td>So sánh 2 hồ sơ cùng dữ kiện khác văn phong — hệ thống công bằng phải trả 12/12 kết luận trùng nhau.</td></tr>
 <tr><td><b>Nhật ký</b></td><td>Toàn bộ sự kiện + hash chain, lọc theo hồ sơ, kiểm tra toàn vẹn một bấm.</td></tr>
 <tr><td><b>Nạp dữ liệu</b></td><td>Tải hồ sơ mới; tra cứu tay danh sách cấm/ABN; trích tiêu chí từ hướng dẫn tài trợ mới (bản xem trước, câu không nguyên văn bị gắn cờ).</td></tr>
@@ -110,12 +113,12 @@ footer{margin-top:26px;border-top:1px solid var(--line);padding-top:8px;font-siz
 <table>
 <tr><th>Thành phần</th><th>Công nghệ / vai trò</th></tr>
 <tr><td>Giao diện</td><td>Web một trang (HTML/JS tự chứa), phục vụ bởi backend, cập nhật tiến độ AI theo thời gian thực.</td></tr>
-<tr><td>Backend</td><td>Python FastAPI: máy trạng thái 6 bước của ca hồ sơ; <b>mọi quy tắc niềm tin (spot-check, lý do bắt buộc, chặn COI, chặn ký nhanh, thư sau ký) kiểm tra ở máy chủ</b> — giao diện không thể lách.</td></tr>
+<tr><td>Backend</td><td>Python FastAPI: máy 7 trạng thái của ca hồ sơ; <b>mọi quy tắc niềm tin (spot-check, lý do bắt buộc, chặn COI, chặn ký nhanh, thư sau ký, chứng thực trích nguyên văn) kiểm tra ở máy chủ</b> — giao diện không thể lách.</td></tr>
 <tr><td>Lõi AI</td><td>Qwen3-8B chạy local qua Ollama (JSON ép cứng theo schema, temperature 0). Đổi model/lõi (Qwen 14B, vLLM, dịch vụ OpenAI-compatible) chỉ bằng biến môi trường, không đụng nghiệp vụ. Yêu cầu GPU ≥ 8 GB VRAM để đạt ~1–2 phút/hồ sơ.</td></tr>
 <tr><td>Trích xuất tài liệu</td><td>pdfplumber phân tích layout PDF; đọc DOCX theo đúng thứ tự đoạn/bảng; OCR dự phòng cho trang scan.</td></tr>
 <tr><td>Sàng lọc</td><td>Khớp mờ chuẩn hoá không dấu; chỉ mục SQLite FTS5 cho 20,5 triệu bản ghi ABN (lập một lần, ~17 phút, đọc stream không cần giải nén 12 GB). Danh sách cấm thay/bổ sung được theo yêu cầu đơn vị (nội bộ, OFAC, EU, UN…).</td></tr>
 <tr><td>Lưu trữ</td><td>SQLite (demo/MVP nhỏ) → PostgreSQL khi triển khai lớn; nhật ký chuỗi băm SHA-256; kho feedback JSONL.</td></tr>
-<tr><td>Đánh giá</td><td>Bộ chấm tự động trên 15 hồ sơ có nhãn: accuracy, citation match (kỳ vọng 100%), bias score theo cặp (kỳ vọng 100%), false-pass (kỳ vọng 0); so sánh nhiều lõi AI trên cùng chỉ số.</td></tr>
+<tr><td>Đánh giá</td><td>Bộ chấm tự động trên 15 hồ sơ có nhãn: accuracy, citation match (kỳ vọng 100%), bias score theo cặp (kỳ vọng 100%), false-pass (kỳ vọng 0); cộng bộ test có nhãn sinh riêng cho từng quỹ (mục 8); so sánh nhiều lõi AI trên cùng chỉ số.</td></tr>
 </table>
 
 <h1>5. Bốn cơ chế bổ sung theo phản hồi thẩm định (09/2026)</h1>
@@ -142,19 +145,37 @@ footer{margin-top:26px;border-top:1px solid var(--line);padding-top:8px;font-siz
 <p>Phần này viết ra để <b>không ai hiểu nhầm phạm vi bảo đảm</b> của hệ thống — theo đúng yêu cầu rà soát của quý đơn vị.</p>
 <table>
 <tr><th>Câu hỏi</th><th>Trả lời trung thực</th><th>Cơ chế trong hệ thống</th></tr>
-<tr><td>Guard có bảo vệ mọi tiêu chí của mọi quỹ không?</td><td><b>Không.</b> Chỉ tiêu chí mà mã nguồn diễn đạt được (ngưỡng tiền/%, mục cấm, danh sách loại trừ). Tiêu chí có logic dẫn xuất, nhánh thay thế, ngưỡng theo điều kiện thì mã nguồn không diễn đạt nổi.</td><td>Báo cáo <b>độ phủ 3 mức</b> hiện ngay màn hình từng bộ tiêu chí: có lưới đỡ code / <b>cần guard tay</b> / chỉ LLM + cán bộ. Chỗ không diễn đạt được được ghi rõ lý do, không im lặng bỏ qua.</td></tr>
+<tr><td>Guard có bảo vệ mọi tiêu chí của mọi quỹ không?</td><td><b>Không.</b> Chỉ tiêu chí mà mã nguồn diễn đạt được (ngưỡng tiền/%, mục cấm, danh sách loại trừ). Tiêu chí có logic dẫn xuất, nhánh thay thế, ngưỡng theo điều kiện và mục loại trừ có điều kiện (vd "từ 100 nhân viên <b>và</b> chưa tuân thủ Luật Bình đẳng giới nơi làm việc") thì mã nguồn tự biên dịch không diễn đạt nổi.</td><td>Báo cáo <b>độ phủ 3 mức</b> hiện ngay màn hình từng bộ tiêu chí: có lưới đỡ code / <b>cần guard tay</b> / chỉ LLM + cán bộ. Chỗ không diễn đạt được được ghi rõ lý do, không im lặng bỏ qua, và được bù bằng guard viết tay ở chỗ quan trọng.</td></tr>
 <tr><td>Quỹ mới nạp vào có an toàn ngay không?</td><td><b>Chỉ an toàn ở lớp cơ bản.</b> Hệ tự biên dịch ràng buộc từ nguyên văn tiêu chí, nhưng phần "cần guard tay" vẫn phụ thuộc mô hình và cán bộ.</td><td>Cổng phê chuẩn bộ tiêu chí kiểm độ phủ tối thiểu; dưới ngưỡng thì quản lý phải xác nhận chấp nhận rủi ro kèm lý do, ghi nhật ký vĩnh viễn.</td></tr>
-<tr><td>Quỹ Wine Tourism đã đo xong chưa, số bao nhiêu?</td><td><b>Đã đo trên bộ test có nhãn đã được rà và phê chuẩn.</b> Bắt đúng vi phạm cài sẵn <b>3/3</b>, <b>false-pass 0/3</b>.</td><td>Đi đúng quy trình: rà từng hồ sơ thử → loại 1 hồ sơ gán nhãn sai (quy tắc cho phép pháp nhân liên quan, AI chấm đúng) → đánh dấu 2 nhãn phụ không đáng tin (doanh số đúng bằng ngưỡng nên không thể có phần vượt) → phê chuẩn → đo. Tỷ lệ loại 6%, nằm trong ngưỡng an toàn. Chỉ số phụ 31/31 được in kèm nhưng <b>không</b> dùng làm thước đo chất lượng.</td></tr>
-<tr><td>Số "false-pass = 0" áp dụng cho quỹ nào?</td><td><b>Chỉ cho đúng quỹ đã đo, bằng bộ test đã được cán bộ phê chuẩn nhãn.</b> Không suy rộng sang quỹ khác.</td><td>Bộ test do AI sinh mặc định ở trạng thái <i>chưa phê chuẩn</i>; mọi kết quả đo trên đó được đánh dấu <b>tạm tính</b> trong báo cáo và trên giao diện cho tới khi có người rà và ký duyệt nhãn.</td></tr>
+<tr><td>Có số đo cho mọi quỹ không, hay chỉ một quỹ?</td><td><b>Mỗi quỹ phải tự có số đo riêng — không mượn số của quỹ khác.</b> Số Wine Tourism công bố trước đây (bắt 3/3, false-pass 0/3) <b>đã bị thu hồi</b>.</td><td>Khi mở rộng đo sang các quỹ khác, chúng tôi phát hiện bộ test tự sinh của Wine có câu "lộ đáp án" (vd văn bản thi ghi thẳng "violating W08"), nên con số đó không còn giá trị. Quy trình sinh bộ test đã được làm lại (mục 8) và cả 6 bộ tiêu chí đã được đo lại theo quy trình mới — kết quả từng quỹ ở mục 8; màn Bộ tiêu chí hiển thị trạng thái đo của từng quỹ và chỉ công bố số của quỹ đã đi hết chuỗi.</td></tr>
+<tr><td>Số "false-pass = 0" áp dụng cho quỹ nào?</td><td><b>Chỉ cho đúng quỹ đã đo, bằng bộ test đã được cán bộ phê chuẩn nhãn.</b> Không suy rộng sang quỹ khác.</td><td>Bộ test do AI sinh mặc định ở trạng thái <i>chưa phê chuẩn</i>; mọi kết quả đo trên đó được đánh dấu <b>tạm tính</b>. Kết quả đo còn phải khớp đúng bộ nhãn đang phê chuẩn — không khớp thì hệ thống báo "phải đo lại".</td></tr>
 <tr><td>Tiêu chí không có lưới đỡ mã nguồn thì sao? Cán bộ tin AI bấm qua được không?</td><td><b>Không bấm qua được.</b> Đây là chỗ rủi ro cao nhất nên hệ thống ép ma sát ở máy chủ, không chỉ hiển thị cảnh báo.</td><td>Kết luận ĐẠT ở tiêu chí không có lưới đỡ <b>bắt buộc kèm bằng chứng tự kiểm chứng</b> (máy chủ từ chối nếu thiếu); tiêu chí đó luôn nằm trong diện "cần chú ý"; nội dung chứng thực vào nhật ký mang tên cán bộ; màn Tổng quan đếm số lần để quản lý giám sát.</td></tr>
 <tr><td>Cán bộ có thể "gõ đủ chữ" cho qua cổng chứng thực không?</td><td><b>Không.</b> Cổng không chỉ đếm ký tự.</td><td>Lời chứng thực phải <b>chứa đoạn nguyên văn có thật trong hồ sơ</b> (mã nguồn đối chiếu lại, không dùng AI nên không có phán đoán sai), và <b>không được dán trùng</b> giữa các tiêu chí. Với tiêu chí rủi ro cao nhất thì không được mượn câu trích của AI, phải tự dán. Mọi lời chứng thực vào nhật ký chuỗi băm mang tên người ký để hậu kiểm.</td></tr>
 <tr><td>Tiêu chí thuần định tính (ABN, GST, giấy phép…) thì sao?</td><td><b>Cũng bị ép ma sát.</b> Đây là nhóm dễ "AI bảo đủ, cán bộ bấm theo" nhất.</td><td>Kết luận ĐẠT phải kèm bằng chứng trích dẫn, hoặc bấm xác nhận đúng câu AI đã cắt (phải mở ra đọc mới bấm được, hệ thống ghi rõ loại chứng thực). Tiêu chí đã có lưới đỡ mã nguồn thì không bị làm phiền thêm — ma sát tỷ lệ với rủi ro.</td></tr>
-<tr><td>Bộ kiểm nhãn cũng là AI — nó sai thì sao?</td><td><b>Không tin một lượt.</b></td><td>Kiểm <b>2 lượt độc lập</b>, chỉ loại nhãn khi mọi lượt đồng ý; hai lượt mâu thuẫn thì giữ lại và gắn cờ cho người rà. <b>Mã nguồn có quyền phủ quyết</b> khi bắt được vi phạm bằng số liệu cụ thể.</td></tr>
-<tr><td>Đề thi tự sinh có làm nhiễu số đo không?</td><td><b>Có nếu không lọc</b> — nên hệ thống lọc sẵn.</td><td>Một lượt kiểm độc lập soát từng tiêu chí phụ xem văn bản có bằng chứng rõ ràng không; tiêu chí "yếu" bị loại khỏi điểm. Báo cáo tách <b>chỉ số mục tiêu</b> (bắt vi phạm — thước đo thật) khỏi <b>chỉ số phụ</b> (tham khảo). Case sai nhãn bị loại kèm lý do, vẫn lưu để truy vết.</td></tr>
+<tr><td>Bộ kiểm nhãn cũng là AI — nó sai thì sao?</td><td><b>Không tin một lượt, và không để nó tự quyết.</b></td><td>Kiểm nhãn bằng <b>model khác họ với hệ đang bị đo</b> (tránh việc case khó bị chính model đó loại khỏi đề, làm đẹp số), hỏi <b>hai cách đặt câu khác nhau</b> ("có thoả không?" / "có vi phạm không?"). Bộ kiểm chỉ gắn cờ — <b>người rà phải xác nhận hoặc loại từng case bị gắn cờ, còn cờ thì không phê chuẩn được nhãn</b>. Mã nguồn có quyền phủ quyết khi bắt được vi phạm bằng số liệu.</td></tr>
+<tr><td>Đề thi tự sinh có làm nhiễu số đo không?</td><td><b>Có, và đã từng xảy ra</b> — nên có nhiều chốt kiểm bằng mã nguồn.</td><td>(1) Vi phạm do mã nguồn chốt trước rồi chèn nguyên văn vào hồ sơ, không phó mặc AI; (2) chặn lộ đáp án (nhắc mã tiêu chí, câu tự bình luận "vi phạm / thoả mãn"); (3) chặn văn bản không phải hồ sơ (model tự độc thoại); (4) hồ sơ sạch làm đối chứng để đo báo động giả — không có nó thì hệ "từ chối tất cả" cũng đạt 100%; (5) người rà đọc từng hồ sơ trước khi phê chuẩn.</td></tr>
 </table>
+<h1>8. Đo chất lượng theo từng quỹ</h1>
+<p>Một quỹ chỉ được công bố số khi đã đi hết chuỗi dưới đây. Số của quỹ này không bao giờ được dùng để nói về quỹ khác.</p>
+<div class="chain"><span>Sinh bộ test (AI)</span><i>→</i><span>Kiểm tự động (mã nguồn + model kiểm độc lập)</span><i>→</i><span>Người rà đọc từng case, xác nhận / loại</span><i>→</i><span>Phê chuẩn nhãn</span><i>→</i><span>Đo bằng lõi AI thật</span><i>→</i><span>Công bố: bắt vi phạm · false-pass · báo động giả</span></div>
+<table>
+<tr><th>Quỹ / bộ tiêu chí</th><th>Tiêu chí có lưới đỡ mã nguồn</th><th>Trạng thái đo</th><th>Kết quả công bố</th></tr>
+<!-- MEASURE-ROWS:vi -->
+<tr><td>NSF 22-586 CAREER (Mỹ)</td><td>8 / 12</td><td>đã đo đủ chuỗi</td><td><b>bắt 1/1 · false-pass 0/1 · báo động giả 0/1</b></td></tr>
+<tr><td>Wine Tourism R8</td><td>5 / 9</td><td>đã đo đủ chuỗi</td><td><b>bắt 2/2 · false-pass 0/2 · báo động giả 1/2</b> <i>(số 3/3 cũ đã thu hồi)</i></td></tr>
+<tr><td>Cyber Security Skills R2</td><td>4 / 8</td><td>đã đo đủ chuỗi</td><td><b>bắt 2/2 · false-pass 0/2 · báo động giả 0/2</b></td></tr>
+<tr><td>Boosting Female Founders R1</td><td>3 / 6</td><td>đã đo đủ chuỗi</td><td><b>bắt 1/2 · false-pass 0/2 · đẩy về cán bộ 1 · báo động giả 0/2</b></td></tr>
+<tr><td>On-farm Water</td><td>4 / 8</td><td>đã đo đủ chuỗi</td><td><b>bắt 1/1 · false-pass 0/1 · báo động giả 0/1</b></td></tr>
+<tr><td>Quỹ minh hoạ (demo)</td><td>1 / 3</td><td>đã đo đủ chuỗi</td><td><b>bắt 1/1 · false-pass 0/1 · báo động giả 0/1</b></td></tr>
+<!-- /MEASURE-ROWS:vi -->
+</table>
+<div class="note"><b>Phát hiện từ phép đo — tổng 6 quỹ</b> (hệ bị đo qwen3:8b): bắt đúng <b>8/9</b> vi phạm cài sẵn · <b>false-pass 0/9</b> · 1 case đẩy về cán bộ · hồ sơ sạch kết luận đúng 8/9 · <b>báo động giả 1/9</b>.<br>
+<b>Guard chặn được một false-pass thật của AI:</b> ở Female Founders F05, hồ sơ ghi rõ "registered income tax exempt entity" (thuộc diện loại trừ) nhưng mô hình vẫn chấm "đạt"; guard mã nguồn bắt được, hạ xuống "chưa rõ" kèm cảnh báo và buộc cán bộ quyết — không có false-pass nào lọt ra.<br>
+<b>Một báo động giả, đã rõ nguyên nhân:</b> ở Wine W06, hồ sơ sạch ghi "operates a dedicated physical cellar door located on our property" nhưng mô hình chấm "không đạt" vì "không có thông tin về sở hữu hay thuê" — thiếu thông tin lẽ ra phải là "chưa rõ". Đã đưa vào danh sách cải tiến (chốt mã nguồn: "không đạt" phải có dữ kiện vi phạm đi kèm); thay đổi sẽ được đo lại trên cả 6 quỹ trước khi công bố.</div>
+<div class="note"><b>Vì sao bước người rà là bắt buộc:</b> trong lượt đo lại, 18 case vi phạm do AI sinh đã qua mọi chốt kiểm tự động, nhưng người rà vẫn loại <b>9 case (5 nhãn sai, 4 đáp án mơ hồ)</b> — đề thi tự sinh không dùng làm chuẩn được nếu không có người đọc từng hồ sơ. <b>Cỡ mẫu:</b> sau khi rà còn 1–2 case vi phạm mỗi quỹ, nên kết quả là <b>bằng chứng sơ bộ theo từng quỹ, không phải tỷ lệ thống kê</b>; cỡ mẫu được mở rộng bằng hồ sơ thật do cán bộ gán nhãn khi triển khai.</div>
 <div class="warnbox"><b>Phạm vi bản demo:</b> đăng nhập/phân quyền nhiều cấp, PostgreSQL, OCR đầy đủ, và fine-tune từ kho feedback thuộc giai đoạn MVP/Hoàn thiện theo lộ trình đã báo giá. Danh sách cấm hiện dùng nguồn công khai của Úc để chứng minh năng lực — thay theo thị trường của quý đơn vị khi triển khai.</div>
 
-<footer>GrantLens v2.1 · Bộ tiêu chí mẫu trích nguyên văn NSF 22-586 CAREER (nsf.gov, tài liệu công vụ Hoa Kỳ, phạm vi công cộng) · Hồ sơ mẫu là dữ liệu tổng hợp có nhãn, không phải hồ sơ thật · Danh sách sàng lọc: nguồn công khai ASIC / DFAT / ABR.</footer>
+<footer>GrantLens v2.8 · Bộ tiêu chí mẫu trích nguyên văn NSF 22-586 CAREER (nsf.gov, tài liệu công vụ Hoa Kỳ, phạm vi công cộng) và guideline các quỹ Úc do khách hàng cung cấp · Hồ sơ mẫu là dữ liệu tổng hợp có nhãn, không phải hồ sơ thật · Danh sách sàng lọc: nguồn công khai ASIC / DFAT / ABR.</footer>
 </div>
 </body>
 </html>

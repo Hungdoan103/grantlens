@@ -237,9 +237,16 @@ def assess_rule(case_id: str, text: str, rule: dict, k: int = 3, ruleset_id: str
     }
 
 
-def assess_case(case_id: str, text: str, progress=None, ruleset_id: str = None, meta: dict = None):
-    """Generator: yield từng verdict để API stream tiến độ."""
+def assess_case(case_id: str, text: str, progress=None, ruleset_id: str = None, meta: dict = None,
+                only_rules=None):
+    """Generator: yield từng verdict để API stream tiến độ.
+
+    only_rules: giới hạn ở một tập rule (dùng cho đo [MỤC TIÊU] — mỗi case chỉ cần chấm đúng
+    rule có vi phạm cài sẵn, không phải chấm cả bộ). Mặc định None = chấm đủ như cũ.
+    """
     rules = get_ruleset(ruleset_id)["rules"]
+    if only_rules:
+        rules = [r for r in rules if r["id"] in set(only_rules)]
     for i, rule in enumerate(rules):
         if progress:
             progress(rule["id"], i, len(rules))

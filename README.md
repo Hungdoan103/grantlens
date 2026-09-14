@@ -57,16 +57,49 @@ Dữ liệu tham chiếu công khai của Úc trong `data/external/` (xem README
 - **Guard tay + compiler chạy SONG SONG** (trước đây có tay là tắt compiler → regex trượt wording là mất lưới, đúng ca W06 `does **not** own` có markdown chen giữa). Quy tắc hợp nhất: cả hai bắt → `not_met`; chỉ compiler bắt trên rule đã có tay → hạ `unclear` (cảnh báo, không ghi đè). Thêm `guards.normalise()` bỏ markdown/dấu nháy cong trước khi khớp.
 - **Casegen chống nhiễu** (`casegen.py`): thêm **verifier độc lập** (lượt LLM riêng, không thấy nhãn) kiểm từng rule phụ có bằng chứng rõ không → rule "yếu" bị **loại khỏi metric**; eval **tách `[MỤC TIÊU]` (thước đo thật) khỏi `[PHỤ]` (tham khảo)**.
 - **Nhãn phải qua phê chuẩn**: bộ sinh mặc định `approved=false`; eval in cảnh báo và ghi `provisional: true`. Có `--approve` (ghi tên người duyệt) và `--dispute` (loại case nhãn sai khỏi metric, giữ để truy vết). Ví dụ thật: case Wine W06 đã bị dispute vì nhãn sai — rule cho phép related entity, AI chấm đúng.
-- **Số Wine chính thức (nhãn ĐÃ phê chuẩn, qwen3:8b, 09/2026)** — chạy đúng pipeline khách đề nghị (rà văn bản → dispute/flag → approve → `--eval` → chỉ trích metric MỤC TIÊU):
+- **⚠ SỐ WINE 3/3 (09/09/2026) ĐÃ BỊ THU HỒI — đừng trích dẫn lại.** Khi mở rộng đo sang quỹ thứ hai, bộ lọc mới phát hiện **bộ test tự sinh bị LỘ ĐÁP ÁN**: văn bản thi có câu tự thú như `"...only $250,000 were generated from the physical cellar door, violating W08..."` (case `03-W08`), nhiều case khác nhắc thẳng mã rule `W01..W09`. Hồ sơ thật không bao giờ viết vậy — hệ thẩm định có thể chấm đúng vì **đọc được đáp án** chứ không phải vì suy luận, nên **1 trong 3 case tính điểm bị nhiễm** và con số 3/3 không dùng được. Bản nhiễm giữ lại để truy vết (nhãn + kết quả eval tại `data/labels/withdrawn/`, văn bản tại `data/applications/withdrawn/`), cờ `withdrawn: true` kèm lý do.
+- **Lỗi thứ hai lộ ra khi mở rộng đo sang quỹ khác — bộ sinh không cài được vi phạm.** Sau khi cấm LLM tự bình luận, **7/7 hồ sơ "vi phạm" ở Cyber Skills + Female Founders thực chất hợp lệ hoàn toàn** (vd C07 ghi chi tiêu hợp lệ $620,000 ≥ ngưỡng $500,000; F01 ghi phụ nữ sở hữu 60%). Verifier gắn cờ đúng cả 7, nhưng nó cho thấy "dặn LLM hãy vi phạm rule X" là không đủ tin. `casegen` được thiết kế lại:
+  1. **Vi phạm do mã nguồn chốt trước**: LLM chỉ đề xuất *một câu dữ kiện* vi phạm; câu đó phải được guard (mã nguồn) hoặc verifier xác nhận là vi phạm thật (lần thử sau được xem các câu đã bị loại, vì ở temperature 0 không đổi đề thì kết quả y hệt). Người viết chỉ đặt dấu `[[FACT]]`; **mã nguồn tự chèn nguyên văn câu đã chốt** — model nhỏ chép lại hay sai lệch. Với vi phạm định lượng, guard phải **vẫn bắt trên toàn văn**, chặn văn bản có con số khác đè lên câu vi phạm.
+  2. **Chặn lộ đáp án bằng mã nguồn** (`_leak_check`, `_repair_meta`): câu nhắc mã rule hoặc tự bình luận (`violates`, `satisfies`, `meets all criteria`, `exceeds the minimum … requirement`, `as required`…) bị **mã nguồn xoá từng câu** (không bao giờ xoá câu vi phạm đã chốt), sau đó hồ sơ phải qua lại mọi chốt kiểm; các câu đã xoá được lưu vào nhãn để người rà xem. Người viết không được đưa mã rule ngay từ đầu.
+  3. **Tách vai model**: `GRANTLENS_PLANNER_MODEL` chốt câu vi phạm, `GRANTLENS_CASEGEN_MODEL` viết hồ sơ, `GRANTLENS_VERIFIER_MODEL` kiểm nhãn. Đợt đo này: `qwen3:4b` chốt vi phạm (đầu ra JSON bị ép schema), **`gemma3:4b` viết + kiểm** (khác họ model), `qwen3:8b` là hệ bị đo. Nếu verifier cùng model với hệ bị đo, case nào Qwen "không nhìn ra" sẽ bị chính Qwen loại khỏi đề, số đo tự đẹp lên. **Hai phiếu hỏi hai cách** ("có thoả không?" / "có vi phạm không?") — phiếu cũ lặp một câu y hệt ở temperature 0 thì luôn trùng nhau, không phải phiếu độc lập.
+  4. **Chốt "đây có phải hồ sơ không"** (`_doc_problems`, mã nguồn): đo thật ngày 14/09, `qwen3:4b` (bản 2507 chỉ-suy-nghĩ) bỏ qua `think=false` và trả nguyên đoạn độc thoại ("Okay, the user wants me to write…"). Câu vi phạm vẫn được chèn vào giữa, verifier vẫn xác nhận — **mọi chốt tự động cũ đều cho qua, chỉ bước người rà bắt được** (cả 3 case Cyber đợt đó bị huỷ). Nay chặn bằng mã nguồn: dấu hiệu độc thoại, độ dài bất thường, văn bản phải xoá quá 3 câu bình luận. Model viết văn bản tự do phải là model không có chế độ suy nghĩ.
+  5. **Cờ không tự loại case**: người rà phải `--confirm` (vi phạm có thật) hoặc `--dispute` (nhãn sai); còn cờ thì `--approve` bị từ chối (API trả 409). Sửa nhãn sau khi duyệt → mất duyệt.
+  6. **Đối chứng trên hồ sơ sạch**: rule mục tiêu còn được chấm trên hồ sơ hợp lệ để đo **báo động giả** — chỉ đo bắt vi phạm thì một hệ "từ chối tất cả" cũng đạt 100%.
+  7. **`GET /api/measurement-status`** + bảng trên màn Bộ tiêu chí: từng quỹ đang đứng ở bước nào của chuỗi; kết quả eval phải khớp **đúng bộ nhãn đang phê chuẩn** (dấu thời gian sinh + duyệt), không khớp thì hiện "phải chạy lại eval"; dưới 10 case vi phạm thì gắn "cỡ mẫu nhỏ — bằng chứng sơ bộ".
 
-  ```
-  [MỤC TIÊU] bắt đúng vi phạm cài sẵn : 3/3  = 100%
-  [MỤC TIÊU] FALSE-PASS               : 0/3            <- chỉ số quan trọng nhất
-  [THAM KHẢO] rule phụ có bằng chứng rõ: 31/31 (KHÔNG dùng làm thước đo)
-  [LOẠI]      2/36 lượt (6%) nhãn phụ yếu đã gắn cờ; 1 case bị dispute
-  ```
+### Đo theo từng quỹ (14/09/2026) — sổ rà nhãn
 
-  Số Wine cũ (41/45, FP 1/4) **đã lỗi thời và chưa bao giờ là chuẩn vàng** — khi đó nhãn `approved=false` và chứa 1 case sai nhãn (W06/related entity) + 2 nhãn phụ sai (W04 ở case doanh số đúng bằng ngưỡng nên không thể có phần vượt). Chỉ trích dẫn khối số ở trên.
+Mỗi quỹ đi riêng chuỗi `--gen --target-only` → rà từng hồ sơ (`--confirm` / `--confirm-control` / `--dispute` / `--flag-weak`) → `--approve` → `--eval`. Người rà: *Rà kỹ thuật (nhà cung cấp) — chưa thay cán bộ đơn vị*; lý do từng quyết định lưu trong `data/labels/generated-<quỹ>.json`.
+
+| Quỹ | Sinh (vi phạm + sạch) | Case vi phạm dùng được | Bị người rà loại | Đối chứng (hồ sơ sạch) |
+|---|---|---|---|---|
+| Cyber Security Skills R2 | 4 + 1 | C01, C07 | C06 *(mơ hồ: CEO đã ký xác nhận)*, C08 *(mơ hồ: không rõ ai là người nộp)* | C01, C06 |
+| Wine Tourism R8 | 4 + 1 | W03, W08 | W04 *(nhãn sai: logic "in excess of")*, W06 *(mơ hồ: chủ thể lệch)* | W06, W08 |
+| Boosting Female Founders R1 | 3 + 1 | F01, F05 | F06 *(nhãn sai: chi phí dự án ≠ tiền xin)* | F01, F06 |
+| On-farm Water | 3 + 1 *(O01 bị bỏ khi sinh)* | O06 | O05 *(mơ hồ: "mùa vụ bình thường")*, O07 *(nhãn sai: trần là tiền hoàn, không phải chi phí)* | O06 |
+| NSF 22-586 CAREER | 3 + 1 *(R04 bị bỏ khi sinh)* | R08 | R05 *(nhãn sai: người có tenure không phải PI)*, R07 *(nhãn sai + lộ đáp án)* | R05 |
+| Quỹ minh hoạ (demo) | 1 + 1 | A02 | — | A02 |
+
+**Phát hiện đáng nói với khách:** 18 case vi phạm do AI sinh, **đã qua mọi chốt kiểm tự động**, vẫn có **9 case (50%) bị người rà loại** — 5 nhãn sai, 4 đáp án mơ hồ. Đề thi tự sinh **không dùng làm chuẩn được nếu không có người đọc từng hồ sơ**; mọi con số bên dưới chỉ đo trên phần đã qua rà. Cỡ mẫu còn lại 1–2 case vi phạm mỗi quỹ ⇒ **bằng chứng sơ bộ theo quỹ, không phải tỷ lệ thống kê**.
+
+<!-- KET-QUA-DO -->
+**Kết quả đo** — hệ bị đo `qwen3:8b`, chỉ trên nhãn đã qua rà + phê chuẩn (nguồn: `GET /api/measurement-status`):
+
+| Quỹ | Bắt đúng vi phạm | False-pass | Đẩy về cán bộ (chưa rõ) | Hồ sơ sạch: đúng · báo động giả |
+|---|---|---|---|---|
+| NSF 22-586 CAREER (Mỹ) | 1/1 | 0/1 | 0 | 1/1 · 0/1 |
+| Wine Tourism R8 | 2/2 | 0/2 | 0 | 1/2 · 1/2 |
+| Cyber Security Skills R2 | 2/2 | 0/2 | 0 | 2/2 · 0/2 |
+| Boosting Female Founders R1 | 1/2 | 0/2 | 1 | 2/2 · 0/2 |
+| On-farm Water | 1/1 | 0/1 | 0 | 1/1 · 0/1 |
+| Quỹ minh hoạ (demo) | 1/1 | 0/1 | 0 | 1/1 · 0/1 |
+<!-- /KET-QUA-DO -->
+
+**Phát hiện từ phép đo (không làm đẹp số):**
+- **Tổng 6 quỹ:** bắt đúng **8/9** vi phạm cài sẵn · **false-pass 0/9** · 1 case đẩy về cán bộ · hồ sơ sạch đúng 8/9 · **báo động giả 1/9**.
+- **Guard chặn false-pass thật của AI** (Female Founders F05): hồ sơ ghi "registered income tax exempt entity" nhưng `qwen3:8b` chấm **đạt**; guard tay F05 bắt, hạ `unclear` + cảnh báo `[NGHI FALSE-PASS]` → cán bộ quyết. Đây là case "đẩy về cán bộ" duy nhất.
+- **Báo động giả** (Wine W06, hồ sơ sạch): hồ sơ ghi "operates a dedicated physical cellar door located on our property"; lượt phán quyết trả **`not_met`** với ghi chú "không có thông tin về việc sở hữu hoặc thuê" — thiếu thông tin lẽ ra là `unclear`. Prompt đã dặn đúng nhưng model không tuân, và **code chưa có chốt nhất quán** cho trường hợp này.
+- **Backlog — chưa sửa, vì sửa là đổi hành vi sản phẩm ⇒ phải đo lại cả 6 quỹ + eval NSF 24/24:** (1) chốt mã nguồn cho lượt phán quyết: `not_met` mà judge trả `supporting_fact = 0` hoặc coverage của lượt trích ≠ `direct` ⇒ hạ `unclear` và đẩy về cán bộ; (2) `core.assess_rule` đang ép `supporting_fact = 0` thành 1 (`or 1`), nên vẫn trích dữ kiện số 1 làm "bằng chứng" khi judge tự nói không có dữ kiện hỗ trợ — sửa cùng (1).
 
 **Ranh giới trung thực để nói với khách:** số false-pass chỉ có giá trị với **đúng quỹ đã đo bằng bộ test đã phê chuẩn nhãn**; quỹ mới chỉ được đảm bảo lớp compiler cơ bản, và các rule `needs-manual-guard` vẫn cần guard tay + cán bộ.
 
@@ -80,6 +113,11 @@ Dữ liệu tham chiếu công khai của Úc trong `data/external/` (xem README
 - **Chống "gõ đủ chữ cho qua cổng"** — kiểm bằng mã nguồn, không dùng LLM nên không có false positive ngữ nghĩa: lời chứng thực phải **chứa đoạn nguyên văn ≥ 5 từ liên tiếp có thật trong hồ sơ** (`verify.attestation_evidence`); và **không được dán trùng** lời chứng thực giữa các tiêu chí. Vùng `needs-manual-guard` **không cho mượn câu trích của AI** — phải tự dán.
 - **Đóng backlog guard tay**: viết guard cho `W04` (logic 2 lớp "in excess of" — tính `min(cellar, total − ngưỡng) ≤ 0`) và `C06` (nhánh "board **or** CEO or equivalent"). Backlog ưu tiên **cao = 0** trên cả 5 bộ tiêu chí; API `GET /api/guard-backlog` liệt kê công khai phần còn lại theo mức ưu tiên.
 - **Chuẩn hoá tiền tệ trước khi guard chạy** (lỗ hổng tự bắt được khi viết test hồi quy): guard chỉ đọc `$1,250,000`, hồ sơ ghi `1,250,000 AUD` / `AUD 1,250,000` / `A$1,250,000` / `... dollars` là lọt hết. Nay `guards.normalise()` quy mọi cách viết về một dạng, nên **mọi guard tay lẫn compiler cùng hưởng** thay vì phải sửa từng regex. Đã kiểm không đụng số thường (năm 2019 giữ nguyên) và không làm đổi bộ test Wine — số eval bên dưới vẫn còn giá trị.
+- **Guard loại trừ (compiler) — sửa 3 lỗi lộ ra khi sinh bộ test cho Cyber Skills** (đối chiếu trên 18 hồ sơ mẫu × mọi rule: 23 lượt guard bắn trước = 23 sau, không thêm/mất/đổi):
+  1. *Báo động giả*: hồ sơ hợp lệ ghi "is **neither** an individual **nor** an unincorporated association" bị gắn cờ vì compiler chỉ hiểu phủ định "not". Nay phủ định phải nằm **sát cụm từ** (trước hoặc sau, cùng mệnh đề) và hiểu neither/nor; ngược lại, câu "is an unincorporated association and has no board" không còn được tha chỉ vì trong câu có chữ "no".
+  2. *Từ loại trừ một chữ* ("individual") chỉ tính khi hồ sơ **khai tư cách** ("is/as an individual", "individual applicant") — không bắt nhầm "individual mentoring".
+  3. *Báo cáo độ phủ nói quá*: mục "an employer of 100 or more employees that has not complied with the Workplace Gender Equality Act" trước đây bị compiler **lặng lẽ bỏ qua** trong khi C08 vẫn hiện "có lưới đỡ code". Nay compiler ghi rõ khoảng trống (`loại trừ có điều kiện` / `loại trừ phức hợp`), và đã viết **guard tay C08**: ≥ 100 nhân viên **và** chưa tuân thủ WGEA → vi phạm; chưa tuân thủ nhưng không rõ số nhân viên → gắn cờ cho cán bộ. C08 và F05 chuyển sang "còn khoảng trống" trong báo cáo độ phủ — trung thực hơn, không phải kém đi.
+- **Compiler trần tài trợ đem nhầm chi phí dự án ra so — lỗi sản phẩm lộ ra khi rà bộ test Female Founders**: ràng buộc trần (`max`) trước đây so *mọi* con số trong câu có đủ 2 từ khoá của rule, nên câu hồ sơ **hợp lệ** "xin $450,000, bằng 50% chi phí dự án ước tính $900,000" bị đem $900,000 so với trần tài trợ $480,000 (câu có "estimated" và "grant"). Ở F06 có guard tay nên chỉ hạ "chưa rõ"; nhưng **với quỹ mới chưa có guard tay, hồ sơ hợp lệ bị ghi đè thành "không đạt"** (đã mô phỏng xác nhận). Nay `max` chỉ so con số có ≥ 2 từ khoá **đứng sát trước nó** (60 ký tự, không vượt qua con số tiền trước đó). Hồi quy: 4 câu hợp lệ không còn bị bắt (kể cả mô phỏng quỹ mới), 2 câu vi phạm thật vẫn bị bắt, 18 hồ sơ mẫu 23 lượt bắn trước = 23 sau.
 - **Hai lỗi tự phát hiện khi rà và đã sửa**: (1) guard W04 bản đầu tính sai chiều logic (dùng `total − cellar` thay vì phần vượt ngưỡng) → sửa đúng câu chữ rule; (2) compiler báo oan trần grant $100k khi câu chỉ tình cờ chứa một từ khóa → ràng buộc `max` nay đòi **≥ 2 từ khóa** trong câu mới kết luận (`min` giữ 1 vì vốn đã an toàn).
 - **Bộ test Wine đã qua pipeline đầy đủ**: rà từng case → `dispute` 1 case sai nhãn (W06/related entity) → `flag_weak` 2 nhãn phụ sai (W04 ở case W03 và W09, vì doanh số đúng bằng ngưỡng nên không thể có phần vượt) → `approve` → `--eval` lấy **metric MỤC TIÊU**.
 

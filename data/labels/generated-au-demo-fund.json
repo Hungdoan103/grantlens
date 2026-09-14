@@ -1,0 +1,83 @@
+{
+  "ruleset": "au-demo-fund",
+  "version": "2026.1",
+  "label_scope": "target",
+  "generator_model": "gemma3:4b",
+  "verifier_model": "gemma3:4b",
+  "planner_model": "qwen3:4b",
+  "generated_by": "gemma3:4b",
+  "targets": [
+    "A02"
+  ],
+  "generated_at": "2026-09-14T16:02:27",
+  "approved": true,
+  "approved_by": "Rà kỹ thuật (nhà cung cấp) — chưa thay cán bộ đơn vị",
+  "approved_at": "2026-09-14T16:03:17",
+  "n_needs_review": 0,
+  "note": "Vi phạm do mã nguồn chốt trước (câu dữ kiện được guard/verifier xác nhận, văn bản phải chứa nguyên văn); chặn lộ đáp án bằng mã nguồn; verifier dùng model tách khỏi hệ bị đo. CHƯA PHÊ CHUẨN — số đo từ bộ này là TẠM (provisional). Rà văn bản, xử lý hết cờ rồi --approve.",
+  "cases": [
+    {
+      "id": "GEN-au-demo-fund-00-clean",
+      "file": "generated/au-demo-fund/GEN-au-demo-fund-00-clean.txt",
+      "target": null,
+      "labels": {
+        "A01": "met",
+        "A02": "met",
+        "A03": "met"
+      },
+      "violation_fact": null,
+      "fact_confirmed_by": null,
+      "fact_placement": null,
+      "removed_meta_sentences": [],
+      "rest_without_fact_votes": null,
+      "guard_agree": null,
+      "target_label_clear": null,
+      "weak_labels": [],
+      "verifier_disagreement": [],
+      "verifier": {
+        "A02": [
+          "yes",
+          "no"
+        ]
+      },
+      "status": "approved",
+      "control_rules": [
+        "A02"
+      ],
+      "control_confirmed_by_reviewer": {
+        "A02": "Người rà đọc văn bản: 'project budget of $275,000 for the grant period' ≥ $200,000 — thoả rõ A02; verifier gemma dao động yes/no. Câu lặp bọc [[...]] là rác định dạng, không gắn tiêu chí nào"
+      }
+    },
+    {
+      "id": "GEN-au-demo-fund-01-A02",
+      "file": "generated/au-demo-fund/GEN-au-demo-fund-01-A02.txt",
+      "target": "A02",
+      "labels": {
+        "A01": "met",
+        "A02": "not_met",
+        "A03": "met"
+      },
+      "violation_fact": "The project budget for the AU Demo Fund application totals $199,999.",
+      "fact_confirmed_by": "code",
+      "fact_placement": "appended",
+      "removed_meta_sentences": [],
+      "rest_without_fact_votes": [
+        "unclear",
+        "unclear"
+      ],
+      "guard_agree": true,
+      "target_label_clear": true,
+      "weak_labels": [],
+      "verifier_disagreement": [],
+      "verifier": {
+        "A02": [
+          "no",
+          "no"
+        ]
+      },
+      "status": "approved",
+      "target_confirmed_by_reviewer": "Vi phạm rõ bằng số: ngân sách $199,999 < $200,000 (guard mã nguồn xác nhận). Câu 'remaining within the specified financial parameters' khẳng định NGƯỢC dữ kiện — là bẫy gây nhiễu làm case khó hơn, không lộ đáp án"
+    }
+  ],
+  "skipped": []
+}

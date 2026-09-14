@@ -46,8 +46,8 @@ def health() -> dict:
 
 
 # ---------------- Ollama ----------------
-def _ollama(messages, fmt=None, max_tokens=700):
-    payload = {"model": MODEL, "messages": messages, "stream": False, "think": False,
+def _ollama(messages, fmt=None, max_tokens=700, model=None):
+    payload = {"model": model or MODEL, "messages": messages, "stream": False, "think": False,
                "options": {"temperature": 0, "num_ctx": NUM_CTX, "num_predict": max_tokens}}
     if fmt is not None:
         payload["format"] = fmt
@@ -70,8 +70,8 @@ def _ollama(messages, fmt=None, max_tokens=700):
 
 
 # ---------------- OpenAI-compatible ----------------
-def _openai(messages, fmt=None, max_tokens=700):
-    payload = {"model": MODEL, "messages": messages, "temperature": 0, "max_tokens": max_tokens}
+def _openai(messages, fmt=None, max_tokens=700, model=None):
+    payload = {"model": model or MODEL, "messages": messages, "temperature": 0, "max_tokens": max_tokens}
     if fmt is not None:
         payload["response_format"] = {"type": "json_schema", "json_schema": {"name": "out", "schema": fmt, "strict": False}}
     headers = {"Authorization": f"Bearer {OPENAI_API_KEY}"} if OPENAI_API_KEY else {}
@@ -101,13 +101,17 @@ def _mock_labels():
     return _MOCK_LABELS
 
 
-def _mock(messages, fmt=None, max_tokens=700):
+def _mock(messages, fmt=None, max_tokens=700, model=None):
     """Giả lập: trích câu đầu mỗi chunk làm 'fact'; verdict lấy từ nhãn (nếu có) — CHỈ để kiểm thử luồng."""
     user = messages[-1]["content"]
     if fmt is None:
         return ("[MOCK LETTER — no model called]\nDecision: see officer-approved verdicts.\n"
                 "What you can do: send the missing documents.\nHow to appeal: write to the review board within 30 days.")
     props = fmt.get("properties", {})
+    if "answer" in props:  # casegen verifier
+        return json.dumps({"answer": "unclear", "evidence": "[MOCK]"})
+    if "fact" in props:  # casegen: chốt câu vi phạm
+        return json.dumps({"fact": "Riverbend Test Pty Ltd is an unincorporated association with no ABN."})
     if "facts" in props:  # extract step
         facts = []
         for m in re.finditer(r"\[chunk (\d+)\] (.+)", user):
@@ -131,14 +135,15 @@ def _mock(messages, fmt=None, max_tokens=700):
 _IMPL = {"ollama": _ollama, "openai": _openai, "mock": _mock}
 
 
-def _chat(messages, fmt=None, max_tokens=700):
+def _chat(messages, fmt=None, max_tokens=700, model=None):
     if BACKEND not in _IMPL:
         raise LLMError(f"GRANTLENS_LLM={BACKEND} không hợp lệ (ollama|openai|mock)")
-    return _IMPL[BACKEND](messages, fmt, max_tokens)
+    return _IMPL[BACKEND](messages, fmt, max_tokens, model)
 
 
-def chat_json(system: str, user: str, schema: dict, max_tokens=600) -> dict:
-    txt = _chat([{"role": "system", "content": system}, {"role": "user", "content": user}], fmt=schema, max_tokens=max_tokens)
+def chat_json(system: str, user: str, schema: dict, max_tokens=600, model=None) -> dict:
+    """model=None -> model hệ thống; truyền model khác khi cần tách vai (vd sinh/kiểm nhãn test)."""
+    txt = _chat([{"role": "system", "content": system}, {"role": "user", "content": user}], fmt=schema, max_tokens=max_tokens, model=model)
     try:
         return json.loads(txt)
     except json.JSONDecodeError:
@@ -149,5 +154,5 @@ def chat_json(system: str, user: str, schema: dict, max_tokens=600) -> dict:
             raise LLMError(f"Model trả về JSON không hợp lệ: {txt[:200]}")
 
 
-def chat_text(system: str, user: str, max_tokens=700) -> str:
-    return _chat([{"role": "system", "content": system}, {"role": "user", "content": user}], max_tokens=max_tokens)
+def chat_text(system: str, user: str, max_tokens=700, model=None) -> str:
+    return _chat([{"role": "system", "content": system}, {"role": "user", "content": user}], max_tokens=max_tokens, model=model)

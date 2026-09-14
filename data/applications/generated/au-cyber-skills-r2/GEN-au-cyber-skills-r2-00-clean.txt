@@ -1,0 +1,18 @@
+Applicant, Entity and Registration Details
+
+Applicant Name: Phoenix Cyber Solutions
+Entity Type: Incorporated Not for Profit Organisation
+ABN: 63 197 123 032
+GST Registration Number: GST-123456789
+
+Project Partner Details
+
+Phoenix Cyber Solutions is submitting this application jointly with Secure Futures Training and Innovation, a leading Australian cybersecurity training provider. Secure Futures Training and Innovation is registered with ABN 12 345 67 89 012 and holds a valid GST registration. Our partnership includes a letter of support from Secure Futures Training and Innovation confirming their commitment to the project's objectives.
+
+Project Support and Financial Capacity
+
+We have confirmed that our Board of Directors fully supports this project. Furthermore, we can certify that we possess the capacity to successfully complete the project and manage the allocated funds, covering all expenditure not directly funded by this grant.
+
+Project Scope and Activities
+
+The proposed project will deliver a bespoke cybersecurity skills training program for small to medium-sized businesses across Victoria.

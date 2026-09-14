@@ -1,0 +1,9 @@
+Applicant, Entity and Registration Details
+
+Applicant Name: NovaTech Research Institute
+Entity Type: Non-profit, non-academic organization
+Registration Number: 12345678-9
+
+Project Description Summary
+
+The NovaTech Research Institute submitted this proposal for the NSF 22-586 CAREER award to support our innovative work in advanced materials science. We are a US-based independent research lab, located in Boston, Massachusetts, and fully accredited. Our Principal Investigator, Dr. Ben Carter, holds a doctoral degree in Materials Science and Engineering, supported by NSF. He currently holds a 60% tenure-track assistant professor position within our organization. Dr. Elena Rodriguez is currently a tenured professor at the University of California, Berkeley. Dr. Carter has not previously received a CAREER award and has only participated in one prior NSF competition. The proposed project, titled “Dynamic Alloy Design,” aims to develop novel materials with tailored properties for applications in renewable energy. The project description, totaling 12 pages, comprehensively outlines the research plan, incorporating significant educational activities designed to engage undergraduate students in hands-on research. The total anticipated award amount, including indirect costs, is $400,000 over five years, aligning with the standard expectation for this category. We have not included any voluntary committed cost sharing.

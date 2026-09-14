@@ -1,0 +1,126 @@
+{
+  "ruleset": "au-wine-tourism-r8",
+  "version": "R8",
+  "generated_by": "qwen3:8b",
+  "generated_at": "2026-09-07T15:19:07",
+  "approved": false,
+  "note": "Nhãn gán by-construction; guard đối soát + verifier độc lập. CHƯA PHÊ CHUẨN — số đo là TẠM. Case W06 đã bị LOẠI: nhãn sai do rule cho phép related entity (bằng chứng cơ chế dispute hoạt động).",
+  "cases": [
+    {
+      "id": "GEN-au-wine-tourism-r8-00-clean",
+      "file": "withdrawn/au-wine-tourism-r8-contaminated/GEN-au-wine-tourism-r8-00-clean.txt",
+      "target": null,
+      "labels": {
+        "W01": "met",
+        "W02": "met",
+        "W03": "met",
+        "W04": "met",
+        "W05": "met",
+        "W06": "met",
+        "W07": "met",
+        "W08": "met",
+        "W09": "met"
+      },
+      "guard_agree": null,
+      "weak_labels": [],
+      "verifier": {},
+      "status": "approved"
+    },
+    {
+      "id": "GEN-au-wine-tourism-r8-01-W03",
+      "file": "withdrawn/au-wine-tourism-r8-contaminated/GEN-au-wine-tourism-r8-01-W03.txt",
+      "target": "W03",
+      "labels": {
+        "W01": "met",
+        "W02": "met",
+        "W03": "not_met",
+        "W04": "met",
+        "W05": "met",
+        "W06": "met",
+        "W07": "met",
+        "W08": "met",
+        "W09": "met"
+      },
+      "guard_agree": true,
+      "weak_labels": [
+        "W04"
+      ],
+      "verifier": {},
+      "status": "approved",
+      "weak_reasons": {
+        "W04": "Rà tay: case này doanh số dưới ngưỡng (mục tiêu W03) nên W04 cũng không thể met — nhãn phụ không đáng tin."
+      }
+    },
+    {
+      "id": "GEN-au-wine-tourism-r8-02-W06",
+      "file": "withdrawn/au-wine-tourism-r8-contaminated/GEN-au-wine-tourism-r8-02-W06.txt",
+      "target": "W06",
+      "labels": {
+        "W01": "met",
+        "W02": "met",
+        "W03": "met",
+        "W04": "met",
+        "W05": "met",
+        "W06": "not_met",
+        "W07": "met",
+        "W08": "met",
+        "W09": "met"
+      },
+      "guard_agree": false,
+      "weak_labels": [],
+      "verifier": {},
+      "status": "disputed",
+      "dispute_reason": "Nhãn sai: case nêu related entity sở hữu cellar door — rule W06 cho phép 'and/or their related entity/ies', nên đúng ra là ĐẠT. AI chấm đúng, đề thi sai."
+    },
+    {
+      "id": "GEN-au-wine-tourism-r8-03-W08",
+      "file": "withdrawn/au-wine-tourism-r8-contaminated/GEN-au-wine-tourism-r8-03-W08.txt",
+      "target": "W08",
+      "labels": {
+        "W01": "met",
+        "W02": "met",
+        "W03": "met",
+        "W04": "met",
+        "W05": "met",
+        "W06": "met",
+        "W07": "met",
+        "W08": "not_met",
+        "W09": "met"
+      },
+      "guard_agree": false,
+      "weak_labels": [],
+      "verifier": {},
+      "status": "approved"
+    },
+    {
+      "id": "GEN-au-wine-tourism-r8-04-W09",
+      "file": "withdrawn/au-wine-tourism-r8-contaminated/GEN-au-wine-tourism-r8-04-W09.txt",
+      "target": "W09",
+      "labels": {
+        "W01": "met",
+        "W02": "met",
+        "W03": "met",
+        "W04": "met",
+        "W05": "met",
+        "W06": "met",
+        "W07": "met",
+        "W08": "met",
+        "W09": "not_met"
+      },
+      "guard_agree": true,
+      "weak_labels": [
+        "W04"
+      ],
+      "verifier": {},
+      "status": "approved",
+      "weak_reasons": {
+        "W04": "Rà tay: hồ sơ ghi rebatable wine sales = đúng ngưỡng $1,207,000 nên không còn phần vượt; nhãn W04=met sai theo câu chữ rule."
+      }
+    }
+  ],
+  "skipped": [],
+  "approved_by": "Rà kỹ thuật (nhà cung cấp) — chưa thay cán bộ đơn vị",
+  "approved_at": "2026-09-10T01:49:35",
+  "withdrawn": true,
+  "withdrawn_reason": "THU HỒI 12/09/2026: văn bản thi tự sinh có câu tự thú lộ đáp án (case 03-W08 ghi thẳng 'violating W08'; nhiều case nhắc mã rule W01..W09). Hệ thẩm định có thể chấm đúng vì ĐỌC được đáp án chứ không phải vì suy luận -> metric [MỤC TIÊU] 3/3 đo trên bộ này KHÔNG dùng được nữa. Giữ lại để truy vết. Bộ thay thế sinh bằng casegen có bộ lọc chống lộ đề."
+}

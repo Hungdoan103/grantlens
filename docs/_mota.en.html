@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GrantLens — System Description</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Spectral:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+:root{--paper:#FFFFFF;--ink:#1C2826;--muted:#5A6672;--line:#C9CFC8;--green:#175C4C;--green-soft:#DFEAE4;--amber:#9A6B1F;--amber-soft:#F2E8D4;--red:#A33B2E;--blue:#2B5A8C;--blue-soft:#DCE6F1;--band:#EEF3EF}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',sans-serif;font-size:11.5pt;line-height:1.55;color:var(--ink);background:#fff}
+.page{max-width:186mm;margin:0 auto}
+header{border-bottom:3px double var(--ink);padding-bottom:14px;margin-bottom:22px;display:flex;justify-content:space-between;align-items:flex-end}
+.brand{font-family:'Spectral',serif;font-size:26pt;font-weight:700;letter-spacing:-.5px}
+.brand em{font-style:normal;color:var(--green)}
+.sub{color:var(--muted);margin-top:4px;font-size:10.5pt;max-width:60ch}
+.meta{font-family:'IBM Plex Mono',monospace;font-size:8pt;color:var(--muted);text-align:right;line-height:1.7}
+h1{font-family:'Spectral',serif;font-size:15pt;font-weight:600;margin:22px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--line);break-after:avoid}
+h2{font-family:'Spectral',serif;font-size:12pt;font-weight:600;margin:14px 0 6px;break-after:avoid}
+p{margin:0 0 8px}
+b{font-weight:600}
+.step{display:grid;grid-template-columns:34px 1fr;gap:10px;margin-bottom:10px;break-inside:avoid}
+.n{width:30px;height:30px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:10pt;font-weight:600;margin-top:2px}
+.n.alt{background:var(--blue)}
+.step h2{margin:2px 0 4px}
+.tag{font-family:'IBM Plex Mono',monospace;font-size:7.5pt;color:var(--green);border:1px solid var(--green);border-radius:8px;padding:1px 7px;margin-left:6px;vertical-align:2px;white-space:nowrap}
+.tag.new{color:#fff;background:var(--green)}
+table{width:100%;border-collapse:collapse;font-size:10pt;margin:8px 0 12px;break-inside:avoid}
+th,td{padding:6px 9px;border:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--band);font-weight:600;font-size:9pt;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.note{background:var(--band);border-left:3px solid var(--green);padding:8px 12px;border-radius:0 4px 4px 0;margin:10px 0;font-size:10.5pt;break-inside:avoid}
+.warnbox{background:var(--amber-soft);border-left:3px solid var(--amber);padding:8px 12px;border-radius:0 4px 4px 0;margin:10px 0;font-size:10.5pt;break-inside:avoid}
+.chain{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 10px;font-size:9.5pt}
+.chain span{border:1px solid var(--green);border-radius:6px;padding:3px 8px;background:var(--green-soft)}
+.chain i{font-style:normal;color:var(--muted)}
+ul{margin:0 0 8px 18px}
+li{margin-bottom:3px}
+footer{margin-top:26px;border-top:1px solid var(--line);padding-top:8px;font-size:8.5pt;color:var(--muted)}
+@media print{.page{max-width:100%}}
+</style>
+</head>
+<body>
+<div class="page">
+<header>
+  <div>
+    <div class="brand">Grant<em>Lens</em></div>
+    <div class="sub">System description — an eligibility-assessment assistant for grant applications.<br>AI provides the evidence; people make the decision.</div>
+  </div>
+  <div class="meta">Version 2.8 · September 2026<br>Updated in response to the client's technical review<br>AI core: Qwen3-8B running locally (Ollama)</div>
+</header>
+
+<h1>1. Positioning and principles</h1>
+<p>GrantLens helps grant assessors check each application against the published eligibility criteria <b>consistently, with verbatim two-way citations, and in a way that can be appealed</b>. The AI does the time-consuming work (reading, cross-checking, citing, drafting); the officer does the work that matters (assessing, deciding, taking responsibility). All processing — including the language model — runs on the organisation's own server: <b>applications never leave the premises and there are no API fees</b>. The demo ships with the 12 verbatim criteria of NSF 22-586 CAREER, 15 labelled sample applications, four real Australian program rule sets and one demonstration fund.</p>
+
+<h1>2. The journey of one application</h1>
+
+<div class="step"><div class="n">0</div><div>
+<h2>Intake — layout and table analysis <span class="tag new">NEW, requested by client</span></h2>
+<p>Accepts .txt / .docx / .pdf or pasted text. PDF/DOCX files are layout-analysed <b>before retrieval (RAG)</b>: table regions (budgets, staffing…) are detected and kept row-and-column intact as a single block that can never be split when the text is chunked, so financial figures are not scrambled. Scanned pages without a text layer are detected and flagged "needs OCR" (OCR runs automatically if Tesseract is installed on the server).</p>
+</div></div>
+
+<div class="step"><div class="n">0b</div><div>
+<h2>Denied-party screening (automatic on intake)</h2>
+<p>Applicant and organisation names are fuzzy-matched (tolerant of misspellings, reordered names and aliases) against the ASIC banned and disqualified persons register (7,212 people, filtered by effective date), the DFAT consolidated sanctions list (3,906 entities, aliases merged), and the ABN business register for existence and status (~20.5 million records, indexed locally). Hits are shown with source, match score and effective status — <b>they are evidence for the officer to review; the system never rejects an application on its own</b>.</p>
+</div></div>
+
+<div class="step"><div class="n alt">1</div><div>
+<h2>AI assessment — a four-layer pipeline per criterion</h2>
+<ul>
+<li><b>Layer A · Retrieval (code):</b> splits the application into passages (keeping character offsets) and retrieves the 3 passages most relevant to the criterion.</li>
+<li><b>Layer B · LLM pass 1 — fact extraction:</b> lists neutral facts only (amounts, percentages, page counts, directorate…) with passage IDs and verbatim key phrases. No judgement.</li>
+<li><b>Layer C · LLM pass 2 — judgement:</b> its only input is the criterion plus the fact list — <b>it never sees the original text</b>, so an applicant's grammar or fluency cannot sway the outcome (writing-style bias control). Returns Met / Not met / Unclear / Not addressed plus a confidence level. <span class="tag new">NEW</span> the prompt is enriched with past cases where officers corrected the AI on that same criterion.</li>
+<li><b>Layer D · Citation (code):</b> the quote from the application is cut verbatim by code using the key phrase and string-matched back against the source (100% match expected) — the model is never allowed to write a quote itself.</li>
+</ul>
+<p>Results stream live, criterion by criterion, and are all labelled <b>DRAFT</b>.</p>
+</div></div>
+
+<div class="step"><div class="n">2</div><div>
+<h2>Officer allocation — conflict-of-interest screening <span class="tag new">NEW, requested by client</span></h2>
+<p>Before an officer takes an application, the server compares the officer against the application using the officer register: <b>same organisation as the applicant → hard block</b> (no override; the application must be reassigned); same name as the applicant, officer named in the application, or officer with no declared affiliation → warning, and continuing requires a written reason. Everything is written to the audit log.</p>
+</div></div>
+
+<div class="step"><div class="n">3</div><div>
+<h2>Assessment — no rubber-stamping</h2>
+<p>The review opens with a <b>blind spot-check</b>: the system picks one criterion at random and hides the AI's suggestion until the officer reaches their own conclusion (measuring the officer's independence from the machine). The officer then opens each criterion — seeing the extracted facts, two-way citations (one click highlights the exact sentence in the source), retrieval score and confidence — and <b>confirms criteria one by one; there is no "approve all" button</b>. Overriding the AI, or deciding a criterion the AI marked Unclear / Not addressed, requires a written reason. Confirming Met on a criterion that code cannot check requires a verbatim quote from the application, verified mechanically by the server.</p>
+</div></div>
+
+<div class="step"><div class="n">4</div><div>
+<h2>Sign-off — triggers the feedback loop <span class="tag new">NEW, requested by client</span></h2>
+<p>Sign-off is only possible once every criterion is confirmed; signing faster than 15 seconds per criterion triggers a warning, is logged, and needs a second confirmation. At sign-off, every criterion where <b>the officer overrode the AI</b> (or had to decide for it) is automatically added to a <b>ground-truth store</b> with the facts, the correct outcome and the reason. The store is (1) used immediately as correction examples for later applications, and (2) exportable in a standard format for periodic fine-tuning — the system aligns more closely with the organisation's standards the more it is used. Applications with a failed or unclear criterion also require a <b>second-level countersignature by a manager</b> (not the assessing officer, COI-checked) before any letter is issued.</p>
+</div></div>
+
+<div class="step"><div class="n">5</div><div>
+<h2>Outcome letter</h2>
+<p>The AI drafts a plain-English letter (CEFR B1) from the signed-off outcomes: it names each unmet criterion with verbatim quotes from both the guidelines and the application, explains how to supplement the application and how to appeal within 30 days, and follows the organisation's own letter template. The letter is a DRAFT — officers can edit it (the log records "edited"), and it only becomes official once approved, then printed or saved as PDF. Re-assessing a signed-off application requires <b>Reopen with a reason</b>.</p>
+</div></div>
+
+<div class="note"><b>Throughout — hash-chained audit log:</b> every action (what the AI proposed, who changed what and why, spot-check results, COI warnings, who signed and when) is recorded together with the SHA-256 hash of the previous event. Editing or deleting any entry breaks the chain and is detected with one click — a defensible record for audits and appeals.</div>
+
+<h1>3. Interface (single-page web app, 6 areas)</h1>
+<table>
+<tr><th>Area</th><th>Contents</th></tr>
+<tr><td><b>Dashboard</b></td><td>Queue and KPIs: rate of officer overrides, verbatim citation match, spot-check agreement with the AI, audit-chain integrity, feedback samples collected.</td></tr>
+<tr><td><b>Applications</b></td><td>Cases by status; the assessment screen shows the criteria matrix, the source application (citations highlighted) and the denied-party screening panel.</td></tr>
+<tr><td><b>Rule sets</b></td><td>Verbatim criteria per grant program with version and approval status, code-guard coverage, and the <b>per-fund measurement status</b> (see section 8).</td></tr>
+<tr><td><b>Bias Lab</b></td><td>Compares two applications with the same facts written in different styles — a fair system must return identical outcomes on every criterion.</td></tr>
+<tr><td><b>Audit log</b></td><td>All events with the hash chain, filterable by application, one-click integrity check.</td></tr>
+<tr><td><b>Data intake</b></td><td>Upload new applications; manual denied-party / ABN look-ups; extract criteria from new grant guidelines (preview, non-verbatim sentences flagged).</td></tr>
+</table>
+
+<h1>4. Technical architecture</h1>
+<table>
+<tr><th>Component</th><th>Technology / role</th></tr>
+<tr><td>Interface</td><td>Self-contained single-page web app (HTML/JS) served by the backend, with live AI progress updates.</td></tr>
+<tr><td>Backend</td><td>Python FastAPI: a 7-state case workflow; <b>every trust rule (spot-check, mandatory reasons, COI blocks, fast-signing block, letters only after sign-off, verbatim attestation) is enforced on the server</b> — the interface cannot bypass them.</td></tr>
+<tr><td>AI core</td><td>Qwen3-8B running locally via Ollama (JSON constrained by schema, temperature 0). Switching model or runtime (Qwen 14B, vLLM, any OpenAI-compatible service) is an environment variable, with no change to business logic. A GPU with ≥ 8 GB VRAM gives roughly 1–2 minutes per application.</td></tr>
+<tr><td>Document extraction</td><td>pdfplumber layout analysis for PDF; DOCX read in true paragraph/table order; fallback OCR for scanned pages.</td></tr>
+<tr><td>Screening</td><td>Accent-insensitive fuzzy matching; SQLite FTS5 index over 20.5 million ABN records (built once in ~17 minutes, streamed without unpacking the 12 GB archive). Lists can be replaced or extended for the organisation's market (internal, OFAC, EU, UN…).</td></tr>
+<tr><td>Storage</td><td>SQLite (demo / small MVP) → PostgreSQL for larger deployments; SHA-256 hash-chained audit log; JSONL feedback store.</td></tr>
+<tr><td>Evaluation</td><td>Automated scoring on 15 labelled applications (accuracy, citation match — 100% expected, pairwise bias score — 100% expected, false passes — 0 expected), plus a labelled test set generated separately for each grant program (section 8); several AI cores can be compared on the same metrics.</td></tr>
+</table>
+
+<h1>5. Mechanisms added after the client review (September 2026)</h1>
+<table>
+<tr><th>Request</th><th>Mechanism implemented</th><th>Tested</th></tr>
+<tr><td>Financial tables in PDFs break during retrieval</td><td>Layout analysis before retrieval; each table kept intact as one block; scanned pages flagged for OCR</td><td>5-year budget PDF: table lands in exactly one block, figures intact</td></tr>
+<tr><td>Feedback loop to fine-tune the model</td><td>Sign-off → "officer overrode AI" samples go to the ground-truth store; injected as few-shot examples immediately and exportable for fine-tuning</td><td>Override one criterion and sign: sample stored, next application's prompt contains the correction</td></tr>
+<tr><td>Keyword screening before allocation (applicant from the assessor's own organisation)</td><td>Officer × application check: same organisation is a hard block; same name / undeclared affiliation warns and requires a reason</td><td>An officer from the applicant's university is refused by the server</td></tr>
+<tr><td>(Added) Denied-party screening</td><td>Fuzzy matching against ASIC + DFAT plus ABN verification, run automatically on intake</td><td>A misspelled sanctioned name is still caught (91%); clean names raise no false hits</td></tr>
+<tr><td>Verification / anti-cheating: form declares $500k but the attachment says $1.5m, fake dates</td><td><b>Cross-document checking</b>: multi-document applications (form + financial report + CV…); code extracts and compares like-for-like figures (budget, revenue, degree year, page count) and implausible dates; mismatches are flagged with context quoted from each source</td><td>Test application declaring $480k with a report stating $1,520,000: all 3 planted inconsistencies caught; clean application raises no false flags</td></tr>
+<tr><td>Standard outputs (rejection / feedback templates)</td><td>Outcome letters follow the <b>organisation's own letter template</b> (replace one template file to change the format of every letter)</td><td>Template framework in place; awaiting the organisation's real template</td></tr>
+</table>
+
+<h1>6. Rounds 2–3 of the review (September 2026)</h1>
+<table>
+<tr><th>Item</th><th>Mechanism</th><th>Verification</th></tr>
+<tr><td>Multiple grant opportunities + versioning</td><td>One versioned rule set per program; each application locks a snapshot of its rule set at first assessment and the log records "LOCKED"; new rule sets are extracted from guidelines in the UI (verbatim extraction → officer review → save as draft → manager approval)</td><td>End-to-end: changing the active rule set mid-round does not affect locked cases</td></tr>
+<tr><td>Australian program library</td><td>Four rule sets quoted verbatim from client-supplied guidelines: Wine Tourism R8, Cyber Security Skills R2, Boosting Female Founders R1, On-farm Water — covering all four program types in the client's classification</td><td>Two trap applications built from the client's analysis: cellar-door/wholesale and asset/rebate caps caught correctly</td></tr>
+<tr><td>Code guards against false passes</td><td>Code re-checks quantitative criteria after the AI; a "Met" that contradicts the figures is overridden to "Not met"; an officer rejecting the warning must give a reason</td><td>Real Qwen run: false passes 1/6 → <b>0/6</b>, accuracy 24/24 on applications containing every trap</td></tr>
+<tr><td>Manager countersignature</td><td>Rejected/unclear applications: letters are blocked until a manager (not the assessor, COI-checked) countersigns</td><td>End-to-end: self-countersigning blocked (400), non-manager blocked (403)</td></tr>
+<tr><td>Supplement rounds + SLA</td><td>"Awaiting supplement" state: checklist + deadline, multiple counted rounds; SLA per state, overdue shown in red</td><td>End-to-end: supplement round #1 completed and re-assessed automatically</td></tr>
+</table>
+
+<h1>7. Limitations, stated openly</h1>
+<p>This section exists so that <b>nobody misreads what the system guarantees</b>, as requested in the organisation's review.</p>
+<table>
+<tr><th>Question</th><th>Straight answer</th><th>Mechanism in the system</th></tr>
+<tr><td>Do code guards protect every criterion of every program?</td><td><b>No.</b> Only criteria code can express (money / percentage thresholds, prohibited items, exclusion lists). Derived logic, alternative branches, conditional thresholds and conditional exclusions (e.g. "100 or more employees <b>and</b> not compliant with the Workplace Gender Equality Act") cannot be expressed by the compiler.</td><td>A <b>3-level coverage report</b> on every rule set: code-guarded / <b>needs a hand-written guard</b> / LLM + officer only. Each gap is listed with its reason, never silently skipped, and closed with hand-written guards where it matters.</td></tr>
+<tr><td>Is a newly loaded program safe straight away?</td><td><b>Only at the basic level.</b> The system compiles constraints from the verbatim criteria, but the "needs a hand-written guard" part still relies on the model and the officer.</td><td>Rule-set approval checks minimum guard coverage; below the threshold a manager must explicitly accept the risk with a reason, recorded permanently.</td></tr>
+<tr><td>Are there measurements for every program, or just one?</td><td><b>Each program must earn its own figures — no borrowing another program's numbers.</b> The Wine Tourism figure published earlier (3/3 caught, 0/3 false passes) <b>has been withdrawn</b>.</td><td>When we extended measurement to the other programs we found that Wine's generated test documents "leaked the answer" (e.g. a test application stating "violating W08"), so that figure is no longer valid. Test-set generation has been rebuilt (section 8) and all six rule sets have been re-measured under the new process — per-program results are in section 8; the Rule sets screen shows each program's measurement status and only publishes figures for programs that have completed the full chain.</td></tr>
+<tr><td>Which program does "false passes = 0" apply to?</td><td><b>Only the program measured, using a test set whose labels have been approved.</b> It does not carry over to other programs.</td><td>AI-generated test sets start <i>unapproved</i>; any result on them is marked <b>provisional</b>. A result must also match the exact label set currently approved — otherwise the system shows "re-measurement required".</td></tr>
+<tr><td>What about criteria without a code safety net? Can an officer just click through on the AI's word?</td><td><b>No.</b> This is the highest-risk zone, so friction is enforced on the server, not merely displayed.</td><td>Confirming Met on such a criterion <b>requires self-verified evidence</b> (the server refuses without it); the criterion is always flagged for attention; the attestation goes into the log under the officer's name; the dashboard counts these for managers.</td></tr>
+<tr><td>Can an officer "type enough characters" to pass the attestation gate?</td><td><b>No.</b> The gate does not just count characters.</td><td>The attestation must <b>contain a genuine verbatim passage from the application</b> (checked by code, not AI, so there is no judgement error) and <b>cannot be pasted across criteria</b>. For the highest-risk criteria the officer may not borrow the AI's quote and must paste their own. Every attestation is in the hash-chained log for later audit.</td></tr>
+<tr><td>What about purely qualitative criteria (ABN, GST, licences…)?</td><td><b>Friction applies there too.</b> This is where "the AI says it's fine, the officer clicks along" is most likely.</td><td>Met requires a quoted piece of evidence, or explicit confirmation of the exact sentence the AI extracted (only possible after opening it; the attestation type is logged). Criteria already guarded by code are not slowed down — friction is proportional to risk.</td></tr>
+<tr><td>The label checker is also AI — what if it is wrong?</td><td><b>It is never trusted on one pass, and it never decides on its own.</b></td><td>Labels are checked by a <b>model from a different family than the system under test</b> (so hard cases are not quietly dropped by the very model being measured, which would inflate the score), using <b>two differently worded questions</b> ("is it satisfied?" / "is it violated?"). The checker only raises flags — <b>a reviewer must confirm or discard every flagged case, and labels cannot be approved while flags remain</b>. Code has veto power when it detects a violation from the figures.</td></tr>
+<tr><td>Can generated test cases distort the measurement?</td><td><b>Yes, and it has happened</b> — hence several code-level checks.</td><td>(1) The violation is fixed by code first and inserted verbatim into the application, not left to the AI; (2) answer leaks are blocked (criterion codes, self-commentary such as "violates / satisfies"); (3) text that is not an application (the model talking to itself) is rejected; (4) a clean application is used as a control to measure false alarms — without it, a system that rejects everything would score 100%; (5) a reviewer reads every application before labels are approved.</td></tr>
+</table>
+
+<h1>8. Measuring quality program by program</h1>
+<p>A figure is only published for a program once it has completed the whole chain below. Figures from one program are never used to describe another.</p>
+<div class="chain"><span>Generate test set (AI)</span><i>→</i><span>Automatic checks (code + independent checker model)</span><i>→</i><span>Reviewer reads every case, confirms or discards</span><i>→</i><span>Labels approved</span><i>→</i><span>Measured with the real AI core</span><i>→</i><span>Publish: violations caught · false passes · false alarms</span></div>
+<table>
+<tr><th>Program / rule set</th><th>Code-guarded criteria</th><th>Measurement status</th><th>Published result</th></tr>
+<!-- MEASURE-ROWS:en -->
+<tr><td>NSF 22-586 CAREER (US)</td><td>8 / 12</td><td>measured, full chain</td><td><b>caught 1/1 · false passes 0/1 · false alarms 0/1</b></td></tr>
+<tr><td>Wine Tourism R8</td><td>5 / 9</td><td>measured, full chain</td><td><b>caught 2/2 · false passes 0/2 · false alarms 1/2</b> <i>(earlier 3/3 figure withdrawn)</i></td></tr>
+<tr><td>Cyber Security Skills R2</td><td>4 / 8</td><td>measured, full chain</td><td><b>caught 2/2 · false passes 0/2 · false alarms 0/2</b></td></tr>
+<tr><td>Boosting Female Founders R1</td><td>3 / 6</td><td>measured, full chain</td><td><b>caught 1/2 · false passes 0/2 · referred to officer 1 · false alarms 0/2</b></td></tr>
+<tr><td>On-farm Water</td><td>4 / 8</td><td>measured, full chain</td><td><b>caught 1/1 · false passes 0/1 · false alarms 0/1</b></td></tr>
+<tr><td>Demonstration fund</td><td>1 / 3</td><td>measured, full chain</td><td><b>caught 1/1 · false passes 0/1 · false alarms 0/1</b></td></tr>
+<!-- /MEASURE-ROWS:en -->
+</table>
+<div class="note"><b>What the measurement found — all 6 programs</b> (system under test: qwen3:8b): <b>8/9</b> planted violations caught · <b>0/9 false passes</b> · 1 case referred to an officer · clean applications decided correctly 8/9 · <b>1/9 false alarm</b>.<br>
+<b>The guard layer stopped a real AI false pass:</b> in Female Founders F05 the application plainly states "registered income tax exempt entity" (an excluded category), yet the model marked it Met; the code guard caught it, downgraded it to Unclear with a warning and required an officer decision — no false pass got through.<br>
+<b>One false alarm, with a known cause:</b> in Wine W06 the clean application states "operates a dedicated physical cellar door located on our property", but the model returned Not met because "there is no information about ownership or lease" — missing information should have been Unclear. Added to the improvement backlog (code-level check: Not met must be backed by a violating fact); the change will be re-measured on all six programs before it is published.</div>
+<div class="note"><b>Why the reviewer step is mandatory:</b> in the re-run, 18 AI-generated violation cases passed every automated check, yet the reviewer still discarded <b>9 of them (5 wrong labels, 4 ambiguous answers)</b> — generated test sets cannot serve as ground truth unless someone reads every application. <b>Sample size:</b> after review, 1–2 violation cases remain per program, so results are <b>preliminary, per-program evidence, not statistical rates</b>; the sample is enlarged with real, officer-labelled applications during deployment.</div>
+<div class="warnbox"><b>Demo scope:</b> multi-level login and permissions, PostgreSQL, full OCR, and fine-tuning from the feedback store belong to the MVP / Completion phases of the quoted roadmap. Screening currently uses public Australian sources to demonstrate capability — replace them with the organisation's own market lists at deployment.</div>
+
+<footer>GrantLens v2.8 · Sample criteria quoted verbatim from NSF 22-586 CAREER (nsf.gov, US government work, public domain) and client-supplied Australian grant guidelines (Wine Australia, Dept. of Industry, NSW RAA, GrantConnect) · Sample applications are synthetic labelled data, not real applications · Screening lists: public ASIC / DFAT / ABR sources.</footer>
+</div>
+</body>
+</html>

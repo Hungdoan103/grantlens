@@ -1,0 +1,27 @@
+{
+  "ruleset": "au-wine-tourism-r8",
+  "llm": "qwen3:8b",
+  "provisional": false,
+  "labels_approved": true,
+  "approved_by": "Rà kỹ thuật (nhà cung cấp) — chưa thay cán bộ đơn vị",
+  "primary_metric": "target",
+  "target": {
+    "correct": 3,
+    "total": 3,
+    "false_pass": 0,
+    "note": "THƯỚC ĐO CHÍNH — vi phạm cài sẵn có bị bắt không"
+  },
+  "secondary": {
+    "correct": 31,
+    "total": 31,
+    "false_pass": 0,
+    "note": "chỉ tham khảo — rule phụ do đề thi tự sinh, dễ nhiễu"
+  },
+  "excluded_weak_labels": 2,
+  "excluded_rate": 0.056,
+  "low_quality_testset": false,
+  "disputed_cases": 1,
+  "errors": [],
+  "withdrawn": true,
+  "withdrawn_reason": "Đo trên bộ nhãn bị lộ đáp án (xem generated-au-wine-tourism-r8.CONTAMINATED.json). KHÔNG trích dẫn."
+}

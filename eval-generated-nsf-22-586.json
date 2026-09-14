@@ -1,28 +1,28 @@
 {
-  "ruleset": "au-wine-tourism-r8",
+  "ruleset": "nsf-22-586",
   "llm": "qwen3:8b",
   "assessor_model": "qwen3:8b",
   "generator_model": "gemma3:4b",
   "verifier_model": "gemma3:4b",
   "label_scope": "target",
-  "labels_generated_at": "2026-09-14T15:24:18",
-  "labels_approved_at": "2026-09-14T15:48:46",
-  "evaluated_at": "2026-09-14T16:10:39",
+  "labels_generated_at": "2026-09-14T15:57:14",
+  "labels_approved_at": "2026-09-14T15:58:31",
+  "evaluated_at": "2026-09-14T16:16:12",
   "provisional": false,
   "labels_approved": true,
   "approved_by": "Rà kỹ thuật (nhà cung cấp) — chưa thay cán bộ đơn vị",
   "primary_metric": "target",
   "target": {
-    "correct": 2,
-    "total": 2,
+    "correct": 1,
+    "total": 1,
     "false_pass": 0,
     "routed_to_officer": 0,
     "note": "THƯỚC ĐO CHÍNH — vi phạm cài sẵn có bị bắt không"
   },
   "control": {
     "correct": 1,
-    "total": 2,
-    "false_alarm": 1,
+    "total": 1,
+    "false_alarm": 0,
     "note": "rule mục tiêu chấm trên hồ sơ sạch — báo động giả"
   },
   "secondary": null,
@@ -32,14 +32,5 @@
   "small_sample": true,
   "disputed_cases": 2,
   "flagged_unresolved": 0,
-  "errors": [
-    {
-      "case": "GEN-au-wine-tourism-r8-00-clean",
-      "rule": "W06",
-      "kind": "control",
-      "pred": "not_met",
-      "truth": "met",
-      "note": "Không có thông tin về việc sở hữu hoặc thuê một cửa hàng chai rượu vật lý tại Úc trong năm tài chính"
-    }
-  ]
+  "errors": []
 }

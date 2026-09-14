@@ -1,0 +1,204 @@
+{
+  "ruleset": "nsf-22-586",
+  "version": "2022.1",
+  "label_scope": "target",
+  "generator_model": "gemma3:4b",
+  "verifier_model": "gemma3:4b",
+  "planner_model": "qwen3:4b",
+  "generated_by": "gemma3:4b",
+  "targets": [
+    "R04",
+    "R05",
+    "R07",
+    "R08"
+  ],
+  "generated_at": "2026-09-14T15:57:14",
+  "approved": true,
+  "approved_by": "Rà kỹ thuật (nhà cung cấp) — chưa thay cán bộ đơn vị",
+  "approved_at": "2026-09-14T15:58:31",
+  "n_needs_review": 0,
+  "note": "Vi phạm do mã nguồn chốt trước (câu dữ kiện được guard/verifier xác nhận, văn bản phải chứa nguyên văn); chặn lộ đáp án bằng mã nguồn; verifier dùng model tách khỏi hệ bị đo. CHƯA PHÊ CHUẨN — số đo từ bộ này là TẠM (provisional). Rà văn bản, xử lý hết cờ rồi --approve.",
+  "cases": [
+    {
+      "id": "GEN-nsf-22-586-00-clean",
+      "file": "generated/nsf-22-586/GEN-nsf-22-586-00-clean.txt",
+      "target": null,
+      "labels": {
+        "R01": "met",
+        "R02": "met",
+        "R03": "met",
+        "R04": "met",
+        "R05": "met",
+        "R06": "met",
+        "R07": "met",
+        "R08": "met",
+        "R09": "met",
+        "R10": "met",
+        "R11": "met",
+        "R12": "met"
+      },
+      "violation_fact": null,
+      "fact_confirmed_by": null,
+      "fact_placement": null,
+      "removed_meta_sentences": [],
+      "rest_without_fact_votes": null,
+      "guard_agree": null,
+      "target_label_clear": null,
+      "weak_labels": [],
+      "verifier_disagreement": [],
+      "verifier": {
+        "R04": [
+          "yes",
+          "no"
+        ],
+        "R05": [
+          "yes",
+          "no"
+        ],
+        "R07": [
+          "unclear",
+          "no"
+        ],
+        "R08": [
+          "no",
+          "no"
+        ]
+      },
+      "status": "approved",
+      "control_rules": [
+        "R05"
+      ],
+      "control_confirmed_by_reviewer": {
+        "R05": "Người rà đọc văn bản: 'Importantly, Dr. Hayes is untenured.' — nêu trơn, thoả rõ R05; verifier gemma dao động yes/no. KHÔNG dùng R04 (câu chức danh kèm bình luận 'fulfilling the required faculty commitment'); R07/R08 không có dữ kiện"
+      }
+    },
+    {
+      "id": "GEN-nsf-22-586-02-R05",
+      "file": "generated/nsf-22-586/GEN-nsf-22-586-02-R05.txt",
+      "target": "R05",
+      "labels": {
+        "R01": "met",
+        "R02": "met",
+        "R03": "met",
+        "R04": "met",
+        "R05": "not_met",
+        "R06": "met",
+        "R07": "met",
+        "R08": "met",
+        "R09": "met",
+        "R10": "met",
+        "R11": "met",
+        "R12": "met"
+      },
+      "violation_fact": "Dr. Elena Rodriguez is currently a tenured professor at the University of California, Berkeley.",
+      "fact_confirmed_by": "verifier",
+      "fact_placement": "marker",
+      "removed_meta_sentences": [],
+      "rest_without_fact_votes": [
+        "no",
+        "no"
+      ],
+      "guard_agree": false,
+      "target_label_clear": true,
+      "weak_labels": [],
+      "verifier_disagreement": [],
+      "verifier": {
+        "R05": [
+          "no",
+          "no"
+        ]
+      },
+      "status": "disputed",
+      "dispute_reason": "Nhãn SAI: người được ghi 'tenured' là Dr. Elena Rodriguez, nhưng PI của hồ sơ là Dr. Ben Carter (60% tenure-track assistant professor) — R05 xét PI nên hồ sơ KHÔNG vi phạm"
+    },
+    {
+      "id": "GEN-nsf-22-586-03-R07",
+      "file": "generated/nsf-22-586/GEN-nsf-22-586-03-R07.txt",
+      "target": "R07",
+      "labels": {
+        "R01": "met",
+        "R02": "met",
+        "R03": "met",
+        "R04": "met",
+        "R05": "met",
+        "R06": "met",
+        "R07": "not_met",
+        "R08": "met",
+        "R09": "met",
+        "R10": "met",
+        "R11": "met",
+        "R12": "met"
+      },
+      "violation_fact": "Dr. Emily Chen has submitted two CAREER proposals in the past two annual competitions, exceeding the one-per-competition limit.",
+      "fact_confirmed_by": "verifier",
+      "fact_placement": "marker",
+      "removed_meta_sentences": [
+        "This figure exceeds the minimum $400,000 stipulated for projects in the Engineering (ENG) category."
+      ],
+      "rest_without_fact_votes": [
+        "unclear",
+        "unclear"
+      ],
+      "guard_agree": false,
+      "target_label_clear": true,
+      "weak_labels": [],
+      "verifier_disagreement": [],
+      "verifier": {
+        "R07": [
+          "no",
+          "no"
+        ]
+      },
+      "status": "disputed",
+      "dispute_reason": "Nhãn SAI + lộ đáp án: 'two CAREER proposals in the past two annual competitions' tức mỗi kỳ 1 đề xuất — đúng quy định; câu còn tự bình luận 'exceeding the one-per-competition limit'"
+    },
+    {
+      "id": "GEN-nsf-22-586-04-R08",
+      "file": "generated/nsf-22-586/GEN-nsf-22-586-04-R08.txt",
+      "target": "R08",
+      "labels": {
+        "R01": "met",
+        "R02": "met",
+        "R03": "met",
+        "R04": "met",
+        "R05": "met",
+        "R06": "met",
+        "R07": "met",
+        "R08": "not_met",
+        "R09": "met",
+        "R10": "met",
+        "R11": "met",
+        "R12": "met"
+      },
+      "violation_fact": "The proposal for the NSF 22-586 CAREER program lists two co-principal investigators on the cover page.",
+      "fact_confirmed_by": "code",
+      "fact_placement": "marker",
+      "removed_meta_sentences": [
+        "This figure exceeds the minimum $400,000 stipulated for this category of award."
+      ],
+      "rest_without_fact_votes": [
+        "no",
+        "no"
+      ],
+      "guard_agree": true,
+      "target_label_clear": true,
+      "weak_labels": [],
+      "verifier_disagreement": [],
+      "verifier": {
+        "R08": [
+          "no",
+          "no"
+        ]
+      },
+      "status": "approved"
+    }
+  ],
+  "skipped": [
+    {
+      "id": "GEN-nsf-22-586-01-R04",
+      "reason": "guard bắn vào rule ngoài mục tiêu: ['R08'] (sau 3 lần viết)",
+      "fact": "Dr. Elena Rodriguez holds a 30% tenure-track position at State University as an assistant professor, not meeting the 50% threshold required for eligibility.",
+      "last_text": "Applicant and Entity Details\n\nApplicant Name: Redwood Research Institute\nContact Person: Dr. Samuel Davies\nAddress: 123 Innovation Drive, Silicon Valley, CA 94043\nPhone: +1-555-123-4567\nEmail: samuel.davies@redwoodresearch.org\n\nEntity and Registration Details\n\nRedwood Research Institute is a 501(c)(3) non-profit organization, registered in California under registration number 123456789. We operate an independent research lab focused on advanced materials science. Our primary campus is located at the address listed above. We are accredited by the Accreditation Commission for Engineering and Technology (ACET).\n\nProject Information and Compliance\n\nThe Redwood Research Institute submitted a proposal for the NSF 22-586 CAREER award. Dr. Elena Rodriguez holds a 30% tenure-track position at State University as an assistant professor, not meeting the 50% threshold required for eligibility. The Project Description submitted with the proposal is 13 pages in length. The total anticipated award amount, including indirect costs, is $475,000 over the five-year project duration. We have not previously received a CAREER award, and there are no co-principal investigators listed on the cover page. A letter from the Head of the Department of Materials Science at State University, Dr. Michael Chen, is included with the proposal, and it is 1.8 pages in length. We have not included any voluntary committed cost sharing.\n\nAdditional Details\n"
+    }
+  ]
+}

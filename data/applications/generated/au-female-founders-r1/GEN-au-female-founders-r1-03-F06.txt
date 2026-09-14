@@ -1,0 +1,11 @@
+Applicant, Entity and Registration Details
+
+Applicant Name: NovaTech Solutions Pty Ltd
+Contact Person: Dr. Evelyn Hayes
+Address: Level 12, 1 Innovation Drive, Sydney NSW 2000
+ABN: 88 123 456 789
+GST Registration Number: GST 123 456 789
+
+Project Details
+
+NovaTech Solutions is a female-founded startup, with Dr. Hayes holding 100% ownership and leadership. We have provided supporting documentation confirming this female-founded status, including shareholder agreements and biographical details outlining the team's composition. The project's estimated eligible costs exceed $960,000.00, making the maximum grant amount over $480,000.00. We hold a valid Australian Business Number (ABN) and are registered for Goods and Services Tax (GST). NovaTech Solutions is structured as a Pty Ltd company, incorporated in Australia, fulfilling the requirements for entity type. We are not an income tax exempt organisation, nor are we an unincorporated association or a Commonwealth body. Our trustee, Ms. Sarah Chen, is an incorporated trustee on behalf of the Chen Family Trust, which is also listed as an eligible entity type.

@@ -1,10 +1,23 @@
 {
   "ruleset": "au-wine-tourism-r8",
   "version": "R8",
-  "generated_by": "qwen3:8b",
-  "generated_at": "2026-09-07T15:19:07",
+  "label_scope": "target",
+  "generator_model": "gemma3:4b",
+  "verifier_model": "gemma3:4b",
+  "planner_model": "qwen3:4b",
+  "generated_by": "gemma3:4b",
+  "targets": [
+    "W03",
+    "W04",
+    "W06",
+    "W08"
+  ],
+  "generated_at": "2026-09-14T15:24:18",
   "approved": true,
-  "note": "Nhãn gán by-construction; guard đối soát + verifier độc lập. CHƯA PHÊ CHUẨN — số đo là TẠM. Case W06 đã bị LOẠI: nhãn sai do rule cho phép related entity (bằng chứng cơ chế dispute hoạt động).",
+  "approved_by": "Rà kỹ thuật (nhà cung cấp) — chưa thay cán bộ đơn vị",
+  "approved_at": "2026-09-14T15:48:46",
+  "n_needs_review": 0,
+  "note": "Vi phạm do mã nguồn chốt trước (câu dữ kiện được guard/verifier xác nhận, văn bản phải chứa nguyên văn); chặn lộ đáp án bằng mã nguồn; verifier dùng model tách khỏi hệ bị đo. CHƯA PHÊ CHUẨN — số đo từ bộ này là TẠM (provisional). Rà văn bản, xử lý hết cờ rồi --approve.",
   "cases": [
     {
       "id": "GEN-au-wine-tourism-r8-00-clean",
@@ -21,10 +34,45 @@
         "W08": "met",
         "W09": "met"
       },
+      "violation_fact": null,
+      "fact_confirmed_by": null,
+      "fact_placement": null,
+      "removed_meta_sentences": [
+        "This figure comfortably exceeds the stipulated $1,207,000."
+      ],
+      "rest_without_fact_votes": null,
       "guard_agree": null,
-      "weak_labels": [],
-      "verifier": {},
-      "status": "approved"
+      "target_label_clear": null,
+      "weak_labels": [
+        "W03"
+      ],
+      "verifier_disagreement": [],
+      "verifier": {
+        "W03": [
+          "yes",
+          "yes"
+        ],
+        "W04": [
+          "yes",
+          "no"
+        ],
+        "W06": [
+          "yes",
+          "yes"
+        ],
+        "W08": [
+          "yes",
+          "yes"
+        ]
+      },
+      "status": "approved",
+      "control_rules": [
+        "W06",
+        "W08"
+      ],
+      "weak_reasons": {
+        "W03": "Soát lại bằng bộ lọc hiện hành: hồ sơ sạch có câu bình luận 'used to meet the $1,207,000 threshold' gợi ý thẳng W03 đạt — bỏ W03 khỏi đối chứng để không làm dễ phép đo báo động giả; giữ W06, W08"
+      }
     },
     {
       "id": "GEN-au-wine-tourism-r8-01-W03",
@@ -41,19 +89,69 @@
         "W08": "met",
         "W09": "met"
       },
-      "guard_agree": true,
-      "weak_labels": [
-        "W04"
+      "violation_fact": "The applicant's rebatable wine sales for the 2023-2024 financial year totalled $1,195,000 GST exclusive.",
+      "fact_confirmed_by": "code",
+      "fact_placement": "marker",
+      "removed_meta_sentences": [
+        "We are confident this proportion aligns with the program's focus on physical cellar door activity."
       ],
-      "verifier": {},
-      "status": "approved",
-      "weak_reasons": {
-        "W04": "Rà tay: case này doanh số dưới ngưỡng (mục tiêu W03) nên W04 cũng không thể met — nhãn phụ không đáng tin."
-      }
+      "rest_without_fact_votes": [
+        "unclear",
+        "unclear"
+      ],
+      "guard_agree": true,
+      "target_label_clear": true,
+      "weak_labels": [],
+      "verifier_disagreement": [],
+      "verifier": {
+        "W03": [
+          "no",
+          "no"
+        ]
+      },
+      "status": "approved"
     },
     {
-      "id": "GEN-au-wine-tourism-r8-02-W06",
-      "file": "generated/au-wine-tourism-r8/GEN-au-wine-tourism-r8-02-W06.txt",
+      "id": "GEN-au-wine-tourism-r8-02-W04",
+      "file": "generated/au-wine-tourism-r8/GEN-au-wine-tourism-r8-02-W04.txt",
+      "target": "W04",
+      "labels": {
+        "W01": "met",
+        "W02": "met",
+        "W03": "met",
+        "W04": "not_met",
+        "W05": "met",
+        "W06": "met",
+        "W07": "met",
+        "W08": "met",
+        "W09": "met"
+      },
+      "violation_fact": "The applicant's domestic cellar door sales for the relevant financial year were $1,199,000, falling short of the $1,207,000 threshold.",
+      "fact_confirmed_by": "verifier",
+      "fact_placement": "marker",
+      "removed_meta_sentences": [
+        "This figure comfortably exceeds the $1,207,000 (GST exclusive) benchmark stipulated in the grant program."
+      ],
+      "rest_without_fact_votes": [
+        "yes",
+        "no"
+      ],
+      "guard_agree": false,
+      "target_label_clear": false,
+      "weak_labels": [],
+      "verifier_disagreement": [],
+      "verifier": {
+        "W04": [
+          "yes",
+          "no"
+        ]
+      },
+      "status": "disputed",
+      "dispute_reason": "Nhãn SAI: câu vi phạm so doanh số cellar door ($1,199,000) thẳng với ngưỡng, trong khi W04 là phần cellar door VƯỢT sau khi đã dùng để đạt ngưỡng tổng: min(1,199,000; 1,285,000 − 1,207,000) = 78,000 > 0 nên hồ sơ vẫn THOẢ W04. Câu còn lộ đáp án ('falling short of the $1,207,000 threshold')"
+    },
+    {
+      "id": "GEN-au-wine-tourism-r8-03-W06",
+      "file": "generated/au-wine-tourism-r8/GEN-au-wine-tourism-r8-03-W06.txt",
       "target": "W06",
       "labels": {
         "W01": "met",
@@ -66,15 +164,33 @@
         "W08": "met",
         "W09": "met"
       },
+      "violation_fact": "The Vineyard Co-op has never owned or leased a physical cellar door in Australia during the 2023-2024 financial year.",
+      "fact_confirmed_by": "verifier",
+      "fact_placement": "appended",
+      "removed_meta_sentences": [
+        "This figure demonstrates we comfortably meet the stipulated sales benchmark of $1,207,000.",
+        "Our cellar door sales represent 62.5% of our total rebatable domestic cellar door sales, aligning with the specified 50% minimum requirement."
+      ],
+      "rest_without_fact_votes": [
+        "unclear",
+        "yes"
+      ],
       "guard_agree": false,
+      "target_label_clear": true,
       "weak_labels": [],
-      "verifier": {},
+      "verifier_disagreement": [],
+      "verifier": {
+        "W06": [
+          "no",
+          "no"
+        ]
+      },
       "status": "disputed",
-      "dispute_reason": "Nhãn sai: case nêu related entity sở hữu cellar door — rule W06 cho phép 'and/or their related entity/ies', nên đúng ra là ĐẠT. AI chấm đúng, đề thi sai."
+      "dispute_reason": "Đáp án mơ hồ: hồ sơ của Riverbend Vineyards nhưng câu vi phạm nói về 'The Vineyard Co-op'; hồ sơ vẫn ghi $850,000 doanh số cellar door và cơ sở sản xuất mở cho khách thử + mua rượu — về thực chất là một cellar door"
     },
     {
-      "id": "GEN-au-wine-tourism-r8-03-W08",
-      "file": "generated/au-wine-tourism-r8/GEN-au-wine-tourism-r8-03-W08.txt",
+      "id": "GEN-au-wine-tourism-r8-04-W08",
+      "file": "generated/au-wine-tourism-r8/GEN-au-wine-tourism-r8-04-W08.txt",
       "target": "W08",
       "labels": {
         "W01": "met",
@@ -87,38 +203,29 @@
         "W08": "not_met",
         "W09": "met"
       },
-      "guard_agree": false,
-      "weak_labels": [],
-      "verifier": {},
-      "status": "approved"
-    },
-    {
-      "id": "GEN-au-wine-tourism-r8-04-W09",
-      "file": "generated/au-wine-tourism-r8/GEN-au-wine-tourism-r8-04-W09.txt",
-      "target": "W09",
-      "labels": {
-        "W01": "met",
-        "W02": "met",
-        "W03": "met",
-        "W04": "met",
-        "W05": "met",
-        "W06": "met",
-        "W07": "met",
-        "W08": "met",
-        "W09": "not_met"
-      },
-      "guard_agree": true,
-      "weak_labels": [
-        "W04"
+      "violation_fact": "The applicant's 2023 financial report shows only 42 per cent of rebatable domestic cellar door sales were from physical cellar doors.",
+      "fact_confirmed_by": "code",
+      "fact_placement": "appended",
+      "removed_meta_sentences": [
+        "This figure comfortably exceeds the stipulated $1,207,000 (GST exclusive) benchmark.",
+        "This surplus ensures we meet the requirement for additional sales beyond those used to satisfy the initial revenue target."
       ],
-      "verifier": {},
-      "status": "approved",
-      "weak_reasons": {
-        "W04": "Rà tay: hồ sơ ghi rebatable wine sales = đúng ngưỡng $1,207,000 nên không còn phần vượt; nhãn W04=met sai theo câu chữ rule."
-      }
+      "rest_without_fact_votes": [
+        "yes",
+        "no"
+      ],
+      "guard_agree": true,
+      "target_label_clear": true,
+      "weak_labels": [],
+      "verifier_disagreement": [],
+      "verifier": {
+        "W08": [
+          "no",
+          "no"
+        ]
+      },
+      "status": "approved"
     }
   ],
-  "skipped": [],
-  "approved_by": "Rà kỹ thuật (nhà cung cấp) — chưa thay cán bộ đơn vị",
-  "approved_at": "2026-09-10T01:49:35"
+  "skipped": []
 }

@@ -1,0 +1,17 @@
+Applicant, entity and registration details
+Applicant Name: Redwood Institute for Advanced Research
+Entity Type: Independent Research Lab
+Registration Number: 1234567-8901
+Address: 12 Innovation Drive, Silicon Valley, CA 94043, USA
+
+Project Description
+The Redwood Institute submitted a Project Description comprising 13 pages detailing our proposed research into advanced materials science. This work focuses on developing novel polymer composites for aerospace applications, a field strongly supported by NSF. Our team consists of five researchers, all holding doctoral degrees in materials science, and we maintain a full-time commitment of 60% to this project, reflected in Dr. Emily Chen's position. Dr. Emily Chen has submitted two CAREER proposals in the past two annual competitions, exceeding the one-per-competition limit.
+
+Educational Activities
+Alongside the core research, the proposal outlines a comprehensive educational component. This includes a graduate student mentorship program and a series of public outreach events designed to engage local high school students with STEM concepts.
+
+Cost and Funding
+The total requested funding for the five-year project is $425,000, including indirect costs. We have not included any voluntary committed cost sharing.
+
+Supporting Documentation
+The proposal includes a letter of support from Dr. David Ramirez, the Director of Redwood Institute, which is 1.8 pages in length.

@@ -420,6 +420,73 @@ def guard_backlog():
                     "và ghi nhật ký để hậu kiểm."}
 
 
+@app.get("/api/measurement-status")
+def measurement_status():
+    """TRẠNG THÁI ĐO THEO TỪNG QUỸ — chống hiểu nhầm "đo 1 quỹ = chứng minh cả hệ thống".
+
+    Số false-pass chỉ có giá trị cho đúng quỹ đã đi hết chuỗi:
+        sinh bộ test -> rà/dispute/flag -> phê chuẩn nhãn -> eval -> metric [MỤC TIÊU].
+    Quỹ chưa đi hết chuỗi thì ghi rõ đang đứng ở bước nào, KHÔNG mượn số của quỹ khác.
+    """
+    from . import guards
+    root = core.DATA.parent
+    out = []
+    for k, rs in core.load_rulesets().items():
+        if k == "_default":
+            continue
+        cov = guards.coverage(rs)
+        lbl_p = core.DATA / "labels" / f"generated-{rs['id']}.json"
+        ev_p = root / f"eval-generated-{rs['id']}.json"
+        lbl = json.loads(lbl_p.read_text(encoding="utf-8")) if lbl_p.exists() else None
+        ev = json.loads(ev_p.read_text(encoding="utf-8")) if ev_p.exists() else None
+        measured = False
+        if not lbl:
+            stage, claim = "chưa có bộ test", "CHƯA ĐO — không có số để công bố"
+        elif any(c.get("status") == "needs_review" for c in lbl.get("cases", [])):
+            stage, claim = "có bộ test, còn case bị verifier gắn cờ chưa rà", "CHƯA ĐO — đang rà nhãn"
+        elif not lbl.get("approved"):
+            stage, claim = "có bộ test, nhãn chưa phê chuẩn", "TẠM TÍNH — không dùng để tuyên bố"
+        elif not ev:
+            stage, claim = "nhãn đã phê chuẩn, chưa chạy eval", "CHƯA ĐO"
+        elif (ev.get("labels_generated_at") != lbl.get("generated_at")
+              or ev.get("labels_approved_at") != lbl.get("approved_at")):
+            # chống trích số cũ: eval phải chạy trên ĐÚNG bộ nhãn đang phê chuẩn
+            stage, claim = "kết quả eval cũ, không khớp bộ nhãn hiện tại", "CHƯA ĐO — phải chạy lại eval"
+        elif ev.get("provisional"):
+            stage, claim = "đã eval nhưng nhãn chưa phê chuẩn", "TẠM TÍNH — không dùng để tuyên bố"
+        else:
+            t, ctl = ev.get("target") or {}, ev.get("control") or {}
+            measured, stage = True, "đã đo đủ chuỗi"
+            claim = (f"bắt đúng vi phạm {t.get('correct')}/{t.get('total')}, "
+                     f"false-pass {t.get('false_pass')}/{t.get('total')}"
+                     + (f"; hồ sơ sạch: báo động giả {ctl.get('false_alarm')}/{ctl.get('total')}" if ctl else "")
+                     + (" · cỡ mẫu nhỏ, bằng chứng sơ bộ" if (t.get("total") or 0) < 10 else ""))
+        out.append({
+            "ruleset": rs["id"], "name": rs["name"], "version": rs.get("version"),
+            "region": rs.get("region", ""), "ruleset_status": rs.get("status", "approved"),
+            "guard_coverage": {"code_guarded": cov["n_guarded"], "needs_manual": cov["n_needs_manual"],
+                               "llm_only": cov["n_llm_only"], "n_rules": cov["n_rules"]},
+            "testset": None if not lbl else {
+                "n_cases": len(lbl.get("cases", [])),
+                "label_scope": lbl.get("label_scope", "full"),
+                "generator_model": lbl.get("generator_model") or lbl.get("generated_by"),
+                "approved": bool(lbl.get("approved")), "approved_by": lbl.get("approved_by")},
+            "measured": measured,
+            "assessor_model": (ev or {}).get("assessor_model") or (ev or {}).get("llm"),
+            "stage": stage, "claim": claim,
+            "target_metric": (ev or {}).get("target") if measured else None,
+            "control_metric": (ev or {}).get("control") if measured else None,
+        })
+    out.sort(key=lambda x: (not x["measured"], x["ruleset"]))
+    n_measured = sum(1 for x in out if x["measured"])
+    return {"n_rulesets": len(out), "n_measured": n_measured,
+            "headline": f"{n_measured}/{len(out)} quỹ đã có số đo riêng; "
+                        f"{len(out) - n_measured} quỹ mới có ruleset + lưới đỡ code, CHƯA có số đo.",
+            "warning": "Không được dùng số của quỹ này để nói về quỹ khác. Mỗi quỹ phải tự đi hết chuỗi "
+                       "sinh bộ test → rà → phê chuẩn nhãn → eval mới có số.",
+            "rulesets": out}
+
+
 @app.get("/api/rulesets/{ruleset_id}/testset")
 def get_testset(ruleset_id: str):
     """Trạng thái bộ test sinh cho ruleset: đã phê chuẩn nhãn chưa, case nào nhãn yếu/disputed."""
@@ -447,6 +514,8 @@ def approve_testset(ruleset_id: str, req: ApproveLabelsReq):
         res = casegen.approve(ruleset_id, req.officer)
     except FileNotFoundError as e:
         raise HTTPException(404, str(e))
+    except ValueError as e:  # còn case bị verifier gắn cờ chưa rà -> không cho phê chuẩn
+        raise HTTPException(409, str(e))
     store.log(req.officer, f"PHÊ CHUẨN nhãn bộ test '{ruleset_id}' ({res['n_cases']} case) — "
               "từ đây số đo trên bộ này không còn là tạm tính", None, req.role, {"ruleset": ruleset_id})
     return res

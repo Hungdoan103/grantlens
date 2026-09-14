@@ -1,0 +1,225 @@
+{
+  "ruleset": "au-cyber-skills-r2",
+  "version": "R2-2021.07",
+  "label_scope": "target",
+  "generator_model": "gemma3:4b",
+  "verifier_model": "gemma3:4b",
+  "planner_model": "qwen3:4b",
+  "generated_by": "gemma3:4b",
+  "targets": [
+    "C01",
+    "C06",
+    "C07",
+    "C08"
+  ],
+  "generated_at": "2026-09-14T15:14:03",
+  "approved": true,
+  "approved_by": "Rà kỹ thuật (nhà cung cấp) — chưa thay cán bộ đơn vị",
+  "approved_at": "2026-09-14T15:15:33",
+  "n_needs_review": 0,
+  "note": "Vi phạm do mã nguồn chốt trước (câu dữ kiện được guard/verifier xác nhận, văn bản phải chứa nguyên văn); chặn lộ đáp án bằng mã nguồn; verifier dùng model tách khỏi hệ bị đo. CHƯA PHÊ CHUẨN — số đo từ bộ này là TẠM (provisional). Rà văn bản, xử lý hết cờ rồi --approve.",
+  "cases": [
+    {
+      "id": "GEN-au-cyber-skills-r2-00-clean",
+      "file": "generated/au-cyber-skills-r2/GEN-au-cyber-skills-r2-00-clean.txt",
+      "target": null,
+      "labels": {
+        "C01": "met",
+        "C02": "met",
+        "C03": "met",
+        "C04": "met",
+        "C05": "met",
+        "C06": "met",
+        "C07": "met",
+        "C08": "met"
+      },
+      "violation_fact": null,
+      "fact_confirmed_by": null,
+      "fact_placement": null,
+      "removed_meta_sentences": [
+        "We have budgeted $685,000 in eligible expenditure, exceeding the required $500,000.",
+        "This includes the development of specialised training modules and the delivery of hands-on workshops, aligning directly with the program's focus on eligible activities and expenditure."
+      ],
+      "rest_without_fact_votes": null,
+      "guard_agree": null,
+      "target_label_clear": null,
+      "weak_labels": [],
+      "verifier_disagreement": [],
+      "verifier": {
+        "C01": [
+          "yes",
+          "no"
+        ],
+        "C06": [
+          "yes",
+          "no"
+        ],
+        "C07": [
+          "unclear",
+          "unclear"
+        ],
+        "C08": [
+          "unclear",
+          "yes"
+        ]
+      },
+      "status": "approved",
+      "control_rules": [
+        "C01",
+        "C06"
+      ],
+      "control_confirmed_by_reviewer": {
+        "C01": "Người rà đọc văn bản: nêu rõ nộp liên danh (jointly with Secure Futures Training and Innovation) có đối tác kèm thư hỗ trợ; verifier gemma trả yes/no là dao động",
+        "C06": "Người rà đọc văn bản: Board of Directors fully supports + certify capacity to complete + covering all expenditure not funded — thoả rõ; verifier dao động"
+      }
+    },
+    {
+      "id": "GEN-au-cyber-skills-r2-01-C01",
+      "file": "generated/au-cyber-skills-r2/GEN-au-cyber-skills-r2-01-C01.txt",
+      "target": "C01",
+      "labels": {
+        "C01": "not_met",
+        "C02": "met",
+        "C03": "met",
+        "C04": "met",
+        "C05": "met",
+        "C06": "met",
+        "C07": "met",
+        "C08": "met"
+      },
+      "violation_fact": "The Cyber Security Skills Partnership Innovation Fund Round 2 application is submitted solely by TechSolutions Inc without any project partners.",
+      "fact_confirmed_by": "verifier",
+      "fact_placement": "marker",
+      "removed_meta_sentences": [
+        "Our financial records demonstrate a strong capacity to manage the project's finances and meet all associated costs.",
+        "The total anticipated eligible expenditure is $685,000, exceeding the stipulated $500,000 benchmark."
+      ],
+      "rest_without_fact_votes": [
+        "no",
+        "unclear"
+      ],
+      "guard_agree": false,
+      "target_label_clear": true,
+      "weak_labels": [],
+      "verifier_disagreement": [],
+      "verifier": {
+        "C01": [
+          "no",
+          "no"
+        ]
+      },
+      "status": "approved"
+    },
+    {
+      "id": "GEN-au-cyber-skills-r2-02-C06",
+      "file": "generated/au-cyber-skills-r2/GEN-au-cyber-skills-r2-02-C06.txt",
+      "target": "C06",
+      "labels": {
+        "C01": "met",
+        "C02": "met",
+        "C03": "met",
+        "C04": "met",
+        "C05": "met",
+        "C06": "not_met",
+        "C07": "met",
+        "C08": "met"
+      },
+      "violation_fact": "The Cyber Security Skills Partnership Innovation Fund Round 2 applicant, TechGuard Solutions, has no board and cannot certify the chief executive officer's support for the project.",
+      "fact_confirmed_by": "verifier",
+      "fact_placement": "marker",
+      "removed_meta_sentences": [
+        "The proposed project, “Cyber Shield Academy,” includes activities focused on developing advanced cybersecurity skills for junior professionals, aligning directly with the Innovation Fund's aims.",
+        "The total anticipated eligible expenditure for Cyber Shield Academy is $685,000, exceeding the required $500,000 benchmark."
+      ],
+      "rest_without_fact_votes": [
+        "yes",
+        "no"
+      ],
+      "guard_agree": false,
+      "target_label_clear": false,
+      "weak_labels": [],
+      "verifier_disagreement": [],
+      "verifier": {
+        "C06": [
+          "yes",
+          "yes"
+        ]
+      },
+      "status": "disputed",
+      "dispute_reason": "Đáp án mơ hồ: câu vi phạm nói không xác nhận được CEO ủng hộ nhưng đoạn sau nêu CEO đã ký xác nhận khả năng hoàn thành và chi trả — cán bộ thật có thể kết luận 'chưa rõ'; không đủ sạch làm nhãn not_met"
+    },
+    {
+      "id": "GEN-au-cyber-skills-r2-03-C07",
+      "file": "generated/au-cyber-skills-r2/GEN-au-cyber-skills-r2-03-C07.txt",
+      "target": "C07",
+      "labels": {
+        "C01": "met",
+        "C02": "met",
+        "C03": "met",
+        "C04": "met",
+        "C05": "met",
+        "C06": "met",
+        "C07": "not_met",
+        "C08": "met"
+      },
+      "violation_fact": "The project's eligible expenditure totalled $499,999.",
+      "fact_confirmed_by": "code",
+      "fact_placement": "marker",
+      "removed_meta_sentences": [],
+      "rest_without_fact_votes": [
+        "yes",
+        "no"
+      ],
+      "guard_agree": true,
+      "target_label_clear": true,
+      "weak_labels": [],
+      "verifier_disagreement": [],
+      "verifier": {
+        "C07": [
+          "yes",
+          "no"
+        ]
+      },
+      "status": "approved",
+      "target_confirmed_by_reviewer": "Vi phạm rõ bằng số: eligible expenditure $499,999 < $500,000 (guard mã nguồn xác nhận). Câu 'total project budget exceeds $500,000' là bẫy hợp lệ (tổng ngân sách khác chi tiêu hợp lệ) — case khó cần giữ; lỗi ngữ pháp do chèn giữa câu không đổi dữ kiện"
+    },
+    {
+      "id": "GEN-au-cyber-skills-r2-04-C08",
+      "file": "generated/au-cyber-skills-r2/GEN-au-cyber-skills-r2-04-C08.txt",
+      "target": "C08",
+      "labels": {
+        "C01": "met",
+        "C02": "met",
+        "C03": "met",
+        "C04": "met",
+        "C05": "met",
+        "C06": "met",
+        "C07": "met",
+        "C08": "not_met"
+      },
+      "violation_fact": "CyberSecure Solutions Pty Ltd employs 125 people and has not complied with the Workplace Gender Equality Act (2.012).",
+      "fact_confirmed_by": "code",
+      "fact_placement": "marker",
+      "removed_meta_sentences": [
+        "This figure exceeds the required $500,000."
+      ],
+      "rest_without_fact_votes": [
+        "no",
+        "yes"
+      ],
+      "guard_agree": true,
+      "target_label_clear": false,
+      "weak_labels": [],
+      "verifier_disagreement": [],
+      "verifier": {
+        "C08": [
+          "yes",
+          "no"
+        ]
+      },
+      "status": "disputed",
+      "dispute_reason": "Đáp án mơ hồ: Applicant Name là NovaTech nhưng văn bản ghi CyberSecure (đơn vị 125 nhân viên chưa tuân thủ WGEA) là lead organisation — không rõ 'người nộp' bị loại trừ là ai"
+    }
+  ],
+  "skipped": []
+}

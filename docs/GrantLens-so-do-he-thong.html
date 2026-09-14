@@ -5,10 +5,37 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GrantLens System Map</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script>
+(function () {
+  var root = document.documentElement;
+  function pick() {
+    var h = (location.hash || "").replace("#", "");
+    if (h === "en" || h === "vi") return h;
+    try { var s = localStorage.getItem("gl-lang"); if (s === "en" || s === "vi") return s; } catch (e) {}
+    return "vi";
+  }
+  window.glSetLang = function (l) {
+    root.setAttribute("data-lang", l);
+    root.setAttribute("lang", l);
+    var btns = document.querySelectorAll("[data-set-lang]");
+    for (var i = 0; i < btns.length; i++) btns[i].setAttribute("aria-pressed", String(btns[i].getAttribute("data-set-lang") === l));
+    try { localStorage.setItem("gl-lang", l); } catch (e) {}
+  };
+  root.setAttribute("data-lang", pick());
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-set-lang]");
+    if (b) window.glSetLang(b.getAttribute("data-set-lang"));
+  });
+  window.addEventListener("hashchange", function () { window.glSetLang(pick()); });
+  document.addEventListener("DOMContentLoaded", function () { window.glSetLang(root.getAttribute("data-lang")); });
+})();
+</script>
 <style>
 :root{--paper:#EEF0EC;--card:#FFFFFF;--ink:#1C2826;--muted:#5A6672;--line:#C3CAC2;--green:#175C4C;--green-soft:#DFEAE4;--amber:#9A6B1F;--amber-soft:#F2E8D4;--red:#A33B2E;--red-soft:#F3E2DE;--blue:#2B5A8C;--blue-soft:#DCE6F1;--band:#DDE6E0}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--paper:#151C1A;--card:#1E2725;--ink:#E6ECE8;--muted:#9FB0A8;--line:#3A4644;--green:#7FCBB2;--green-soft:#1F3A33;--amber:#E0B364;--amber-soft:#3A2F17;--red:#E38A7C;--red-soft:#3E2320;--blue:#8FB4DC;--blue-soft:#1E2E40;--band:#233430}}
 :root[data-theme="dark"]{--paper:#151C1A;--card:#1E2725;--ink:#E6ECE8;--muted:#9FB0A8;--line:#3A4644;--green:#7FCBB2;--green-soft:#1F3A33;--amber:#E0B364;--amber-soft:#3A2F17;--red:#E38A7C;--red-soft:#3E2320;--blue:#8FB4DC;--blue-soft:#1E2E40;--band:#233430}
+:root:not([data-lang="en"]) .l-en{display:none!important}
+:root[data-lang="en"] .l-vi{display:none!important}
 *{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:15px;line-height:1.55}
 .wrap{max-width:1120px;margin:0 auto;padding:40px 28px 80px}
@@ -16,25 +43,46 @@ header{border-bottom:3px double var(--ink);padding-bottom:18px;margin-bottom:34p
 .brand{font-family:'Spectral',Georgia,serif;font-size:38px;font-weight:700;letter-spacing:-.5px;line-height:1}
 .brand em{font-style:normal;color:var(--green)}
 .sub{color:var(--muted);margin-top:8px;max-width:60ch}
+.side{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
 .meta{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--muted);text-align:right;line-height:1.7}
+.lang{display:inline-flex;border:1px solid var(--ink);border-radius:6px;overflow:hidden}
+.lang button{font:500 11.5px/1 'IBM Plex Mono',monospace;letter-spacing:.06em;padding:7px 12px;border:0;background:transparent;color:var(--ink);cursor:pointer}
+.lang button+button{border-left:1px solid var(--ink)}
+.lang button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.lang button:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 h2{font-family:'Spectral',Georgia,serif;font-size:24px;font-weight:600;margin:0 0 6px;text-wrap:balance}
 .lede{color:var(--muted);max-width:70ch;margin:0 0 16px}
 section{margin-bottom:48px}
 figure{margin:0;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 18px 12px;overflow-x:auto}
-figure svg{display:block;width:100%;max-width:100%;height:auto;color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif}
+figure svg{display:block;width:100%;min-width:760px;height:auto;color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif}
 figcaption{font-size:13px;color:var(--muted);margin-top:10px;max-width:90ch}
-.svg-mono{font-family:'IBM Plex Mono',monospace}
+.mono{font-family:'IBM Plex Mono',monospace}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:18px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
-.card h3{font-family:'Spectral',Georgia,serif;font-size:16px;margin:0 0 6px}
+.card h3{font-family:'Spectral',Georgia,serif;font-size:16px;margin:0 0 6px;text-wrap:balance}
 .card p{margin:0;font-size:13.5px;color:var(--muted)}
 .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin-bottom:6px}
-table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:13.5px}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);font-size:13.5px}
 th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
 th{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
-.tblwrap{overflow-x:auto;border-radius:10px}
+td.num{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tblwrap{overflow-x:auto;border-radius:10px;border:1px solid var(--line)}
+.tblwrap table{border:0}
+.chain{list-style:none;margin:0 0 18px;padding:0;display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;counter-reset:step}
+.chain li{counter-increment:step;display:flex;gap:8px;align-items:baseline;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:13px;max-width:260px}
+.chain li::before{content:counter(step);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--green);font-weight:500}
+.chain li:last-child{border-color:var(--green);background:var(--green-soft)}
+.pill{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.03em;padding:2px 8px;border-radius:999px;border:1px solid var(--amber);color:var(--amber);background:var(--amber-soft);white-space:nowrap}
+.pill.done{border-color:var(--green);color:var(--green);background:var(--green-soft)}
+.notice{margin-top:14px;padding:12px 14px;border-radius:8px;background:var(--red-soft);color:var(--ink);font-size:13.5px;max-width:90ch}
+.notice b{color:var(--red)}
+.findings{margin-top:14px;display:grid;gap:8px;max-width:90ch}
+.findings h3{font-family:'Spectral',Georgia,serif;font-size:16px;margin:4px 0 0}
+.findings p{margin:0;padding:10px 14px;background:var(--card);border:1px solid var(--line);border-radius:8px;font-size:13.5px}
+.findings p.total{border-color:var(--green);background:var(--green-soft)}
 footer{margin-top:40px;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
-@media print{body{background:#fff}figure{break-inside:avoid}}
+@media (max-width:640px){.wrap{padding:28px 16px 60px}.side{align-items:flex-start}.meta{text-align:left}.brand{font-size:32px}}
+@media print{body{background:#fff}figure{break-inside:avoid;overflow:visible}figure svg{min-width:0}.lang{display:none}.card,.chain li,tr{break-inside:avoid}}
 </style>
 </head>
 <body>
@@ -42,64 +90,63 @@ footer{margin-top:40px;font-size:12.5px;color:var(--muted);border-top:1px solid 
 <header>
   <div>
     <div class="brand">Grant<em>Lens</em></div>
-    <div class="sub">Sơ đồ hệ thống — trợ lý thẩm định điều kiện hồ sơ tài trợ. AI đưa bằng chứng, con người quyết định.</div>
+    <div class="sub l-vi">Sơ đồ hệ thống — trợ lý thẩm định điều kiện hồ sơ tài trợ. AI đưa bằng chứng, con người quyết định.</div>
+    <div class="sub l-en">System map — an eligibility-assessment assistant for grant applications. AI provides the evidence; people make the decision.</div>
   </div>
-  <div class="meta">Phiên bản 2.6 · 09/2026<br>Lõi AI: Qwen3-8B chạy local<br>Đa bộ tiêu chí: NSF CAREER (US) + 4 quỹ Úc</div>
+  <div class="side">
+    <div class="lang" role="group" aria-label="Ngôn ngữ / Language">
+      <button type="button" id="lang-vi" data-set-lang="vi" aria-pressed="true">Tiếng Việt</button>
+      <button type="button" id="lang-en" data-set-lang="en" aria-pressed="false">English</button>
+    </div>
+    <div class="meta l-vi">Phiên bản 2.8 · 09/2026<br>Lõi AI: Qwen3-8B chạy local<br>Bộ tiêu chí: NSF CAREER (Mỹ) + 4 quỹ Úc + 1 quỹ minh hoạ</div>
+    <div class="meta l-en">Version 2.8 · September 2026<br>AI core: Qwen3-8B, running locally<br>Rule sets: NSF CAREER (US) + 4 Australian programs + 1 demo</div>
+  </div>
 </header>
 
-<!-- ===================== 1. KIẾN TRÚC ===================== -->
+<!-- ===================== 1. ARCHITECTURE ===================== -->
 <section>
-  <div class="eyebrow">Hình 1</div>
-  <h2>Kiến trúc và ranh giới dữ liệu</h2>
-  <p class="lede">Toàn bộ xử lý — kể cả mô hình ngôn ngữ — nằm trong máy chủ nội bộ của đơn vị. Hồ sơ không được gửi ra bất kỳ dịch vụ bên ngoài nào.</p>
-  <figure>
+  <div class="eyebrow"><span class="l-vi">Hình 1</span><span class="l-en">Figure 1</span></div>
+  <h2 class="l-vi">Kiến trúc và ranh giới dữ liệu</h2>
+  <h2 class="l-en">Architecture and data boundary</h2>
+  <p class="lede l-vi">Toàn bộ xử lý — kể cả mô hình ngôn ngữ — nằm trong máy chủ nội bộ của đơn vị. Hồ sơ không được gửi ra bất kỳ dịch vụ bên ngoài nào.</p>
+  <p class="lede l-en">All processing — including the language model — stays on the organisation's own server. Applications are never sent to any external service.</p>
+
+  <figure class="l-vi">
   <svg viewBox="0 0 1100 560" role="img" aria-label="Trình duyệt của cán bộ gọi backend FastAPI; backend gọi mô hình Qwen3-8B qua Ollama trên cùng máy, lưu SQLite và đọc dữ liệu tiêu chí; tất cả trừ trình duyệt nằm trong ranh giới máy chủ nội bộ">
     <defs>
-      <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker>
-      <marker id="arg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#175C4C"/></marker>
+      <marker id="v-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker>
+      <marker id="v-arg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#175C4C"/></marker>
     </defs>
-    <!-- boundary -->
     <rect x="20" y="150" width="1060" height="390" rx="12" fill="none" stroke="#175C4C" stroke-width="1.5" stroke-dasharray="8 6"/>
     <text x="40" y="176" font-size="12" fill="#175C4C" font-weight="600" letter-spacing="1.5">MÁY CHỦ NỘI BỘ CỦA ĐƠN VỊ — DỮ LIỆU KHÔNG RỜI MÁY</text>
-
-    <!-- user -->
     <rect x="40" y="30" width="250" height="80" rx="8" fill="none" stroke="currentColor" stroke-width="1.3"/>
     <text x="165" y="60" text-anchor="middle" font-size="14" font-weight="600" fill="currentColor">Cán bộ thẩm định</text>
     <text x="165" y="82" text-anchor="middle" font-size="12" fill="currentColor" opacity=".7">trình duyệt · nhập tên để ký</text>
-    <text x="165" y="100" text-anchor="middle" font-size="12" fill="currentColor" opacity=".7">trưởng phòng · thanh tra (GĐ2)</text>
-
-    <!-- frontend -->
+    <text x="165" y="100" text-anchor="middle" font-size="12" fill="currentColor" opacity=".7">quản lý ký cấp 2 · thanh tra</text>
     <rect x="390" y="30" width="670" height="80" rx="8" fill="none" stroke="currentColor" stroke-width="1.3"/>
     <text x="410" y="56" font-size="14" font-weight="600" fill="currentColor">Giao diện web một trang</text>
     <text x="410" y="78" font-size="12" fill="currentColor" opacity=".8">Tổng quan · Hàng đợi hồ sơ · Màn thẩm định (ma trận + hồ sơ gốc tô sáng trích dẫn) · Thư kết quả</text>
     <text x="410" y="96" font-size="12" fill="currentColor" opacity=".8">Bộ tiêu chí · Bias Lab · Nhật ký kiểm toán · Nạp dữ liệu (.txt / .docx / .pdf)</text>
-    <line x1="290" y1="70" x2="388" y2="70" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar)"/>
+    <line x1="290" y1="70" x2="388" y2="70" stroke="currentColor" stroke-width="1.3" marker-end="url(#v-ar)"/>
     <text x="339" y="62" text-anchor="middle" font-size="11" fill="currentColor" opacity=".7">mở</text>
-
-    <!-- backend box -->
     <rect x="40" y="200" width="700" height="200" rx="8" fill="none" stroke="currentColor" stroke-width="1.3"/>
     <text x="60" y="226" font-size="14" font-weight="600" fill="currentColor">Backend · Python FastAPI</text>
-    <line x1="725" y1="112" x2="725" y2="198" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar)" marker-start="url(#ar)"/>
+    <line x1="725" y1="112" x2="725" y2="198" stroke="currentColor" stroke-width="1.3" marker-end="url(#v-ar)" marker-start="url(#v-ar)"/>
     <text x="735" y="150" font-size="11" fill="currentColor" opacity=".7">REST JSON</text>
     <text x="735" y="166" font-size="11" fill="currentColor" opacity=".7">+ tiến độ streaming</text>
-
-    <!-- modules -->
     <g font-size="12">
       <rect x="60" y="246" width="200" height="60" rx="6" fill="#DCE6F1" stroke="#2B5A8C" stroke-width="1.2"/>
       <text x="160" y="270" text-anchor="middle" font-weight="600" fill="#1C2826">app.py — API</text>
       <text x="160" y="290" text-anchor="middle" fill="#1C2826" opacity=".8">hồ sơ · đánh giá · ký · thư · nhật ký</text>
-
       <rect x="280" y="246" width="220" height="60" rx="6" fill="#F2E8D4" stroke="#9A6B1F" stroke-width="1.2"/>
       <text x="390" y="270" text-anchor="middle" font-weight="600" fill="#1C2826">workflow.py — máy trạng thái</text>
-      <text x="390" y="290" text-anchor="middle" fill="#1C2826" opacity=".8">6 trạng thái · quy tắc niềm tin ở server</text>
-
+      <text x="390" y="290" text-anchor="middle" fill="#1C2826" opacity=".8">7 trạng thái · quy tắc niềm tin ở server</text>
       <rect x="520" y="246" width="200" height="60" rx="6" fill="#DFEAE4" stroke="#175C4C" stroke-width="1.2"/>
       <text x="620" y="270" text-anchor="middle" font-weight="600" fill="#1C2826">core.py — pipeline AI</text>
       <text x="620" y="290" text-anchor="middle" fill="#1C2826" opacity=".8">RAG → dữ kiện → phán quyết → cite</text>
-
       <rect x="60" y="322" width="200" height="56" rx="6" fill="none" stroke="currentColor" stroke-width="1"/>
-      <text x="160" y="345" text-anchor="middle" font-weight="600" fill="currentColor">rag.py</text>
-      <text x="160" y="364" text-anchor="middle" fill="currentColor" opacity=".8">tách đoạn · TF-IDF / BGE-M3</text>
+      <text x="160" y="345" text-anchor="middle" font-weight="600" fill="currentColor">rag.py · guards.py</text>
+      <text x="160" y="364" text-anchor="middle" fill="currentColor" opacity=".8">tách đoạn · guard chặn false-pass</text>
       <rect x="280" y="322" width="220" height="56" rx="6" fill="none" stroke="currentColor" stroke-width="1"/>
       <text x="390" y="345" text-anchor="middle" font-weight="600" fill="currentColor">verify.py</text>
       <text x="390" y="364" text-anchor="middle" fill="currentColor" opacity=".8">cắt câu nguyên văn · đối chiếu chuỗi</text>
@@ -107,69 +154,126 @@ footer{margin-top:40px;font-size:12.5px;color:var(--muted);border-top:1px solid 
       <text x="620" y="345" text-anchor="middle" font-weight="600" fill="currentColor">llm.py</text>
       <text x="620" y="364" text-anchor="middle" fill="currentColor" opacity=".8">ollama · openai-compatible · mock</text>
     </g>
-
-    <!-- LLM -->
     <rect x="790" y="200" width="270" height="110" rx="8" fill="#DFEAE4" stroke="#175C4C" stroke-width="1.5"/>
     <text x="925" y="228" text-anchor="middle" font-size="14" font-weight="600" fill="#1C2826">Ollama · Qwen3-8B</text>
     <text x="925" y="250" text-anchor="middle" font-size="12" fill="#1C2826" opacity=".85">chạy trên GPU của máy chủ (≥ 8 GB VRAM)</text>
     <text x="925" y="270" text-anchor="middle" font-size="12" fill="#1C2826" opacity=".85">JSON ép cứng theo schema · temperature 0</text>
     <text x="925" y="292" text-anchor="middle" font-size="11.5" fill="#1C2826" opacity=".7">tùy chọn: vLLM / dịch vụ OpenAI-compatible</text>
-    <line x1="742" y1="255" x2="788" y2="255" stroke="#175C4C" stroke-width="1.5" marker-end="url(#arg)"/>
+    <line x1="742" y1="255" x2="788" y2="255" stroke="#175C4C" stroke-width="1.5" marker-end="url(#v-arg)"/>
     <text x="765" y="243" text-anchor="middle" font-size="10" fill="#175C4C">HTTP nội bộ</text>
-
-    <!-- store -->
     <rect x="790" y="330" width="270" height="70" rx="8" fill="none" stroke="currentColor" stroke-width="1.3"/>
     <text x="925" y="355" text-anchor="middle" font-size="14" font-weight="600" fill="currentColor">SQLite (MVP) → PostgreSQL</text>
     <text x="925" y="376" text-anchor="middle" font-size="12" fill="currentColor" opacity=".8">ca hồ sơ · kết luận · nhật ký chuỗi băm SHA-256</text>
-    <line x1="742" y1="365" x2="788" y2="365" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar)"/>
-
-    <!-- data -->
+    <line x1="742" y1="365" x2="788" y2="365" stroke="currentColor" stroke-width="1.3" marker-end="url(#v-ar)"/>
     <rect x="40" y="430" width="700" height="90" rx="8" fill="none" stroke="currentColor" stroke-width="1.3"/>
     <text x="60" y="456" font-size="14" font-weight="600" fill="currentColor">Dữ liệu</text>
-    <text x="60" y="478" font-size="12" fill="currentColor" opacity=".8">guideline/ — nguyên văn NSF 22-586 + rules.json (12 tiêu chí, mỗi tiêu chí là một câu trích nguyên văn)</text>
-    <text x="60" y="498" font-size="12" fill="currentColor" opacity=".8">applications/ — 15 hồ sơ mẫu có nhãn (manifest.json) · labels/ground-truth.json · hồ sơ tải lên của đơn vị</text>
-    <line x1="390" y1="402" x2="390" y2="428" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar)" marker-start="url(#ar)"/>
-
-    <!-- eval -->
+    <text x="60" y="478" font-size="12" fill="currentColor" opacity=".8">rulesets/ — 6 bộ tiêu chí có version, mỗi tiêu chí là một câu trích nguyên văn (NSF 22-586 + quỹ Úc)</text>
+    <text x="60" y="498" font-size="12" fill="currentColor" opacity=".8">applications/ — 15 hồ sơ mẫu có nhãn · labels/ — bộ test sinh riêng từng quỹ · hồ sơ tải lên của đơn vị</text>
+    <line x1="390" y1="402" x2="390" y2="428" stroke="currentColor" stroke-width="1.3" marker-end="url(#v-ar)" marker-start="url(#v-ar)"/>
     <rect x="790" y="430" width="270" height="90" rx="8" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="4 3"/>
-    <text x="925" y="456" text-anchor="middle" font-size="13" font-weight="600" fill="currentColor">eval.py — chấm điểm định kỳ</text>
+    <text x="925" y="456" text-anchor="middle" font-size="13" font-weight="600" fill="currentColor">eval.py · casegen.py — chấm điểm</text>
     <text x="925" y="478" text-anchor="middle" font-size="12" fill="currentColor" opacity=".8">accuracy · trích dẫn khớp · bias theo cặp</text>
-    <text x="925" y="498" text-anchor="middle" font-size="12" fill="currentColor" opacity=".8">false-pass · so sánh nhiều lõi AI</text>
+    <text x="925" y="498" text-anchor="middle" font-size="12" fill="currentColor" opacity=".8">false-pass · bộ test theo từng quỹ</text>
   </svg>
-  <figcaption>Trình duyệt chỉ nói chuyện với backend trong mạng nội bộ. Mọi lời gọi mô hình đi qua <span class="svg-mono">llm.py</span> tới Ollama trên cùng máy chủ; đổi lõi AI (mô hình lớn hơn, hoặc dịch vụ đám mây nếu đơn vị chấp nhận) chỉ là một biến môi trường, không đụng nghiệp vụ.</figcaption>
+  <figcaption>Trình duyệt chỉ nói chuyện với backend trong mạng nội bộ. Mọi lời gọi mô hình đi qua <span class="mono">llm.py</span> tới Ollama trên cùng máy chủ; đổi lõi AI (mô hình lớn hơn, hoặc dịch vụ đám mây nếu đơn vị chấp nhận) chỉ là một biến môi trường, không đụng nghiệp vụ.</figcaption>
+  </figure>
+
+  <figure class="l-en">
+  <svg viewBox="0 0 1100 560" role="img" aria-label="The officer's browser calls the FastAPI backend; the backend calls Qwen3-8B through Ollama on the same machine, stores data in SQLite and reads the rule sets; everything except the browser sits inside the internal server boundary">
+    <defs>
+      <marker id="e-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker>
+      <marker id="e-arg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#175C4C"/></marker>
+    </defs>
+    <rect x="20" y="150" width="1060" height="390" rx="12" fill="none" stroke="#175C4C" stroke-width="1.5" stroke-dasharray="8 6"/>
+    <text x="40" y="176" font-size="12" fill="#175C4C" font-weight="600" letter-spacing="1.5">ORGANISATION'S INTERNAL SERVER — DATA NEVER LEAVES THE PREMISES</text>
+    <rect x="40" y="30" width="250" height="80" rx="8" fill="none" stroke="currentColor" stroke-width="1.3"/>
+    <text x="165" y="60" text-anchor="middle" font-size="14" font-weight="600" fill="currentColor">Assessing officer</text>
+    <text x="165" y="82" text-anchor="middle" font-size="12" fill="currentColor" opacity=".7">browser · signs by name</text>
+    <text x="165" y="100" text-anchor="middle" font-size="12" fill="currentColor" opacity=".7">manager countersign · auditor</text>
+    <rect x="390" y="30" width="670" height="80" rx="8" fill="none" stroke="currentColor" stroke-width="1.3"/>
+    <text x="410" y="56" font-size="14" font-weight="600" fill="currentColor">Single-page web app</text>
+    <text x="410" y="78" font-size="12" fill="currentColor" opacity=".8">Dashboard · Case queue · Assessment (criteria matrix + source with highlighted citations) · Letters</text>
+    <text x="410" y="96" font-size="12" fill="currentColor" opacity=".8">Rule sets · Bias Lab · Audit log · Data intake (.txt / .docx / .pdf)</text>
+    <line x1="290" y1="70" x2="388" y2="70" stroke="currentColor" stroke-width="1.3" marker-end="url(#e-ar)"/>
+    <text x="339" y="62" text-anchor="middle" font-size="11" fill="currentColor" opacity=".7">opens</text>
+    <rect x="40" y="200" width="700" height="200" rx="8" fill="none" stroke="currentColor" stroke-width="1.3"/>
+    <text x="60" y="226" font-size="14" font-weight="600" fill="currentColor">Backend · Python FastAPI</text>
+    <line x1="725" y1="112" x2="725" y2="198" stroke="currentColor" stroke-width="1.3" marker-end="url(#e-ar)" marker-start="url(#e-ar)"/>
+    <text x="735" y="150" font-size="11" fill="currentColor" opacity=".7">REST JSON</text>
+    <text x="735" y="166" font-size="11" fill="currentColor" opacity=".7">+ streamed progress</text>
+    <g font-size="12">
+      <rect x="60" y="246" width="200" height="60" rx="6" fill="#DCE6F1" stroke="#2B5A8C" stroke-width="1.2"/>
+      <text x="160" y="270" text-anchor="middle" font-weight="600" fill="#1C2826">app.py — API</text>
+      <text x="160" y="290" text-anchor="middle" fill="#1C2826" opacity=".8">cases · assess · sign · letters · log</text>
+      <rect x="280" y="246" width="220" height="60" rx="6" fill="#F2E8D4" stroke="#9A6B1F" stroke-width="1.2"/>
+      <text x="390" y="270" text-anchor="middle" font-weight="600" fill="#1C2826">workflow.py — state machine</text>
+      <text x="390" y="290" text-anchor="middle" fill="#1C2826" opacity=".8">7 states · trust rules on the server</text>
+      <rect x="520" y="246" width="200" height="60" rx="6" fill="#DFEAE4" stroke="#175C4C" stroke-width="1.2"/>
+      <text x="620" y="270" text-anchor="middle" font-weight="600" fill="#1C2826">core.py — AI pipeline</text>
+      <text x="620" y="290" text-anchor="middle" fill="#1C2826" opacity=".8">RAG → facts → judgement → cite</text>
+      <rect x="60" y="322" width="200" height="56" rx="6" fill="none" stroke="currentColor" stroke-width="1"/>
+      <text x="160" y="345" text-anchor="middle" font-weight="600" fill="currentColor">rag.py · guards.py</text>
+      <text x="160" y="364" text-anchor="middle" fill="currentColor" opacity=".8">passages · false-pass guards</text>
+      <rect x="280" y="322" width="220" height="56" rx="6" fill="none" stroke="currentColor" stroke-width="1"/>
+      <text x="390" y="345" text-anchor="middle" font-weight="600" fill="currentColor">verify.py</text>
+      <text x="390" y="364" text-anchor="middle" fill="currentColor" opacity=".8">verbatim quote cut · string match</text>
+      <rect x="520" y="322" width="200" height="56" rx="6" fill="none" stroke="currentColor" stroke-width="1"/>
+      <text x="620" y="345" text-anchor="middle" font-weight="600" fill="currentColor">llm.py</text>
+      <text x="620" y="364" text-anchor="middle" fill="currentColor" opacity=".8">ollama · openai-compatible · mock</text>
+    </g>
+    <rect x="790" y="200" width="270" height="110" rx="8" fill="#DFEAE4" stroke="#175C4C" stroke-width="1.5"/>
+    <text x="925" y="228" text-anchor="middle" font-size="14" font-weight="600" fill="#1C2826">Ollama · Qwen3-8B</text>
+    <text x="925" y="250" text-anchor="middle" font-size="12" fill="#1C2826" opacity=".85">runs on the server GPU (≥ 8 GB VRAM)</text>
+    <text x="925" y="270" text-anchor="middle" font-size="12" fill="#1C2826" opacity=".85">schema-constrained JSON · temperature 0</text>
+    <text x="925" y="292" text-anchor="middle" font-size="11.5" fill="#1C2826" opacity=".7">optional: vLLM / OpenAI-compatible service</text>
+    <line x1="742" y1="255" x2="788" y2="255" stroke="#175C4C" stroke-width="1.5" marker-end="url(#e-arg)"/>
+    <text x="765" y="243" text-anchor="middle" font-size="10" fill="#175C4C">internal HTTP</text>
+    <rect x="790" y="330" width="270" height="70" rx="8" fill="none" stroke="currentColor" stroke-width="1.3"/>
+    <text x="925" y="355" text-anchor="middle" font-size="14" font-weight="600" fill="currentColor">SQLite (MVP) → PostgreSQL</text>
+    <text x="925" y="376" text-anchor="middle" font-size="12" fill="currentColor" opacity=".8">cases · outcomes · SHA-256 hash-chained log</text>
+    <line x1="742" y1="365" x2="788" y2="365" stroke="currentColor" stroke-width="1.3" marker-end="url(#e-ar)"/>
+    <rect x="40" y="430" width="700" height="90" rx="8" fill="none" stroke="currentColor" stroke-width="1.3"/>
+    <text x="60" y="456" font-size="14" font-weight="600" fill="currentColor">Data</text>
+    <text x="60" y="478" font-size="12" fill="currentColor" opacity=".8">rulesets/ — 6 versioned rule sets; every criterion is a verbatim quote (NSF 22-586 + Australian programs)</text>
+    <text x="60" y="498" font-size="12" fill="currentColor" opacity=".8">applications/ — 15 labelled samples · labels/ — test sets generated per program · uploaded applications</text>
+    <line x1="390" y1="402" x2="390" y2="428" stroke="currentColor" stroke-width="1.3" marker-end="url(#e-ar)" marker-start="url(#e-ar)"/>
+    <rect x="790" y="430" width="270" height="90" rx="8" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="4 3"/>
+    <text x="925" y="456" text-anchor="middle" font-size="13" font-weight="600" fill="currentColor">eval.py · casegen.py — scoring</text>
+    <text x="925" y="478" text-anchor="middle" font-size="12" fill="currentColor" opacity=".8">accuracy · citation match · pairwise bias</text>
+    <text x="925" y="498" text-anchor="middle" font-size="12" fill="currentColor" opacity=".8">false passes · per-program test sets</text>
+  </svg>
+  <figcaption>The browser only talks to the backend on the internal network. Every model call goes through <span class="mono">llm.py</span> to Ollama on the same server; swapping the AI core (a larger model, or a cloud service if the organisation accepts one) is a single environment variable with no change to business logic.</figcaption>
   </figure>
 </section>
 
 <!-- ===================== 2. PIPELINE ===================== -->
 <section>
-  <div class="eyebrow">Hình 2</div>
-  <h2>Pipeline AI cho một tiêu chí — vì sao văn phong không thể ảnh hưởng</h2>
-  <p class="lede">Mỗi tiêu chí đi qua bốn lớp. Điểm quyết định: lượt phán quyết chỉ nhận danh sách dữ kiện đã chuẩn hoá, không bao giờ nhìn văn bản gốc; còn câu trích dẫn do mã nguồn cắt, không do AI viết.</p>
-  <figure>
-  <svg viewBox="0 0 1100 400" role="img" aria-label="Hồ sơ đi qua RAG, LLM lượt 1 trích dữ kiện, LLM lượt 2 phán quyết chỉ trên dữ kiện và bị chặn khỏi văn bản gốc; mã nguồn cắt câu nguyên văn từ đoạn được chọn và đối chiếu lại với hồ sơ; đầu ra là kết luận nháp có trích dẫn hai chiều">
+  <div class="eyebrow"><span class="l-vi">Hình 2</span><span class="l-en">Figure 2</span></div>
+  <h2 class="l-vi">Pipeline AI cho một tiêu chí — vì sao văn phong không thể ảnh hưởng</h2>
+  <h2 class="l-en">The AI pipeline for one criterion — why writing style cannot sway the outcome</h2>
+  <p class="lede l-vi">Mỗi tiêu chí đi qua bốn lớp. Điểm quyết định: lượt phán quyết chỉ nhận danh sách dữ kiện đã chuẩn hoá, không bao giờ nhìn văn bản gốc; còn câu trích dẫn do mã nguồn cắt, không do AI viết.</p>
+  <p class="lede l-en">Each criterion passes through four layers. The decisive point: the judgement pass only receives a normalised fact list and never sees the original text, and every quote is cut by code rather than written by the AI.</p>
+
+  <figure class="l-vi">
+  <svg viewBox="0 0 1100 400" role="img" aria-label="Hồ sơ đi qua RAG, LLM lượt 1 trích dữ kiện, LLM lượt 2 phán quyết chỉ trên dữ kiện và bị chặn khỏi văn bản gốc; mã nguồn cắt câu nguyên văn và đối chiếu lại; đầu ra là kết luận nháp có trích dẫn hai chiều">
     <defs>
-      <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker>
-      <marker id="arg2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#175C4C"/></marker>
+      <marker id="v-ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker>
+      <marker id="v-arg2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#175C4C"/></marker>
     </defs>
-    <!-- inputs -->
     <rect x="20" y="40" width="170" height="70" rx="8" fill="none" stroke="currentColor" stroke-width="1.3"/>
     <text x="105" y="68" text-anchor="middle" font-size="13" font-weight="600" fill="currentColor">Hồ sơ (văn gốc)</text>
     <text x="105" y="90" text-anchor="middle" font-size="11.5" fill="currentColor" opacity=".75">bất kỳ văn phong nào</text>
     <rect x="20" y="140" width="170" height="70" rx="8" fill="none" stroke="currentColor" stroke-width="1.3"/>
-    <text x="105" y="168" text-anchor="middle" font-size="13" font-weight="600" fill="currentColor">Tiêu chí R01…R12</text>
+    <text x="105" y="168" text-anchor="middle" font-size="13" font-weight="600" fill="currentColor">Tiêu chí của quỹ</text>
     <text x="105" y="190" text-anchor="middle" font-size="11.5" fill="currentColor" opacity=".75">câu nguyên văn từ hướng dẫn</text>
-
-    <!-- A RAG -->
     <rect x="240" y="40" width="170" height="170" rx="8" fill="none" stroke="currentColor" stroke-width="1.3"/>
     <text x="325" y="66" text-anchor="middle" font-size="11" fill="currentColor" opacity=".7" letter-spacing="1.5">LỚP A · MÃ NGUỒN</text>
     <text x="325" y="90" text-anchor="middle" font-size="14" font-weight="600" fill="currentColor">RAG</text>
     <text x="325" y="114" text-anchor="middle" font-size="11.5" fill="currentColor" opacity=".8">tách đoạn, giữ vị trí ký tự</text>
     <text x="325" y="132" text-anchor="middle" font-size="11.5" fill="currentColor" opacity=".8">chọn 3 đoạn liên quan nhất</text>
     <text x="325" y="150" text-anchor="middle" font-size="11.5" fill="currentColor" opacity=".8">tới tiêu chí</text>
-    <line x1="190" y1="75" x2="238" y2="75" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar2)"/>
-    <line x1="190" y1="175" x2="238" y2="175" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar2)"/>
-
-    <!-- B extract -->
+    <line x1="190" y1="75" x2="238" y2="75" stroke="currentColor" stroke-width="1.3" marker-end="url(#v-ar2)"/>
+    <line x1="190" y1="175" x2="238" y2="175" stroke="currentColor" stroke-width="1.3" marker-end="url(#v-ar2)"/>
     <rect x="460" y="40" width="190" height="170" rx="8" fill="#DCE6F1" stroke="#2B5A8C" stroke-width="1.3"/>
     <text x="555" y="66" text-anchor="middle" font-size="11" fill="#2B5A8C" letter-spacing="1.5">LỚP B · LLM LƯỢT 1</text>
     <text x="555" y="90" text-anchor="middle" font-size="14" font-weight="600" fill="#1C2826">Trích dữ kiện</text>
@@ -177,10 +281,8 @@ footer{margin-top:40px;font-size:12.5px;color:var(--muted);border-top:1px solid 
     <text x="555" y="132" text-anchor="middle" font-size="11.5" fill="#1C2826" opacity=".85">số tiền, %, số trang, directorate…</text>
     <text x="555" y="150" text-anchor="middle" font-size="11.5" fill="#1C2826" opacity=".85">+ mã đoạn + cụm từ khóa</text>
     <text x="555" y="176" text-anchor="middle" font-size="11.5" font-weight="600" fill="#2B5A8C">không phán quyết</text>
-    <line x1="410" y1="125" x2="458" y2="125" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar2)"/>
+    <line x1="410" y1="125" x2="458" y2="125" stroke="currentColor" stroke-width="1.3" marker-end="url(#v-ar2)"/>
     <text x="434" y="116" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".75">3 đoạn</text>
-
-    <!-- C judge -->
     <rect x="720" y="40" width="190" height="170" rx="8" fill="#DFEAE4" stroke="#175C4C" stroke-width="1.5"/>
     <text x="815" y="66" text-anchor="middle" font-size="11" fill="#175C4C" letter-spacing="1.5">LỚP C · LLM LƯỢT 2</text>
     <text x="815" y="90" text-anchor="middle" font-size="14" font-weight="600" fill="#1C2826">Phán quyết</text>
@@ -188,106 +290,152 @@ footer{margin-top:40px;font-size:12.5px;color:var(--muted);border-top:1px solid 
     <text x="815" y="132" text-anchor="middle" font-size="11.5" fill="#1C2826" opacity=".85">tiêu chí + danh sách dữ kiện</text>
     <text x="815" y="156" text-anchor="middle" font-size="11.5" fill="#1C2826" opacity=".85">→ Đạt / Không đạt / Chưa rõ /</text>
     <text x="815" y="174" text-anchor="middle" font-size="11.5" fill="#1C2826" opacity=".85">Không đề cập + mức tin cậy</text>
-    <line x1="650" y1="125" x2="718" y2="125" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar2)"/>
+    <line x1="650" y1="125" x2="718" y2="125" stroke="currentColor" stroke-width="1.3" marker-end="url(#v-ar2)"/>
     <text x="684" y="116" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".75">dữ kiện</text>
-
-    <!-- barrier: original text never reaches C -->
     <path d="M105 40 V20 H815 V38" fill="none" stroke="#A33B2E" stroke-width="1.5" stroke-dasharray="6 5"/>
     <line x1="700" y1="12" x2="716" y2="28" stroke="#A33B2E" stroke-width="2.2"/>
     <line x1="716" y1="12" x2="700" y2="28" stroke="#A33B2E" stroke-width="2.2"/>
     <text x="440" y="14" text-anchor="middle" font-size="11" font-weight="600" fill="#A33B2E">văn gốc KHÔNG bao giờ tới lượt phán quyết — ngữ pháp, độ trôi chảy không thể chi phối kết luận</text>
-
-    <!-- D cite -->
     <rect x="450" y="250" width="210" height="110" rx="8" fill="none" stroke="currentColor" stroke-width="1.3"/>
     <text x="555" y="276" text-anchor="middle" font-size="11" fill="currentColor" opacity=".7" letter-spacing="1.5">LỚP D · MÃ NGUỒN</text>
     <text x="555" y="300" text-anchor="middle" font-size="14" font-weight="600" fill="currentColor">Cắt câu nguyên văn</text>
     <text x="555" y="324" text-anchor="middle" font-size="11.5" fill="currentColor" opacity=".8">tìm câu khớp cụm từ khóa</text>
     <text x="555" y="342" text-anchor="middle" font-size="11.5" fill="currentColor" opacity=".8">đối chiếu chuỗi với hồ sơ gốc</text>
-    <line x1="555" y1="210" x2="555" y2="248" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar2)"/>
+    <line x1="555" y1="210" x2="555" y2="248" stroke="currentColor" stroke-width="1.3" marker-end="url(#v-ar2)"/>
     <text x="610" y="234" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".75">mã đoạn + từ khóa</text>
-    <path d="M105 110 V305 H448" fill="none" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar2)"/>
+    <path d="M105 110 V305 H448" fill="none" stroke="currentColor" stroke-width="1.3" marker-end="url(#v-ar2)"/>
     <text x="280" y="297" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".75">đối chiếu lại nguyên văn (kỳ vọng khớp 100%)</text>
-
-    <!-- output -->
     <rect x="720" y="250" width="360" height="110" rx="8" fill="none" stroke="#175C4C" stroke-width="1.5"/>
     <text x="900" y="276" text-anchor="middle" font-size="11" fill="#175C4C" letter-spacing="1.5">ĐẦU RA — GẮN NHÃN NHÁP</text>
     <text x="740" y="300" font-size="12" fill="currentColor">• kết luận + mức tin cậy + ghi chú tiếng Việt</text>
     <text x="740" y="320" font-size="12" fill="currentColor">• trích dẫn hướng dẫn (nguyên văn theo cấu trúc dữ liệu)</text>
     <text x="740" y="340" font-size="12" fill="currentColor">• trích dẫn hồ sơ (nguyên văn do mã nguồn cắt, đã kiểm)</text>
-    <line x1="815" y1="210" x2="815" y2="248" stroke="#175C4C" stroke-width="1.5" marker-end="url(#arg2)"/>
-    <line x1="660" y1="305" x2="718" y2="305" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar2)"/>
+    <line x1="815" y1="210" x2="815" y2="248" stroke="#175C4C" stroke-width="1.5" marker-end="url(#v-arg2)"/>
+    <line x1="660" y1="305" x2="718" y2="305" stroke="currentColor" stroke-width="1.3" marker-end="url(#v-ar2)"/>
     <text x="684" y="296" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".75">câu trích</text>
-
-    <text x="20" y="388" font-size="11.5" fill="currentColor" opacity=".7">12 tiêu chí × 2 lượt gọi = 24 lượt cho một hồ sơ · ~1–4 phút trên GPU phổ thông với Qwen3-8B</text>
+    <text x="20" y="388" font-size="11.5" fill="currentColor" opacity=".7">Ví dụ NSF: 12 tiêu chí × 2 lượt gọi = 24 lượt cho một hồ sơ · ~1–4 phút trên GPU phổ thông với Qwen3-8B</text>
   </svg>
   <figcaption>Hai hồ sơ cùng dữ kiện nhưng khác văn phong sẽ tạo ra cùng một danh sách dữ kiện ở lớp B, do đó cùng kết luận ở lớp C — đây là điều Bias Lab kiểm chứng trên hai cặp hồ sơ mẫu. Lớp D bảo đảm trích dẫn đúng nguyên văn "theo cấu trúc": mô hình 8B không được phép tự viết câu trích.</figcaption>
+  </figure>
+
+  <figure class="l-en">
+  <svg viewBox="0 0 1100 400" role="img" aria-label="The application passes through retrieval, LLM pass 1 extracts facts, LLM pass 2 judges from facts only and is walled off from the source text; code cuts the verbatim quote and re-checks it; the output is a draft outcome with two-way citations">
+    <defs>
+      <marker id="e-ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker>
+      <marker id="e-arg2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#175C4C"/></marker>
+    </defs>
+    <rect x="20" y="40" width="170" height="70" rx="8" fill="none" stroke="currentColor" stroke-width="1.3"/>
+    <text x="105" y="68" text-anchor="middle" font-size="13" font-weight="600" fill="currentColor">Application (source)</text>
+    <text x="105" y="90" text-anchor="middle" font-size="11.5" fill="currentColor" opacity=".75">any writing style</text>
+    <rect x="20" y="140" width="170" height="70" rx="8" fill="none" stroke="currentColor" stroke-width="1.3"/>
+    <text x="105" y="168" text-anchor="middle" font-size="13" font-weight="600" fill="currentColor">Program criteria</text>
+    <text x="105" y="190" text-anchor="middle" font-size="11.5" fill="currentColor" opacity=".75">verbatim guideline sentences</text>
+    <rect x="240" y="40" width="170" height="170" rx="8" fill="none" stroke="currentColor" stroke-width="1.3"/>
+    <text x="325" y="66" text-anchor="middle" font-size="11" fill="currentColor" opacity=".7" letter-spacing="1.5">LAYER A · CODE</text>
+    <text x="325" y="90" text-anchor="middle" font-size="14" font-weight="600" fill="currentColor">Retrieval (RAG)</text>
+    <text x="325" y="114" text-anchor="middle" font-size="11.5" fill="currentColor" opacity=".8">split into passages,</text>
+    <text x="325" y="132" text-anchor="middle" font-size="11.5" fill="currentColor" opacity=".8">keep character offsets,</text>
+    <text x="325" y="150" text-anchor="middle" font-size="11.5" fill="currentColor" opacity=".8">pick the 3 most relevant</text>
+    <line x1="190" y1="75" x2="238" y2="75" stroke="currentColor" stroke-width="1.3" marker-end="url(#e-ar2)"/>
+    <line x1="190" y1="175" x2="238" y2="175" stroke="currentColor" stroke-width="1.3" marker-end="url(#e-ar2)"/>
+    <rect x="460" y="40" width="190" height="170" rx="8" fill="#DCE6F1" stroke="#2B5A8C" stroke-width="1.3"/>
+    <text x="555" y="66" text-anchor="middle" font-size="11" fill="#2B5A8C" letter-spacing="1.5">LAYER B · LLM PASS 1</text>
+    <text x="555" y="90" text-anchor="middle" font-size="14" font-weight="600" fill="#1C2826">Extract facts</text>
+    <text x="555" y="114" text-anchor="middle" font-size="11.5" fill="#1C2826" opacity=".85">neutral facts only:</text>
+    <text x="555" y="132" text-anchor="middle" font-size="11.5" fill="#1C2826" opacity=".85">amounts, %, pages, directorate…</text>
+    <text x="555" y="150" text-anchor="middle" font-size="11.5" fill="#1C2826" opacity=".85">+ passage ID + key phrase</text>
+    <text x="555" y="176" text-anchor="middle" font-size="11.5" font-weight="600" fill="#2B5A8C">no judgement</text>
+    <line x1="410" y1="125" x2="458" y2="125" stroke="currentColor" stroke-width="1.3" marker-end="url(#e-ar2)"/>
+    <text x="434" y="116" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".75">3 passages</text>
+    <rect x="720" y="40" width="190" height="170" rx="8" fill="#DFEAE4" stroke="#175C4C" stroke-width="1.5"/>
+    <text x="815" y="66" text-anchor="middle" font-size="11" fill="#175C4C" letter-spacing="1.5">LAYER C · LLM PASS 2</text>
+    <text x="815" y="90" text-anchor="middle" font-size="14" font-weight="600" fill="#1C2826">Judge</text>
+    <text x="815" y="114" text-anchor="middle" font-size="11.5" fill="#1C2826" opacity=".85">only input:</text>
+    <text x="815" y="132" text-anchor="middle" font-size="11.5" fill="#1C2826" opacity=".85">criterion + fact list</text>
+    <text x="815" y="156" text-anchor="middle" font-size="11.5" fill="#1C2826" opacity=".85">→ Met / Not met / Unclear /</text>
+    <text x="815" y="174" text-anchor="middle" font-size="11.5" fill="#1C2826" opacity=".85">Not addressed + confidence</text>
+    <line x1="650" y1="125" x2="718" y2="125" stroke="currentColor" stroke-width="1.3" marker-end="url(#e-ar2)"/>
+    <text x="684" y="116" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".75">facts</text>
+    <path d="M105 40 V20 H815 V38" fill="none" stroke="#A33B2E" stroke-width="1.5" stroke-dasharray="6 5"/>
+    <line x1="700" y1="12" x2="716" y2="28" stroke="#A33B2E" stroke-width="2.2"/>
+    <line x1="716" y1="12" x2="700" y2="28" stroke="#A33B2E" stroke-width="2.2"/>
+    <text x="420" y="14" text-anchor="middle" font-size="11" font-weight="600" fill="#A33B2E">the source text NEVER reaches the judgement pass — grammar and fluency cannot sway the outcome</text>
+    <rect x="450" y="250" width="210" height="110" rx="8" fill="none" stroke="currentColor" stroke-width="1.3"/>
+    <text x="555" y="276" text-anchor="middle" font-size="11" fill="currentColor" opacity=".7" letter-spacing="1.5">LAYER D · CODE</text>
+    <text x="555" y="300" text-anchor="middle" font-size="14" font-weight="600" fill="currentColor">Cut verbatim quote</text>
+    <text x="555" y="324" text-anchor="middle" font-size="11.5" fill="currentColor" opacity=".8">find the sentence with the key phrase</text>
+    <text x="555" y="342" text-anchor="middle" font-size="11.5" fill="currentColor" opacity=".8">string-match against the source</text>
+    <line x1="555" y1="210" x2="555" y2="248" stroke="currentColor" stroke-width="1.3" marker-end="url(#e-ar2)"/>
+    <text x="620" y="234" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".75">passage ID + key phrase</text>
+    <path d="M105 110 V305 H448" fill="none" stroke="currentColor" stroke-width="1.3" marker-end="url(#e-ar2)"/>
+    <text x="280" y="297" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".75">verbatim re-check (100% match expected)</text>
+    <rect x="720" y="250" width="360" height="110" rx="8" fill="none" stroke="#175C4C" stroke-width="1.5"/>
+    <text x="900" y="276" text-anchor="middle" font-size="11" fill="#175C4C" letter-spacing="1.5">OUTPUT — LABELLED DRAFT</text>
+    <text x="740" y="300" font-size="12" fill="currentColor">• outcome + confidence + note for the officer</text>
+    <text x="740" y="320" font-size="12" fill="currentColor">• guideline citation (verbatim, from structured data)</text>
+    <text x="740" y="340" font-size="12" fill="currentColor">• application citation (cut by code, verified)</text>
+    <line x1="815" y1="210" x2="815" y2="248" stroke="#175C4C" stroke-width="1.5" marker-end="url(#e-arg2)"/>
+    <line x1="660" y1="305" x2="718" y2="305" stroke="currentColor" stroke-width="1.3" marker-end="url(#e-ar2)"/>
+    <text x="684" y="296" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".75">quote</text>
+    <text x="20" y="388" font-size="11.5" fill="currentColor" opacity=".7">NSF example: 12 criteria × 2 calls = 24 calls per application · ~1–4 minutes on a mainstream GPU with Qwen3-8B</text>
+  </svg>
+  <figcaption>Two applications with the same facts but different writing styles produce the same fact list in layer B, and therefore the same outcome in layer C — this is what Bias Lab verifies on two pairs of sample applications. Layer D guarantees verbatim quotes by construction: the 8B model is never allowed to write a quote itself.</figcaption>
   </figure>
 </section>
 
 <!-- ===================== 3. WORKFLOW ===================== -->
 <section>
-  <div class="eyebrow">Hình 3</div>
-  <h2>Luồng nghiệp vụ — các chốt kiểm soát nằm trên mũi tên</h2>
-  <p class="lede">Một hồ sơ là một ca đi qua các trạng thái có máy chủ kiểm soát điều kiện chuyển; từ v2.2 thêm trạng thái <b>Chờ bổ sung hồ sơ</b> (nhiều vòng, có hạn SLA) giữa Thẩm định và Ký, và bước <b>ký cấp 2 của quản lý</b> trước khi phát hành thư loại.</p>
-  <figure>
-  <svg viewBox="0 0 1100 330" role="img" aria-label="Sáu trạng thái từ Mới tới Thư đã phê duyệt; mỗi mũi tên chuyển trạng thái ghi rõ điều kiện: AI đánh giá, spot-check mù, 12/12 xác nhận và thời gian tối thiểu, AI soạn thư, cán bộ phê duyệt; mũi tên quay lại từ Đã ký duyệt về Đang thẩm định yêu cầu lý do">
+  <div class="eyebrow"><span class="l-vi">Hình 3</span><span class="l-en">Figure 3</span></div>
+  <h2 class="l-vi">Luồng nghiệp vụ — các chốt kiểm soát nằm trên mũi tên</h2>
+  <h2 class="l-en">Case workflow — the controls sit on the arrows</h2>
+  <p class="lede l-vi">Một hồ sơ là một ca đi qua các trạng thái có máy chủ kiểm soát điều kiện chuyển; từ v2.2 thêm trạng thái <b>Chờ bổ sung hồ sơ</b> (nhiều vòng, có hạn SLA) giữa Thẩm định và Ký, và bước <b>ký cấp 2 của quản lý</b> trước khi phát hành thư loại.</p>
+  <p class="lede l-en">Each application is a case moving through states whose transitions the server controls. Since v2.2 an <b>Awaiting supplement</b> state (multiple rounds, SLA deadline) sits between Review and Sign-off, and a <b>manager countersignature</b> is required before any rejection letter is issued.</p>
+
+  <figure class="l-vi">
+  <svg viewBox="0 0 1100 330" role="img" aria-label="Sáu trạng thái từ Mới tới Thư đã phê duyệt; mỗi mũi tên ghi rõ điều kiện chuyển: AI đánh giá, spot-check mù, xác nhận đủ mọi tiêu chí và thời gian tối thiểu, AI soạn thư, cán bộ phê duyệt; mũi tên quay lại từ Đã ký duyệt về Đang thẩm định yêu cầu lý do">
     <defs>
-      <marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker>
-      <marker id="ar3a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#9A6B1F"/></marker>
+      <marker id="v-ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker>
+      <marker id="v-ar3a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#9A6B1F"/></marker>
     </defs>
     <g font-size="12">
-      <!-- states: x positions 20,200,380,560,740,920 ; width 150 -->
       <rect x="20" y="110" width="150" height="64" rx="8" fill="none" stroke="currentColor" stroke-width="1.3"/>
       <text x="95" y="136" text-anchor="middle" font-weight="600" fill="currentColor">1 · Mới</text>
       <text x="95" y="156" text-anchor="middle" fill="currentColor" opacity=".75">mẫu hoặc tải lên</text>
-
       <rect x="200" y="110" width="150" height="64" rx="8" fill="#DCE6F1" stroke="#2B5A8C" stroke-width="1.3"/>
       <text x="275" y="136" text-anchor="middle" font-weight="600" fill="#1C2826">2 · AI đã đánh giá</text>
-      <text x="275" y="156" text-anchor="middle" fill="#1C2826" opacity=".8">12 kết luận NHÁP</text>
-
+      <text x="275" y="156" text-anchor="middle" fill="#1C2826" opacity=".8">kết luận NHÁP</text>
       <rect x="380" y="110" width="150" height="64" rx="8" fill="#F2E8D4" stroke="#9A6B1F" stroke-width="1.3"/>
       <text x="455" y="136" text-anchor="middle" font-weight="600" fill="#1C2826">3 · Đang thẩm định</text>
       <text x="455" y="156" text-anchor="middle" fill="#1C2826" opacity=".8">cán bộ xác nhận từng dòng</text>
-
       <rect x="560" y="110" width="150" height="64" rx="8" fill="#DFEAE4" stroke="#175C4C" stroke-width="1.3"/>
       <text x="635" y="136" text-anchor="middle" font-weight="600" fill="#1C2826">4 · Đã ký duyệt</text>
       <text x="635" y="156" text-anchor="middle" fill="#1C2826" opacity=".8">tên + thời điểm</text>
-
       <rect x="740" y="110" width="150" height="64" rx="8" fill="none" stroke="currentColor" stroke-width="1.3"/>
       <text x="815" y="136" text-anchor="middle" font-weight="600" fill="currentColor">5 · Thư nháp</text>
       <text x="815" y="156" text-anchor="middle" fill="currentColor" opacity=".75">sửa tay được</text>
-
       <rect x="920" y="110" width="160" height="64" rx="8" fill="#175C4C" stroke="#175C4C" stroke-width="1.3"/>
       <text x="1000" y="136" text-anchor="middle" font-weight="600" fill="#FFFFFF">6 · Thư đã phê duyệt</text>
       <text x="1000" y="156" text-anchor="middle" fill="#FFFFFF" opacity=".85">in / lưu PDF</text>
-
-      <!-- forward arrows -->
-      <line x1="170" y1="142" x2="198" y2="142" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar3)"/>
-      <line x1="350" y1="142" x2="378" y2="142" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar3)"/>
-      <line x1="530" y1="142" x2="558" y2="142" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar3)"/>
-      <line x1="710" y1="142" x2="738" y2="142" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar3)"/>
-      <line x1="890" y1="142" x2="918" y2="142" stroke="currentColor" stroke-width="1.3" marker-end="url(#ar3)"/>
-
-      <!-- guard labels above -->
+      <line x1="170" y1="142" x2="198" y2="142" stroke="currentColor" stroke-width="1.3" marker-end="url(#v-ar3)"/>
+      <line x1="350" y1="142" x2="378" y2="142" stroke="currentColor" stroke-width="1.3" marker-end="url(#v-ar3)"/>
+      <line x1="530" y1="142" x2="558" y2="142" stroke="currentColor" stroke-width="1.3" marker-end="url(#v-ar3)"/>
+      <line x1="710" y1="142" x2="738" y2="142" stroke="currentColor" stroke-width="1.3" marker-end="url(#v-ar3)"/>
+      <line x1="890" y1="142" x2="918" y2="142" stroke="currentColor" stroke-width="1.3" marker-end="url(#v-ar3)"/>
       <g font-size="11" fill="currentColor">
         <text x="185" y="60" text-anchor="middle" font-weight="600">AI</text>
-        <text x="185" y="76" text-anchor="middle" opacity=".8">24 lượt gọi,</text>
+        <text x="185" y="76" text-anchor="middle" opacity=".8">2 lượt gọi/tiêu chí,</text>
         <text x="185" y="91" text-anchor="middle" opacity=".8">tiến độ trực tiếp</text>
-
         <text x="365" y="45" text-anchor="middle" font-weight="600">Cán bộ nhập tên</text>
         <text x="365" y="61" text-anchor="middle" opacity=".8">→ spot-check mù:</text>
         <text x="365" y="76" text-anchor="middle" opacity=".8">AI bị che tới khi</text>
         <text x="365" y="91" text-anchor="middle" opacity=".8">tự kết luận 1 tiêu chí</text>
-
-        <text x="545" y="45" text-anchor="middle" font-weight="600">Ký chỉ khi 12/12</text>
+        <text x="545" y="45" text-anchor="middle" font-weight="600">Ký khi đủ mọi tiêu chí</text>
         <text x="545" y="61" text-anchor="middle" opacity=".8">sửa AI ⇒ có lý do</text>
-        <text x="545" y="76" text-anchor="middle" opacity=".8">&lt; 8 s/tiêu chí ⇒ cảnh báo,</text>
+        <text x="545" y="76" text-anchor="middle" opacity=".8">&lt; 15 s/tiêu chí ⇒ cảnh báo,</text>
         <text x="545" y="91" text-anchor="middle" opacity=".8">ghi nhật ký, xác nhận lần 2</text>
-
         <text x="725" y="60" text-anchor="middle" font-weight="600">AI soạn thư</text>
         <text x="725" y="76" text-anchor="middle" opacity=".8">tiếng Anh B1, trích dẫn</text>
         <text x="725" y="91" text-anchor="middle" opacity=".8">2 chiều, mục khiếu nại</text>
-
         <text x="905" y="60" text-anchor="middle" font-weight="600">Cán bộ phê duyệt</text>
         <text x="905" y="76" text-anchor="middle" opacity=".8">nhật ký ghi nếu</text>
         <text x="905" y="91" text-anchor="middle" opacity=".8">có chỉnh sửa tay</text>
@@ -295,12 +443,8 @@ footer{margin-top:40px;font-size:12.5px;color:var(--muted);border-top:1px solid 
       <g stroke="currentColor" stroke-width="1" opacity=".5">
         <line x1="185" y1="98" x2="185" y2="136"/><line x1="365" y1="98" x2="365" y2="136"/><line x1="545" y1="98" x2="545" y2="136"/><line x1="725" y1="98" x2="725" y2="136"/><line x1="905" y1="98" x2="905" y2="136"/>
       </g>
-
-      <!-- reopen -->
-      <path d="M635 174 V215 H455 V176" fill="none" stroke="#9A6B1F" stroke-width="1.3" stroke-dasharray="6 4" marker-end="url(#ar3a)"/>
+      <path d="M635 174 V215 H455 V176" fill="none" stroke="#9A6B1F" stroke-width="1.3" stroke-dasharray="6 4" marker-end="url(#v-ar3a)"/>
       <text x="545" y="232" text-anchor="middle" font-size="11" fill="#9A6B1F" font-weight="600">Mở lại — bắt buộc ghi lý do; xoá thư, giữ nhật ký</text>
-
-      <!-- audit strip -->
       <rect x="20" y="262" width="1060" height="46" rx="8" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="4 3"/>
       <text x="40" y="282" font-size="12" font-weight="600" fill="currentColor">Nhật ký kiểm toán chuỗi băm — ghi ở mọi mũi tên</text>
       <text x="40" y="299" font-size="11.5" fill="currentColor" opacity=".8">AI đề xuất gì · ai sửa gì, vì sao · spot-check trùng hay khác · ai ký, lúc nào · mỗi sự kiện chứa SHA-256 của sự kiện trước — sửa một dòng là chuỗi đứt</text>
@@ -308,74 +452,218 @@ footer{margin-top:40px;font-size:12.5px;color:var(--muted);border-top:1px solid 
   </svg>
   <figcaption>Không có nút "duyệt tất cả": mỗi tiêu chí là một xác nhận riêng. Kết luận "Chưa rõ / Không đề cập" của AI bắt buộc người quyết và ghi lý do — lý do này đi thẳng vào thư kết quả ở mục "cần bổ sung gì".</figcaption>
   </figure>
+
+  <figure class="l-en">
+  <svg viewBox="0 0 1100 330" role="img" aria-label="Six states from New to Letter approved; each transition arrow states its condition: AI assessment, blind spot-check, every criterion confirmed with a minimum review time, AI drafts the letter, officer approves; a return arrow from Signed off to In review requires a reason">
+    <defs>
+      <marker id="e-ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker>
+      <marker id="e-ar3a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#9A6B1F"/></marker>
+    </defs>
+    <g font-size="12">
+      <rect x="20" y="110" width="150" height="64" rx="8" fill="none" stroke="currentColor" stroke-width="1.3"/>
+      <text x="95" y="136" text-anchor="middle" font-weight="600" fill="currentColor">1 · New</text>
+      <text x="95" y="156" text-anchor="middle" fill="currentColor" opacity=".75">sample or upload</text>
+      <rect x="200" y="110" width="150" height="64" rx="8" fill="#DCE6F1" stroke="#2B5A8C" stroke-width="1.3"/>
+      <text x="275" y="136" text-anchor="middle" font-weight="600" fill="#1C2826">2 · AI assessed</text>
+      <text x="275" y="156" text-anchor="middle" fill="#1C2826" opacity=".8">DRAFT outcomes</text>
+      <rect x="380" y="110" width="150" height="64" rx="8" fill="#F2E8D4" stroke="#9A6B1F" stroke-width="1.3"/>
+      <text x="455" y="136" text-anchor="middle" font-weight="600" fill="#1C2826">3 · In review</text>
+      <text x="455" y="156" text-anchor="middle" fill="#1C2826" opacity=".8">officer confirms each row</text>
+      <rect x="560" y="110" width="150" height="64" rx="8" fill="#DFEAE4" stroke="#175C4C" stroke-width="1.3"/>
+      <text x="635" y="136" text-anchor="middle" font-weight="600" fill="#1C2826">4 · Signed off</text>
+      <text x="635" y="156" text-anchor="middle" fill="#1C2826" opacity=".8">name + timestamp</text>
+      <rect x="740" y="110" width="150" height="64" rx="8" fill="none" stroke="currentColor" stroke-width="1.3"/>
+      <text x="815" y="136" text-anchor="middle" font-weight="600" fill="currentColor">5 · Draft letter</text>
+      <text x="815" y="156" text-anchor="middle" fill="currentColor" opacity=".75">editable by hand</text>
+      <rect x="920" y="110" width="160" height="64" rx="8" fill="#175C4C" stroke="#175C4C" stroke-width="1.3"/>
+      <text x="1000" y="136" text-anchor="middle" font-weight="600" fill="#FFFFFF">6 · Letter approved</text>
+      <text x="1000" y="156" text-anchor="middle" fill="#FFFFFF" opacity=".85">print / save PDF</text>
+      <line x1="170" y1="142" x2="198" y2="142" stroke="currentColor" stroke-width="1.3" marker-end="url(#e-ar3)"/>
+      <line x1="350" y1="142" x2="378" y2="142" stroke="currentColor" stroke-width="1.3" marker-end="url(#e-ar3)"/>
+      <line x1="530" y1="142" x2="558" y2="142" stroke="currentColor" stroke-width="1.3" marker-end="url(#e-ar3)"/>
+      <line x1="710" y1="142" x2="738" y2="142" stroke="currentColor" stroke-width="1.3" marker-end="url(#e-ar3)"/>
+      <line x1="890" y1="142" x2="918" y2="142" stroke="currentColor" stroke-width="1.3" marker-end="url(#e-ar3)"/>
+      <g font-size="11" fill="currentColor">
+        <text x="185" y="60" text-anchor="middle" font-weight="600">AI</text>
+        <text x="185" y="76" text-anchor="middle" opacity=".8">2 calls per criterion,</text>
+        <text x="185" y="91" text-anchor="middle" opacity=".8">live progress</text>
+        <text x="365" y="45" text-anchor="middle" font-weight="600">Officer signs in</text>
+        <text x="365" y="61" text-anchor="middle" opacity=".8">→ blind spot-check:</text>
+        <text x="365" y="76" text-anchor="middle" opacity=".8">AI hidden until the officer</text>
+        <text x="365" y="91" text-anchor="middle" opacity=".8">decides 1 criterion alone</text>
+        <text x="545" y="45" text-anchor="middle" font-weight="600">Sign only when all confirmed</text>
+        <text x="545" y="61" text-anchor="middle" opacity=".8">override AI ⇒ reason</text>
+        <text x="545" y="76" text-anchor="middle" opacity=".8">&lt; 15 s/criterion ⇒ warning,</text>
+        <text x="545" y="91" text-anchor="middle" opacity=".8">logged, second confirmation</text>
+        <text x="725" y="60" text-anchor="middle" font-weight="600">AI drafts letter</text>
+        <text x="725" y="76" text-anchor="middle" opacity=".8">plain English B1, two-way</text>
+        <text x="725" y="91" text-anchor="middle" opacity=".8">citations, appeal section</text>
+        <text x="905" y="60" text-anchor="middle" font-weight="600">Officer approves</text>
+        <text x="905" y="76" text-anchor="middle" opacity=".8">log records any</text>
+        <text x="905" y="91" text-anchor="middle" opacity=".8">manual edits</text>
+      </g>
+      <g stroke="currentColor" stroke-width="1" opacity=".5">
+        <line x1="185" y1="98" x2="185" y2="136"/><line x1="365" y1="98" x2="365" y2="136"/><line x1="545" y1="98" x2="545" y2="136"/><line x1="725" y1="98" x2="725" y2="136"/><line x1="905" y1="98" x2="905" y2="136"/>
+      </g>
+      <path d="M635 174 V215 H455 V176" fill="none" stroke="#9A6B1F" stroke-width="1.3" stroke-dasharray="6 4" marker-end="url(#e-ar3a)"/>
+      <text x="545" y="232" text-anchor="middle" font-size="11" fill="#9A6B1F" font-weight="600">Reopen — reason required; letter cleared, log kept</text>
+      <rect x="20" y="262" width="1060" height="46" rx="8" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="4 3"/>
+      <text x="40" y="282" font-size="12" font-weight="600" fill="currentColor">Hash-chained audit log — written on every arrow</text>
+      <text x="40" y="299" font-size="11.5" fill="currentColor" opacity=".8">What the AI proposed · who changed what, and why · spot-check result · who signed, when · each event stores the previous event's SHA-256 — edit one line and the chain breaks</text>
+    </g>
+  </svg>
+  <figcaption>There is no "approve all" button: every criterion is a separate confirmation. An AI outcome of "Unclear / Not addressed" forces a human decision with a reason, and that reason flows straight into the outcome letter's "what to supplement" section.</figcaption>
+  </figure>
 </section>
 
-<!-- ===================== 3b. CẬP NHẬT THEO PHẢN HỒI ===================== -->
+<!-- ===================== 4. MEASUREMENT PER PROGRAM ===================== -->
 <section>
-  <div class="eyebrow">Cập nhật 09/2026 — theo phản hồi thẩm định</div>
-  <h2>Các cơ chế bổ sung (đã cài đặt và kiểm thử)</h2>
-  <div class="grid">
-    <div class="card">
-      <h3>Không để AI một mình ở chỗ không có lưới đỡ</h3>
-      <p>Với tiêu chí mà mã nguồn không kiểm được, kết luận ĐẠT <b>bắt buộc kèm bằng chứng cán bộ tự đối chiếu</b> — máy chủ từ chối nếu chỉ bấm theo AI, và ghi nội dung chứng thực vào nhật ký mang tên người ký. Bộ kiểm nhãn tự động chạy hai lượt độc lập, mã nguồn có quyền phủ quyết khi bắt được vi phạm bằng số liệu.</p>
-    </div>
-    <div class="card">
-      <h3>Giới hạn được công bố, không giấu</h3>
-      <p>Mỗi bộ tiêu chí có <b>báo cáo độ phủ 3 mức</b>: tiêu chí có lưới đỡ mã nguồn / <b>cần guard viết tay</b> (logic dẫn xuất, nhánh thay thế, ngưỡng điều kiện — mã nguồn tự nhận là không diễn đạt nổi) / chỉ dựa mô hình + cán bộ. Số "false-pass = 0" chỉ có giá trị với <b>đúng quỹ đã đo bằng bộ test đã được cán bộ phê chuẩn nhãn</b> — hệ thống tự gắn nhãn "tạm tính" cho mọi số đo chưa qua phê chuẩn.</p>
-    </div>
-    <div class="card">
-      <h3>Multi-GO + versioning + kho quỹ Úc</h3>
-      <p>Mỗi đợt/quỹ tài trợ có bộ tiêu chí riêng kèm version; hồ sơ <b>khóa cứng snapshot bộ tiêu chí tại lần đánh giá đầu</b> — đổi rule giữa đợt không ảnh hưởng case đang xử lý. Đã nạp sẵn 4 quỹ Úc thật trích nguyên văn guideline: Wine Tourism R8, Cyber Skills R2, Boosting Female Founders R1, On-farm Water — phủ đủ 4 nhóm quỹ (program-specific, industry, cross-industry, location-based).</p>
-    </div>
-    <div class="card">
-      <h3>Guard chặn false-pass bằng mã nguồn</h3>
-      <p>Rule đo được bằng số (ngân sách, %, số trang, co-PI, cellar door, liên danh, 51% nữ…) được code kiểm lại sau AI: AI nói "đạt" mà số liệu vi phạm ⇒ ghi đè "không đạt" và ghi nhật ký. Số đo bằng Qwen thật trên các hồ sơ chứa đủ lỗi trượt: <b>false-pass giảm từ 1/6 xuống 0/6, accuracy 24/24</b>.</p>
-    </div>
-    <div class="card">
-      <h3>Ký cấp 2 · vòng bổ sung · SLA</h3>
-      <p>Hồ sơ có tiêu chí không đạt/chưa rõ chỉ phát hành thư sau khi <b>quản lý (khác người thẩm định, qua kiểm COI) ký xác nhận cấp 2</b>. Cán bộ yêu cầu bổ sung theo danh mục + hạn nộp, nhiều vòng có đếm; SLA từng trạng thái hiện ngay hàng đợi, quá hạn cảnh báo đỏ. Ngưỡng chống ký ẩu nâng lên 15 giây/tiêu chí.</p>
-    </div>
-    <div class="card">
-      <h3>Đối chiếu chéo chống gian lận</h3>
-      <p>Một hồ sơ có thể gồm nhiều tài liệu (đơn khai, báo cáo tài chính, lý lịch…). Mã nguồn bóc và <b>so trực tiếp các con số cùng loại giữa các tài liệu</b> — tổng ngân sách, doanh thu, năm nhận bằng, số trang — kèm kiểm tra ngày tháng vô lý. Khai $480k nhưng báo cáo đính kèm ghi $1,52 triệu → gắn cờ "không khớp — nghi vấn", kèm trích ngữ cảnh từng nguồn để cán bộ yêu cầu giải trình.</p>
-    </div>
-    <div class="card">
-      <h3>Thư kết quả theo mẫu đơn vị</h3>
-      <p>Đơn vị cung cấp mẫu thư từ chối/phản hồi chuẩn của mình; hệ thống soạn thư theo <b>đúng cấu trúc, đề mục và thứ tự của mẫu</b>, chỉ điền nội dung từ các kết luận đã ký — thay một file là đổi được toàn bộ format thư đầu ra.</p>
-    </div>
-    <div class="card">
-      <h3>Phân tích layout &amp; bảng biểu trước RAG</h3>
-      <p>PDF/DOCX được phân tích bố cục trước khi vào RAG: vùng bảng (ngân sách, nhân sự…) được nhận diện và giữ <b>nguyên hàng–cột</b> thành một khối không thể bị cắt đôi khi chia đoạn — số liệu tài chính không còn bị trộn dòng. Trang scan không có lớp chữ được phát hiện, gắn cờ "cần OCR" (tự OCR nếu máy chủ cài Tesseract).</p>
-    </div>
-    <div class="card">
-      <h3>Vòng phản hồi → kho tinh chỉnh model</h3>
-      <p>Khi cán bộ ký duyệt, mọi tiêu chí <b>cán bộ sửa kết luận AI</b> (hoặc phải quyết thay AI) tự động vào kho ground-truth kèm dữ kiện, kết luận đúng và lý do. Kho này (1) được bơm ngược ngay vào prompt phán quyết làm ví dụ sửa sai cho các hồ sơ sau, và (2) xuất được ra định dạng fine-tune để tinh chỉnh model định kỳ.</p>
-    </div>
-    <div class="card">
-      <h3>Rà xung đột lợi ích trước phân bổ</h3>
-      <p>Trước khi cán bộ nhận thẩm định, hệ thống đối chiếu cán bộ với hồ sơ: <b>trùng tổ chức với người nộp → chặn hẳn</b>, phải chuyển hồ sơ; trùng tên / tên xuất hiện trong hồ sơ / chưa khai báo tổ chức → cảnh báo, muốn tiếp tục phải ghi lý do, tất cả vào nhật ký chuỗi băm.</p>
-    </div>
-    <div class="card">
-      <h3>Sàng lọc danh sách cấm</h3>
-      <p>Mỗi hồ sơ nạp vào được tự động khớp mờ (chịu sai chính tả, đảo tên, bí danh) với danh sách cá nhân bị cấm hành nghề, danh sách cấm vận, và xác minh tổ chức qua sổ đăng ký doanh nghiệp (~20,5 triệu bản ghi, chỉ mục nội bộ). Hit chỉ là bằng chứng — cán bộ xem và quyết, hệ thống không tự loại hồ sơ.</p>
-    </div>
+  <div class="eyebrow"><span class="l-vi">Đo lường</span><span class="l-en">Measurement</span></div>
+  <h2 class="l-vi">Đo chất lượng theo từng quỹ</h2>
+  <h2 class="l-en">Quality, measured program by program</h2>
+  <p class="lede l-vi">Mỗi quỹ phải tự có số đo riêng. Một quỹ chỉ được công bố số khi đã đi hết chuỗi dưới đây — số của quỹ này không bao giờ được dùng để nói về quỹ khác.</p>
+  <p class="lede l-en">Every program has to earn its own figures. A result is published only once a program has completed the whole chain below — one program's figures are never used to describe another.</p>
+
+  <ol class="chain l-vi">
+    <li>AI sinh bộ test: 1 hồ sơ sạch + các hồ sơ có đúng 1 vi phạm cài sẵn</li>
+    <li>Mã nguồn chốt vi phạm, chặn lộ đáp án, chặn văn bản không phải hồ sơ</li>
+    <li>Model kiểm độc lập (khác họ với hệ bị đo) gắn cờ case đáng ngờ</li>
+    <li>Người rà đọc từng hồ sơ, xác nhận hoặc loại</li>
+    <li>Phê chuẩn nhãn</li>
+    <li>Đo bằng lõi AI thật: bắt vi phạm · false-pass · báo động giả</li>
+  </ol>
+  <ol class="chain l-en">
+    <li>AI generates a test set: 1 clean application + applications with exactly 1 planted violation</li>
+    <li>Code fixes the violation, blocks answer leaks, rejects text that is not an application</li>
+    <li>An independent checker model (different family from the system under test) flags doubtful cases</li>
+    <li>A reviewer reads every application, confirms or discards</li>
+    <li>Labels approved</li>
+    <li>Measured with the real AI core: violations caught · false passes · false alarms</li>
+  </ol>
+
+  <div class="tblwrap l-vi"><table>
+    <tr><th>Quỹ / bộ tiêu chí</th><th>Tiêu chí có lưới đỡ mã nguồn</th><th>Trạng thái đo</th><th>Kết quả công bố</th></tr>
+    <!-- MEASURE-ROWS:vi -->
+    <tr><td>NSF 22-586 CAREER (Mỹ)</td><td class="num">8 / 12</td><td><span class="pill done">đã đo đủ chuỗi</span></td><td>bắt 1/1 · false-pass 0/1 · báo động giả 0/1</td></tr>
+    <tr><td>Wine Tourism R8</td><td class="num">5 / 9</td><td><span class="pill done">đã đo đủ chuỗi</span></td><td>bắt 2/2 · false-pass 0/2 · báo động giả 1/2 <span class="mono">(số 3/3 cũ đã thu hồi)</span></td></tr>
+    <tr><td>Cyber Security Skills R2</td><td class="num">4 / 8</td><td><span class="pill done">đã đo đủ chuỗi</span></td><td>bắt 2/2 · false-pass 0/2 · báo động giả 0/2</td></tr>
+    <tr><td>Boosting Female Founders R1</td><td class="num">3 / 6</td><td><span class="pill done">đã đo đủ chuỗi</span></td><td>bắt 1/2 · false-pass 0/2 · đẩy về cán bộ 1 · báo động giả 0/2</td></tr>
+    <tr><td>On-farm Water</td><td class="num">4 / 8</td><td><span class="pill done">đã đo đủ chuỗi</span></td><td>bắt 1/1 · false-pass 0/1 · báo động giả 0/1</td></tr>
+    <tr><td>Quỹ minh hoạ (demo)</td><td class="num">1 / 3</td><td><span class="pill done">đã đo đủ chuỗi</span></td><td>bắt 1/1 · false-pass 0/1 · báo động giả 0/1</td></tr>
+    <!-- /MEASURE-ROWS:vi -->
+  </table></div>
+  <div class="tblwrap l-en"><table>
+    <tr><th>Program / rule set</th><th>Code-guarded criteria</th><th>Measurement status</th><th>Published result</th></tr>
+    <!-- MEASURE-ROWS:en -->
+    <tr><td>NSF 22-586 CAREER (US)</td><td class="num">8 / 12</td><td><span class="pill done">measured, full chain</span></td><td>caught 1/1 · false passes 0/1 · false alarms 0/1</td></tr>
+    <tr><td>Wine Tourism R8</td><td class="num">5 / 9</td><td><span class="pill done">measured, full chain</span></td><td>caught 2/2 · false passes 0/2 · false alarms 1/2 <span class="mono">(earlier 3/3 figure withdrawn)</span></td></tr>
+    <tr><td>Cyber Security Skills R2</td><td class="num">4 / 8</td><td><span class="pill done">measured, full chain</span></td><td>caught 2/2 · false passes 0/2 · false alarms 0/2</td></tr>
+    <tr><td>Boosting Female Founders R1</td><td class="num">3 / 6</td><td><span class="pill done">measured, full chain</span></td><td>caught 1/2 · false passes 0/2 · referred to officer 1 · false alarms 0/2</td></tr>
+    <tr><td>On-farm Water</td><td class="num">4 / 8</td><td><span class="pill done">measured, full chain</span></td><td>caught 1/1 · false passes 0/1 · false alarms 0/1</td></tr>
+    <tr><td>Demonstration fund</td><td class="num">1 / 3</td><td><span class="pill done">measured, full chain</span></td><td>caught 1/1 · false passes 0/1 · false alarms 0/1</td></tr>
+    <!-- /MEASURE-ROWS:en -->
+  </table></div>
+
+  <div class="notice l-vi"><b>Vì sao số Wine cũ bị thu hồi:</b> khi mở rộng đo sang các quỹ khác, chúng tôi phát hiện bộ test tự sinh của Wine có câu "lộ đáp án" (văn bản thi ghi thẳng "violating W08"), nên con số 3/3 không còn giá trị. Quy trình sinh bộ test đã được làm lại với các chốt kiểm ở bước 2–4. <b>Lượt đo lại cho thấy vì sao bước 4 là bắt buộc:</b> 18 case vi phạm do AI sinh đã qua mọi chốt tự động, nhưng người rà vẫn loại 9 case (5 nhãn sai, 4 đáp án mơ hồ). <b>Cỡ mẫu:</b> sau khi rà còn 1–2 case vi phạm mỗi quỹ — kết quả là bằng chứng sơ bộ theo quỹ, không phải tỷ lệ thống kê.</div>
+  <div class="findings l-vi">
+    <h3>Phát hiện từ phép đo</h3>
+    <p class="total"><b>Tổng 6 quỹ</b> (hệ bị đo qwen3:8b): bắt đúng <b>8/9</b> vi phạm cài sẵn · <b>false-pass 0/9</b> · 1 case đẩy về cán bộ · hồ sơ sạch kết luận đúng 8/9 · <b>báo động giả 1/9</b>.</p>
+    <p><b>Lớp guard chặn được một false-pass thật của AI.</b> Ở Female Founders F05, hồ sơ ghi rõ "registered income tax exempt entity" — thuộc diện bị loại trừ — nhưng mô hình vẫn chấm "đạt". Guard mã nguồn bắt được, hạ xuống "chưa rõ" kèm cảnh báo và buộc cán bộ quyết. Đây là case "đẩy về cán bộ" duy nhất; không có false-pass nào lọt ra.</p>
+    <p><b>Một báo động giả, đã rõ nguyên nhân.</b> Ở Wine W06, hồ sơ sạch ghi "operates a dedicated physical cellar door located on our property", nhưng mô hình chấm "không đạt" với lý do "không có thông tin về sở hữu hay thuê" — thiếu thông tin lẽ ra phải là "chưa rõ". Đã đưa vào danh sách cải tiến: chốt bằng mã nguồn "kết luận không đạt phải có dữ kiện vi phạm đi kèm". Thay đổi này sẽ được đo lại trên cả 6 quỹ trước khi công bố.</p>
+  </div>
+  <div class="notice l-en"><b>Why the earlier Wine figure was withdrawn:</b> when we extended measurement to the other programs, we found that Wine's generated test documents leaked the answer (a test application stating "violating W08"), so the 3/3 figure is no longer valid. Test-set generation has been rebuilt with the checks in steps 2–4. <b>The re-run shows why step 4 is mandatory:</b> 18 AI-generated violation cases passed every automated check, yet the reviewer still discarded 9 of them (5 wrong labels, 4 ambiguous answers). <b>Sample size:</b> after review, 1–2 violation cases remain per program — results are preliminary per-program evidence, not statistical rates.</div>
+  <div class="findings l-en">
+    <h3>What the measurement found</h3>
+    <p class="total"><b>All 6 programs</b> (system under test: qwen3:8b): <b>8/9</b> planted violations caught · <b>0/9 false passes</b> · 1 case referred to an officer · clean applications decided correctly 8/9 · <b>1/9 false alarm</b>.</p>
+    <p><b>The guard layer stopped a real AI false pass.</b> In Female Founders F05 the application plainly states "registered income tax exempt entity" — an excluded category — yet the model marked it Met. The code guard caught it, downgraded it to Unclear with a warning, and required an officer decision. This is the only case referred to an officer; no false pass got through.</p>
+    <p><b>One false alarm, with a known cause.</b> In Wine W06 the clean application states "operates a dedicated physical cellar door located on our property", but the model returned Not met because "there is no information about ownership or lease" — missing information should have been Unclear. Added to the improvement backlog: a code-level check that a Not met outcome must be backed by a violating fact. That change will be re-measured on all six programs before it is published.</p>
   </div>
 </section>
 
-<!-- ===================== 4. TRUST TABLE ===================== -->
+<!-- ===================== 5. MECHANISMS ===================== -->
 <section>
-  <div class="eyebrow">Đối chiếu</div>
-  <h2>Ba ràng buộc niềm tin và nơi chúng được thực thi</h2>
-  <div class="tblwrap"><table>
+  <div class="eyebrow"><span class="l-vi">Cập nhật 09/2026 — theo phản hồi thẩm định</span><span class="l-en">September 2026 update — from the client review</span></div>
+  <h2 class="l-vi">Các cơ chế bổ sung (đã cài đặt và kiểm thử)</h2>
+  <h2 class="l-en">Added mechanisms (implemented and tested)</h2>
+
+  <div class="grid l-vi">
+    <div class="card"><h3>Không để AI một mình ở chỗ không có lưới đỡ</h3>
+      <p>Với mọi tiêu chí mã nguồn không kiểm được (kể cả tiêu chí thuần định tính), kết luận ĐẠT <b>bắt buộc kèm đoạn trích nguyên văn có thật trong hồ sơ</b> — mã nguồn đối chiếu lại nên viết cho đủ chữ không qua được, dán trùng giữa các tiêu chí cũng bị chặn; nội dung chứng thực vào nhật ký mang tên người ký.</p></div>
+    <div class="card"><h3>Danh sách việc còn nợ, công khai theo mức ưu tiên</h3>
+      <p>Chỗ nào mã nguồn chưa kiểm được thì hệ thống <b>tự liệt kê thành danh sách việc</b> (API <span class="mono">/api/guard-backlog</span>), xếp theo rủi ro: tiêu chí định lượng chưa có lưới đỡ = cao, phủ một phần = trung bình, thuần định tính = thấp. Mục <b>ưu tiên cao đã đóng hết trên cả 6 bộ tiêu chí</b>; mục loại trừ có điều kiện (vd "từ 100 nhân viên và chưa tuân thủ Luật Bình đẳng giới") nay được ghi rõ là khoảng trống thay vì bị bỏ qua.</p></div>
+    <div class="card"><h3>Giới hạn được công bố, không giấu</h3>
+      <p>Mỗi bộ tiêu chí có <b>báo cáo độ phủ 3 mức</b>: có lưới đỡ mã nguồn / <b>cần guard viết tay</b> (logic dẫn xuất, nhánh thay thế, ngưỡng hoặc loại trừ có điều kiện) / chỉ dựa mô hình + cán bộ. Số "false-pass" chỉ có giá trị với <b>đúng quỹ đã đo bằng bộ test đã phê chuẩn nhãn</b>, và kết quả phải khớp đúng bộ nhãn đó — nếu không, hệ thống báo "phải đo lại".</p></div>
+    <div class="card"><h3>Multi-GO + versioning + kho quỹ Úc</h3>
+      <p>Mỗi đợt/quỹ tài trợ có bộ tiêu chí riêng kèm version; hồ sơ <b>khóa cứng snapshot bộ tiêu chí tại lần đánh giá đầu</b> — đổi rule giữa đợt không ảnh hưởng case đang xử lý. Đã nạp sẵn 4 quỹ Úc thật trích nguyên văn guideline: Wine Tourism R8, Cyber Skills R2, Boosting Female Founders R1, On-farm Water — phủ đủ 4 nhóm quỹ.</p></div>
+    <div class="card"><h3>Guard chặn false-pass bằng mã nguồn</h3>
+      <p>Rule đo được bằng số (ngân sách, %, số trang, co-PI, cellar door, liên danh, 51% nữ…) được code kiểm lại sau AI: AI nói "đạt" mà số liệu vi phạm ⇒ ghi đè "không đạt" và ghi nhật ký. Đo bằng Qwen thật trên 2 hồ sơ mẫu NSF chứa đủ lỗi trượt (6 tiêu chí không đạt): <b>false-pass giảm từ 1/6 xuống 0/6, accuracy 24/24</b>.</p></div>
+    <div class="card"><h3>Ký cấp 2 · vòng bổ sung · SLA</h3>
+      <p>Hồ sơ có tiêu chí không đạt/chưa rõ chỉ phát hành thư sau khi <b>quản lý (khác người thẩm định, qua kiểm COI) ký xác nhận cấp 2</b>. Cán bộ yêu cầu bổ sung theo danh mục + hạn nộp, nhiều vòng có đếm; SLA từng trạng thái hiện ngay hàng đợi, quá hạn cảnh báo đỏ. Ngưỡng chống ký ẩu: 15 giây/tiêu chí.</p></div>
+    <div class="card"><h3>Đối chiếu chéo chống gian lận</h3>
+      <p>Một hồ sơ có thể gồm nhiều tài liệu (đơn khai, báo cáo tài chính, lý lịch…). Mã nguồn bóc và <b>so trực tiếp các con số cùng loại giữa các tài liệu</b> — tổng ngân sách, doanh thu, năm nhận bằng, số trang — kèm kiểm tra ngày tháng vô lý. Khai $480k nhưng báo cáo ghi $1,52 triệu → gắn cờ "không khớp — nghi vấn", kèm trích ngữ cảnh từng nguồn.</p></div>
+    <div class="card"><h3>Thư kết quả theo mẫu đơn vị</h3>
+      <p>Đơn vị cung cấp mẫu thư từ chối/phản hồi chuẩn của mình; hệ thống soạn thư theo <b>đúng cấu trúc, đề mục và thứ tự của mẫu</b>, chỉ điền nội dung từ các kết luận đã ký — thay một file là đổi được toàn bộ format thư đầu ra.</p></div>
+    <div class="card"><h3>Phân tích layout &amp; bảng biểu trước RAG</h3>
+      <p>PDF/DOCX được phân tích bố cục trước khi vào RAG: vùng bảng (ngân sách, nhân sự…) được giữ <b>nguyên hàng–cột</b> thành một khối không thể bị cắt đôi khi chia đoạn. Trang scan không có lớp chữ được phát hiện, gắn cờ "cần OCR" (tự OCR nếu máy chủ cài Tesseract).</p></div>
+    <div class="card"><h3>Vòng phản hồi → kho tinh chỉnh model</h3>
+      <p>Khi ký duyệt, mọi tiêu chí <b>cán bộ sửa kết luận AI</b> (hoặc phải quyết thay AI) tự động vào kho ground-truth kèm dữ kiện, kết luận đúng và lý do. Kho này (1) được bơm ngay vào prompt phán quyết làm ví dụ sửa sai, và (2) xuất được ra định dạng fine-tune để tinh chỉnh model định kỳ.</p></div>
+    <div class="card"><h3>Rà xung đột lợi ích trước phân bổ</h3>
+      <p>Trước khi cán bộ nhận thẩm định, hệ thống đối chiếu cán bộ với hồ sơ: <b>trùng tổ chức với người nộp → chặn hẳn</b>, phải chuyển hồ sơ; trùng tên / tên xuất hiện trong hồ sơ / chưa khai báo tổ chức → cảnh báo, muốn tiếp tục phải ghi lý do, tất cả vào nhật ký chuỗi băm.</p></div>
+    <div class="card"><h3>Sàng lọc danh sách cấm</h3>
+      <p>Mỗi hồ sơ nạp vào được tự động khớp mờ (chịu sai chính tả, đảo tên, bí danh) với danh sách cá nhân bị cấm hành nghề, danh sách cấm vận, và xác minh tổ chức qua sổ đăng ký doanh nghiệp (~20,5 triệu bản ghi, chỉ mục nội bộ). Hit chỉ là bằng chứng — cán bộ xem và quyết.</p></div>
+  </div>
+
+  <div class="grid l-en">
+    <div class="card"><h3>Never leave the AI alone where code can't check</h3>
+      <p>For every criterion code cannot verify (including purely qualitative ones), a Met outcome <b>requires a genuine verbatim passage from the application</b>. Code checks it, so typing enough words won't pass, and pasting the same text across criteria is blocked; the attestation is logged under the signer's name.</p></div>
+    <div class="card"><h3>Open work, published by priority</h3>
+      <p>Wherever code cannot check yet, the system <b>lists it as a work item</b> (API <span class="mono">/api/guard-backlog</span>), ranked by risk: quantitative criteria without a guard = high, partial coverage = medium, purely qualitative = low. <b>All high-priority items are closed across all 6 rule sets</b>; conditional exclusions (e.g. "100 or more employees and not compliant with the Workplace Gender Equality Act") are now listed as gaps instead of being silently skipped.</p></div>
+    <div class="card"><h3>Limitations published, not hidden</h3>
+      <p>Every rule set has a <b>3-level coverage report</b>: code-guarded / <b>needs a hand-written guard</b> (derived logic, alternative branches, conditional thresholds or exclusions) / model + officer only. A false-pass figure is only valid for <b>the program measured, on a test set with approved labels</b>, and the result must match that exact label set — otherwise the system shows "re-measurement required".</p></div>
+    <div class="card"><h3>Multiple grant opportunities, versioned</h3>
+      <p>Each round or program has its own versioned rule set; an application <b>locks a snapshot of its rule set at first assessment</b>, so changing rules mid-round never affects cases in progress. Four real Australian programs are loaded, quoted verbatim from their guidelines: Wine Tourism R8, Cyber Skills R2, Boosting Female Founders R1, On-farm Water — covering all four program types.</p></div>
+    <div class="card"><h3>Code guards against false passes</h3>
+      <p>Criteria measurable in numbers (budget, %, page counts, co-PIs, cellar door, joint applications, 51% women-owned…) are re-checked by code after the AI: if the AI says Met but the figures breach the rule, the outcome is overridden to Not met and logged. Measured with real Qwen on 2 NSF sample applications containing every trap (6 unmet criteria): <b>false passes fell from 1/6 to 0/6, accuracy 24/24</b>.</p></div>
+    <div class="card"><h3>Countersignature · supplement rounds · SLA</h3>
+      <p>Applications with an unmet or unclear criterion only receive a letter after <b>a manager (not the assessor, COI-checked) countersigns</b>. Officers request supplements with a checklist and deadline, across counted rounds; SLA per state shows in the queue, overdue in red. Anti-rubber-stamping threshold: 15 seconds per criterion.</p></div>
+    <div class="card"><h3>Cross-document checks against cheating</h3>
+      <p>An application can include several documents (form, financial report, CV…). Code extracts and <b>directly compares like-for-like figures across documents</b> — total budget, revenue, degree year, page count — and checks for implausible dates. Declaring $480k while the report says $1.52m is flagged "mismatch — query", with context quoted from each source.</p></div>
+    <div class="card"><h3>Outcome letters in the organisation's template</h3>
+      <p>The organisation supplies its standard rejection/feedback letter; the system drafts letters in <b>exactly that structure, headings and order</b>, filling in only the signed-off outcomes — replace one file and every letter's format changes.</p></div>
+    <div class="card"><h3>Layout and table analysis before retrieval</h3>
+      <p>PDF/DOCX layouts are analysed before retrieval: table regions (budgets, staffing…) are kept <b>row-and-column intact</b> as one block that can never be split when chunking. Scanned pages without a text layer are detected and flagged "needs OCR" (OCR runs automatically if Tesseract is installed).</p></div>
+    <div class="card"><h3>Feedback loop → fine-tuning store</h3>
+      <p>At sign-off, every criterion where <b>the officer overrode the AI</b> (or decided for it) goes into a ground-truth store with the facts, correct outcome and reason. The store is (1) injected immediately into the judgement prompt as correction examples, and (2) exportable in fine-tuning format for periodic model tuning.</p></div>
+    <div class="card"><h3>Conflict-of-interest check before allocation</h3>
+      <p>Before an officer takes an application, the system compares officer and application: <b>same organisation as the applicant → hard block</b>, the case must be reassigned; same name / named in the application / undeclared affiliation → warning, continuing requires a reason; all of it in the hash-chained log.</p></div>
+    <div class="card"><h3>Denied-party screening</h3>
+      <p>Every incoming application is fuzzy-matched (misspellings, reordered names, aliases) against banned-persons and sanctions lists, and the organisation is verified against the business register (~20.5 million records, indexed locally). A hit is evidence only — the officer reviews and decides.</p></div>
+  </div>
+</section>
+
+<!-- ===================== 6. TRUST TABLE ===================== -->
+<section>
+  <div class="eyebrow"><span class="l-vi">Đối chiếu</span><span class="l-en">Cross-reference</span></div>
+  <h2 class="l-vi">Ba ràng buộc niềm tin và nơi chúng được thực thi</h2>
+  <h2 class="l-en">Three trust constraints and where they are enforced</h2>
+  <div class="tblwrap l-vi"><table>
     <tr><th>Ràng buộc</th><th>Cơ chế</th><th>Thực thi ở</th><th>Kiểm chứng</th></tr>
-    <tr><td>Nhất quán nhưng không đóng dấu tự động</td><td>Spot-check mù · xác nhận từng dòng · đo thời gian ký</td><td>workflow.py (server)</td><td>Tỉ lệ spot-check trùng AI, tỉ lệ cán bộ sửa AI trên Tổng quan</td></tr>
-    <tr><td>Bắt buộc con người ký duyệt</td><td>Nhãn NHÁP · thư chỉ sinh sau ký 100% · phê duyệt thư riêng</td><td>workflow.py (server)</td><td>Nhật ký chuỗi băm, kiểm tra toàn vẹn một bấm</td></tr>
-    <tr><td>Không phạt vì văn phong</td><td>Lượt phán quyết không thấy văn gốc · cấm chấm ngữ pháp trong prompt</td><td>core.py (pipeline)</td><td>Bias Lab: 2 cặp hồ sơ cùng dữ kiện khác văn phong, kỳ vọng 12/12 trùng; eval.py</td></tr>
+    <tr><td>Nhất quán nhưng không đóng dấu tự động</td><td>Spot-check mù · xác nhận từng dòng · đo thời gian ký</td><td class="mono">workflow.py (server)</td><td>Tỉ lệ spot-check trùng AI, tỉ lệ cán bộ sửa AI trên Tổng quan</td></tr>
+    <tr><td>Bắt buộc con người ký duyệt</td><td>Nhãn NHÁP · thư chỉ sinh sau khi ký đủ · phê duyệt thư riêng</td><td class="mono">workflow.py (server)</td><td>Nhật ký chuỗi băm, kiểm tra toàn vẹn một bấm</td></tr>
+    <tr><td>Không phạt vì văn phong</td><td>Lượt phán quyết không thấy văn gốc · cấm chấm ngữ pháp trong prompt</td><td class="mono">core.py (pipeline)</td><td>Bias Lab: 2 cặp hồ sơ cùng dữ kiện khác văn phong, kỳ vọng mọi tiêu chí trùng kết luận; eval.py</td></tr>
+  </table></div>
+  <div class="tblwrap l-en"><table>
+    <tr><th>Constraint</th><th>Mechanism</th><th>Enforced in</th><th>Verified by</th></tr>
+    <tr><td>Consistent, but never rubber-stamped</td><td>Blind spot-check · per-row confirmation · signing-time check</td><td class="mono">workflow.py (server)</td><td>Spot-check agreement and override rates on the dashboard</td></tr>
+    <tr><td>Human sign-off is mandatory</td><td>DRAFT labels · letters only after full sign-off · separate letter approval</td><td class="mono">workflow.py (server)</td><td>Hash-chained log with one-click integrity check</td></tr>
+    <tr><td>No penalty for writing style</td><td>Judgement pass never sees the source · grammar scoring banned in the prompt</td><td class="mono">core.py (pipeline)</td><td>Bias Lab: 2 application pairs with the same facts in different styles, identical outcomes expected on every criterion; eval.py</td></tr>
   </table></div>
 </section>
 
-<footer>GrantLens v2.3 · Bộ tiêu chí trích nguyên văn từ NSF 22-586 CAREER (nsf.gov) và các guideline quỹ Úc do khách hàng cung cấp (Wine Australia, Dept. of Industry, NSW RAA, GrantConnect) · Hồ sơ mẫu là dữ liệu tổng hợp có nhãn, không phải hồ sơ thật.</footer>
+<footer>
+  <span class="l-vi">GrantLens v2.8 · Bộ tiêu chí trích nguyên văn từ NSF 22-586 CAREER (nsf.gov) và các guideline quỹ Úc do khách hàng cung cấp (Wine Australia, Dept. of Industry, NSW RAA, GrantConnect) · Hồ sơ mẫu là dữ liệu tổng hợp có nhãn, không phải hồ sơ thật.</span>
+  <span class="l-en">GrantLens v2.8 · Criteria quoted verbatim from NSF 22-586 CAREER (nsf.gov) and client-supplied Australian grant guidelines (Wine Australia, Dept. of Industry, NSW RAA, GrantConnect) · Sample applications are synthetic labelled data, not real applications.</span>
+</footer>
 </div>
-
 </body>
 </html>

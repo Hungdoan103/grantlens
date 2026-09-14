@@ -162,6 +162,24 @@ def _au_cyber(rule_id: str, text: str, meta: dict):
             m = re.search(r"\$\s?(\d[\d,]*\d|\d)", s)
             if m and int(m.group(1).replace(",", "")) < 500_000:
                 return "not_met", f"Chi tiêu hợp lệ {m.group(1)}$ < mức tối thiểu $500,000 (code so số liệu)"
+    if rule_id == "C08":
+        # Nhánh CÓ ĐIỀU KIỆN compiler không diễn đạt nổi: "an employer of 100 or more employees that has not
+        # complied with the Workplace Gender Equality Act (2012)" -> chỉ vi phạm khi CẢ HAI điều kiện cùng đúng.
+        bad = [s for s in _sentences_with(text, r"workplace gender equality|\bWGEA\b")
+               if re.search(r"\b(?:has|have|had)\s+not\s+(?:yet\s+)?(?:complied|lodged|reported|submitted)|"
+                            r"\bnot\s+(?:yet\s+)?compliant\b|non-?complian|failed to (?:comply|lodge|report|submit)", s, re.I)]
+        if bad:
+            counts = [int((a or b).replace(",", "")) for a, b in re.findall(
+                r"(\d[\d,]*)\s+(?:full-time\s+|permanent\s+|FTE\s+)?(?:employees|staff members|staff|workers)\b|"
+                r"employ\w*\s+(?:about\s+|approximately\s+|around\s+|over\s+)?(\d[\d,]*)\s+people", text, re.I)
+                if (a or b)]
+            n = max(counts) if counts else None
+            if n is not None and n >= 100:
+                return "not_met", (f"Hồ sơ nêu {n} nhân viên (≥ 100) và chưa tuân thủ Workplace Gender Equality Act "
+                                   "— thuộc diện loại trừ (code so số liệu + khớp mẫu chữ)")
+            if n is None:
+                return "unclear", ("Hồ sơ nêu chưa tuân thủ Workplace Gender Equality Act nhưng không rõ số nhân viên — "
+                                   "rule chỉ loại trừ khi ≥ 100 nhân viên, cần cán bộ kiểm")
     return None
 
 
@@ -289,8 +307,18 @@ def compile_rule_guards(rule: dict):
     # --- DANH SÁCH LOẠI TRỪ: "not eligible ... if you are: a; b; c" ---
     m = re.search(r"not eligible[^:]{0,40}:\s*(.+)", q, re.I | re.S)
     if m:
-        items = [it.strip(" .;•·") for it in re.split(r";|•|\n|(?<=\))\s*(?=[a-z])", m.group(1)) if 4 < len(it.strip()) < 90]
-        for it in items[:8]:
+        raw = [it.strip(" .;•·…") for it in re.split(r";|•|\n|(?<=\))\s*(?=[a-z])", m.group(1))]
+        for it in [x for x in raw if len(x) > 4][:8]:
+            # Mục loại trừ CÓ ĐIỀU KIỆN / định lượng ("an employer of 100 or more employees that has not complied
+            # with ...") trước đây bị LẶNG LẼ BỎ QUA vì quá dài -> báo cáo độ phủ nói quá. Nay phải thú nhận.
+            conditional = re.search(r"\b(?:that|who|which|whose|unless|where|if)\b|"
+                                    r"\d[\d,]*\s*(?:or more|or less|or fewer|employees|staff|per cent|%)|\$\s?\d", it, re.I)
+            if conditional or len(it) >= 90:
+                label = "loại trừ có điều kiện" if conditional else "loại trừ phức hợp"
+                why = ("có điều kiện/định lượng — compiler chỉ khớp được tư cách trơn, không kiểm được điều kiện"
+                       if conditional else "dài, liệt kê nhiều loại chủ thể — compiler không tách an toàn thành cụm từ để khớp")
+                out.append({"kind": "uncompilable", "label": label, "reason": f"mục loại trừ {why} ('{it[:80]}'); cần guard tay"})
+                continue
             core_term = re.sub(r"^(an?|the)\s+", "", it, flags=re.I)
             core_term = re.split(r"\(|,| unless | however | including ", core_term)[0].strip()
             if 4 < len(core_term) < 60:
@@ -311,6 +339,34 @@ def compile_rule_guards(rule: dict):
     return out
 
 
+# Phủ định phải nằm SÁT cụm từ (cùng mệnh đề), không phải "đâu đó trong câu". Trước đây:
+#   - "is neither an individual nor an unincorporated association" (hồ sơ HỢP LỆ) bị gắn cờ oan vì không hiểu neither/nor;
+#   - "is an unincorporated association and has no board" (vi phạm) lại bị bỏ qua vì câu có chữ "no".
+_NEG_BEFORE = re.compile(r"\b(?:no|not|never|neither|nor|none|without|isn't|aren't|wasn't|weren't)\b[^.;:]{0,30}$", re.I)
+_NEG_AFTER = re.compile(r"^\w*\s*(?:\w+\s+){0,2}?(?:is|are|was|were|will be|has been|have been)\s+(?:not|never)\b|"
+                        r"^\w*\s+(?:not|never)\s+(?:included|permitted|proposed|used|involved)\b", re.I)
+
+
+def _term_pattern(c: dict):
+    esc = re.escape(c["term"].strip())
+    if c["kind"] == "excluded" and " " not in c["term"].strip():
+        # MỘT từ trơn ("individual", "trust") rất dễ trùng cụm tự nhiên ("individual mentoring") -> chỉ tính khi
+        # hồ sơ khai TƯ CÁCH: "is / as / being (not) an individual", "individual applicant".
+        return re.compile(rf"\b(?:is|are|am|as|being|be)\s+(?:\w+\s+){{0,2}}(?P<t>{esc})"
+                          rf"(?=\s*(?:[.,;:)]|$)|\s+(?:applicant|person|entity|or|and|nor)\b)", re.I)
+    return re.compile(rf"\b(?P<t>{esc})", re.I)
+
+
+def _term_asserted(c: dict, sentence: str) -> bool:
+    """Câu có KHẲNG ĐỊNH cụm cấm/loại trừ không: có cụm từ và KHÔNG bị phủ định ngay sát trước/sau."""
+    for m in _term_pattern(c).finditer(sentence):
+        before = sentence[max(0, m.start("t") - 40):m.start("t")]
+        after = sentence[m.end("t"):m.end("t") + 40]
+        if not _NEG_BEFORE.search(before) and not _NEG_AFTER.search(after):
+            return True
+    return False
+
+
 def _eval_compiled(cons: list, text: str):
     """Chạy các ràng buộc đã biên dịch trên văn bản hồ sơ. Trả (verdict, reason) hoặc None.
     Ràng buộc kind='uncompilable' KHÔNG đánh giá (chỉ dùng cho báo cáo độ phủ);
@@ -327,12 +383,23 @@ def _eval_compiled(cons: list, text: str):
             # "cellar door sales"). Vì vậy 'max' đòi câu phải khớp ÍT NHẤT 2 từ khóa của rule;
             # 'min' chỉ kết luận khi MỌI giá trị đều dưới ngưỡng nên 1 từ khóa là đủ an toàn.
             need_anchors = 2 if c["op"] == "max" else 1
+            anchors = set(c.get("anchors", []))
             matched_vals = []
             for s in sents:
                 low = s.lower()
-                if sum(1 for a in set(c.get("anchors", [])) if a in low) < need_anchors:
+                if sum(1 for a in anchors if a in low) < need_anchors:
                     continue
+                prev_end = 0
                 for m in re.finditer(pat, s):
+                    if c["op"] == "max":
+                        # 'max' chỉ so con số có ≥ 2 từ khoá của rule đứng SÁT TRƯỚC nó (60 ký tự, không vượt qua con số
+                        # trước đó), không so mọi con số trong câu. Lỗi bắt được 14/09 (BFF F06): "xin $450,000, bằng 50%
+                        # chi phí dự án ước tính $900,000" bị đem $900,000 (chi phí dự án) so với trần TÀI TRỢ $480,000
+                        # chỉ vì câu có "estimated" và "grant" — quỹ chưa có guard tay sẽ GHI ĐÈ hồ sơ hợp lệ thành không đạt.
+                        window = low[max(prev_end, m.start() - 60):m.start()]
+                        prev_end = m.end()
+                        if sum(1 for a in anchors if a in window) < 2:
+                            continue
                     matched_vals.append(int(m.group(1).replace(",", "")))
             if matched_vals:
                 bad = ([v for v in matched_vals if v < c["value"]] if c["op"] == "min"
@@ -344,8 +411,7 @@ def _eval_compiled(cons: list, text: str):
                     return "not_met", f"Giá trị {max(bad):,} vượt trần {c['value']:,} trong rule ('{c['label']}') — guard tự biên dịch từ nguyên văn"
         elif c["kind"] in ("forbidden", "excluded"):
             term = c["term"]
-            hits = [s for s in sents if re.search(re.escape(term), s, re.I)]
-            bad = [s for s in hits if not re.search(r"\bno\b|\bnot\b|\bnone\b|without|sole |do(es)? not", s, re.I)]
+            bad = [s for s in sents if _term_asserted(c, s)]
             if bad:
                 strong = c["kind"] == "forbidden" and not c.get("alt")
                 return ("not_met" if strong else "unclear",
@@ -359,7 +425,7 @@ def _eval_compiled(cons: list, text: str):
 HAND_COVERAGE = {
     "nsf-22-586": {"R04", "R05", "R07", "R08", "R09", "R10", "R11", "R12"},
     "au-wine-tourism-r8": {"W03", "W04", "W06", "W08", "W09"},
-    "au-cyber-skills-r2": {"C01", "C06", "C07"},
+    "au-cyber-skills-r2": {"C01", "C06", "C07", "C08"},
     "au-female-founders-r1": {"F01", "F05", "F06"},
     "au-onfarm-water": {"O01", "O05", "O06", "O07"},
 }

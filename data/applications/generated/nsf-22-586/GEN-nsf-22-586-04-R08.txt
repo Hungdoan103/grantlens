@@ -1,0 +1,17 @@
+Applicant, Entity and Registration Details
+
+Applicant Name: Stellaris Research Institute
+Entity Type: Non-profit, Non-academic Organization
+Registration Number: 123456789
+
+Project Description Summary
+
+The Stellaris Research Institute, a US-based independent observatory, submitted a proposal for the NSF 22-586 CAREER program. We hold a doctoral degree in Astrophysics, awarded by the University of California, Berkeley, and our primary research area aligns with NSF-supported science. Our team consists of one Principal Investigator, Dr. Evelyn Hayes, who holds a 75% tenure-track position as an Assistant Professor. Dr. Hayes is untenured. The proposal for the NSF 22-586 CAREER program lists two co-principal investigators on the cover page. The proposed project, titled “Mapping Stellar Dynamics in the Galactic Core,” aims to investigate the complex interactions within the Milky Way's central region. The project description, totaling 13 pages, details the research methodology, including advanced spectroscopic analysis and simulations. We have also incorporated educational activities, specifically a graduate-level course on stellar dynamics, designed to train the next generation of astrophysicists. The research and educational components are intrinsically linked, providing students with hands-on experience and contributing to the advancement of our understanding of galactic evolution.
+
+Cost and Funding
+
+The total anticipated funding for the five-year project, including indirect costs, is $425,000. We have not included any voluntary committed cost sharing.
+
+Supporting Documentation
+
+The proposal includes a letter of support from the Director of Stellaris Research Institute, Mr. Samuel Chen, which is 1.8 pages in length.

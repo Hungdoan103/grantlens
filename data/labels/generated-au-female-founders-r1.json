@@ -1,0 +1,165 @@
+{
+  "ruleset": "au-female-founders-r1",
+  "version": "R1-2020",
+  "label_scope": "target",
+  "generator_model": "gemma3:4b",
+  "verifier_model": "gemma3:4b",
+  "planner_model": "qwen3:4b",
+  "generated_by": "gemma3:4b",
+  "targets": [
+    "F01",
+    "F05",
+    "F06"
+  ],
+  "generated_at": "2026-09-14T15:32:54",
+  "approved": true,
+  "approved_by": "Rà kỹ thuật (nhà cung cấp) — chưa thay cán bộ đơn vị",
+  "approved_at": "2026-09-14T15:35:00",
+  "n_needs_review": 0,
+  "note": "Vi phạm do mã nguồn chốt trước (câu dữ kiện được guard/verifier xác nhận, văn bản phải chứa nguyên văn); chặn lộ đáp án bằng mã nguồn; verifier dùng model tách khỏi hệ bị đo. CHƯA PHÊ CHUẨN — số đo từ bộ này là TẠM (provisional). Rà văn bản, xử lý hết cờ rồi --approve.",
+  "cases": [
+    {
+      "id": "GEN-au-female-founders-r1-00-clean",
+      "file": "generated/au-female-founders-r1/GEN-au-female-founders-r1-00-clean.txt",
+      "target": null,
+      "labels": {
+        "F01": "met",
+        "F02": "met",
+        "F03": "met",
+        "F04": "met",
+        "F05": "met",
+        "F06": "met"
+      },
+      "violation_fact": null,
+      "fact_confirmed_by": null,
+      "fact_placement": null,
+      "removed_meta_sentences": [],
+      "rest_without_fact_votes": null,
+      "guard_agree": null,
+      "target_label_clear": null,
+      "weak_labels": [],
+      "verifier_disagreement": [],
+      "verifier": {
+        "F01": [
+          "yes",
+          "no"
+        ],
+        "F05": [
+          "yes",
+          "no"
+        ],
+        "F06": [
+          "yes",
+          "yes"
+        ]
+      },
+      "status": "approved",
+      "control_rules": [
+        "F06",
+        "F01"
+      ],
+      "control_confirmed_by_reviewer": {
+        "F01": "Người rà đọc văn bản: 'wholly owned and led by women' + nêu tài liệu chứng minh (founding statement, thư luật sư) — thoả rõ F01; verifier gemma dao động yes/no. KHÔNG dùng F05 làm đối chứng vì hồ sơ vừa ghi Pty Ltd vừa ghi 'standard partnership'"
+      }
+    },
+    {
+      "id": "GEN-au-female-founders-r1-01-F01",
+      "file": "generated/au-female-founders-r1/GEN-au-female-founders-r1-01-F01.txt",
+      "target": "F01",
+      "labels": {
+        "F01": "not_met",
+        "F02": "met",
+        "F03": "met",
+        "F04": "met",
+        "F05": "met",
+        "F06": "met"
+      },
+      "violation_fact": "The company was established by a single male founder and has no female ownership or leadership.",
+      "fact_confirmed_by": "verifier",
+      "fact_placement": "marker",
+      "removed_meta_sentences": [],
+      "rest_without_fact_votes": [
+        "no",
+        "no"
+      ],
+      "guard_agree": false,
+      "target_label_clear": true,
+      "weak_labels": [],
+      "verifier_disagreement": [],
+      "verifier": {
+        "F01": [
+          "no",
+          "no"
+        ]
+      },
+      "status": "approved",
+      "target_confirmed_by_reviewer": "Câu vi phạm nêu rõ 'single male founder and has no female ownership or leadership'. Văn bản nêu tên người sở hữu nhưng không nêu giới tính — không suy luận mâu thuẫn từ tên người. Lỗi pháp nhân (Pty Ltd vs sole trader) thuộc tiêu chí khác, không đổi nhãn F01"
+    },
+    {
+      "id": "GEN-au-female-founders-r1-02-F05",
+      "file": "generated/au-female-founders-r1/GEN-au-female-founders-r1-02-F05.txt",
+      "target": "F05",
+      "labels": {
+        "F01": "met",
+        "F02": "met",
+        "F03": "met",
+        "F04": "met",
+        "F05": "not_met",
+        "F06": "met"
+      },
+      "violation_fact": "The organisation is a registered income tax exempt entity under the Australian Taxation Office.",
+      "fact_confirmed_by": "code",
+      "fact_placement": "appended",
+      "removed_meta_sentences": [],
+      "rest_without_fact_votes": [
+        "yes",
+        "no"
+      ],
+      "guard_agree": true,
+      "target_label_clear": true,
+      "weak_labels": [],
+      "verifier_disagreement": [],
+      "verifier": {
+        "F05": [
+          "no",
+          "no"
+        ]
+      },
+      "status": "approved"
+    },
+    {
+      "id": "GEN-au-female-founders-r1-03-F06",
+      "file": "generated/au-female-founders-r1/GEN-au-female-founders-r1-03-F06.txt",
+      "target": "F06",
+      "labels": {
+        "F01": "met",
+        "F02": "met",
+        "F03": "met",
+        "F04": "met",
+        "F05": "met",
+        "F06": "not_met"
+      },
+      "violation_fact": "The project's estimated eligible costs exceed $960,000.00, making the maximum grant amount over $480,000.00.",
+      "fact_confirmed_by": "code",
+      "fact_placement": "marker",
+      "removed_meta_sentences": [],
+      "rest_without_fact_votes": [
+        "unclear",
+        "yes"
+      ],
+      "guard_agree": true,
+      "target_label_clear": false,
+      "weak_labels": [],
+      "verifier_disagreement": [],
+      "verifier": {
+        "F06": [
+          "yes",
+          "no"
+        ]
+      },
+      "status": "disputed",
+      "dispute_reason": "Nhãn SAI: chi phí dự án > $960,000 KHÔNG vi phạm F06 — trần tài trợ $480,000 nhưng người nộp vẫn có thể xin đúng $480,000; câu vi phạm đọc sai rule (hồ sơ không nêu số tiền xin vượt trần)"
+    }
+  ],
+  "skipped": []
+}
