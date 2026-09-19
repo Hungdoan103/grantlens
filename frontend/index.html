@@ -133,6 +133,19 @@ tr.click{cursor:pointer}tr.click:hover td{background:#FBFCFA}
 .vopts{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
 .vopts button{border:1.5px solid var(--line);background:#fff;padding:9px 14px;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px}
 .vopts button:hover{border-color:var(--ink)}
+.login{position:fixed;inset:0;z-index:80;background:var(--paper);display:flex;align-items:center;justify-content:center;padding:20px}
+.login[hidden]{display:none}
+.loginbox{width:100%;max-width:380px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:26px 26px 22px}
+.loginbox h2{font-family:'Spectral',Georgia,serif;font-size:26px;margin:0 0 4px}
+.loginbox h2 em{font-style:normal;color:var(--green)}
+.loginbox p{color:var(--muted);font-size:13px;margin:0 0 16px}
+.loginbox label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:10px 0 4px;text-transform:uppercase;letter-spacing:.05em}
+.loginbox input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font:inherit;background:var(--paper);color:var(--ink)}
+.loginbox input:focus-visible{outline:2px solid var(--green);outline-offset:1px}
+.loginbox .btn{width:100%;margin-top:16px;justify-content:center}
+.loginerr{color:var(--red);font-size:13px;margin-top:10px;min-height:18px}
+.rolechip{font-family:'IBM Plex Mono',monospace;font-size:11px;border:1px solid var(--line);border-radius:10px;padding:1px 8px;color:var(--muted)}
+.rolechip.manager{border-color:var(--green);color:var(--green)}
 .toast{position:fixed;bottom:22px;right:22px;background:var(--ink);color:#fff;padding:11px 16px;border-radius:8px;font-size:13px;z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.2);max-width:420px;display:none}
 .toast.on{display:block}.toast.bad{background:var(--red)}
 .rulecard{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:8px}
@@ -161,16 +174,27 @@ pre.json{font-family:'IBM Plex Mono',monospace;font-size:11px;background:#F6F7F5
   <button class="navbtn" data-v="ingest">Nạp dữ liệu<span class="k">6</span></button>
   <div class="aside-foot" id="asidefoot">Đang kết nối backend…</div>
 </aside>
+<div class="login" id="login" hidden>
+  <form class="loginbox" onsubmit="return doLogin(event)">
+    <h2>Grant<em>Lens</em></h2>
+    <p>Đăng nhập để thẩm định. Mọi thao tác ký, xác nhận, phê chuẩn được ghi vào nhật ký theo tài khoản này — tên không còn tự khai.</p>
+    <label for="lg-user">Tên đăng nhập</label><input id="lg-user" autocomplete="username" required>
+    <label for="lg-pass">Mật khẩu</label><input id="lg-pass" type="password" autocomplete="current-password" required>
+    <button class="btn green" type="submit">Đăng nhập</button>
+    <div class="loginerr" id="lg-err"></div>
+  </form>
+</div>
 <main>
   <div class="topbar">
     <h1 id="pagetitle">Tổng quan</h1>
-    <div class="who">Cán bộ: <b id="whoname">—</b><button onclick="askOfficer(true)">Đổi</button></div>
+    <div class="who"><b id="whoname">—</b><span class="rolechip" id="whorole"></span><button onclick="logout()">Đăng xuất</button></div>
   </div>
 
   <!-- ===== DASHBOARD ===== -->
   <div class="view on" id="v-dash">
     <div id="llmbanner"></div>
     <div class="tiles" id="tiles"></div>
+    <div id="postaudit"></div>
     <h3>Hàng đợi hồ sơ</h3>
     <div class="tblwrap"><table id="dashtable"></table></div>
     <div class="note" style="margin-top:18px"><b>Cách hệ thống làm việc:</b> với mỗi tiêu chí, RAG tìm đoạn liên quan → AI lượt 1 chỉ <b>trích dữ kiện</b> trung tính → AI lượt 2 <b>phán quyết trên dữ kiện</b> (không thấy văn gốc, nên văn phong không thể ảnh hưởng) → code cắt <b>câu trích dẫn nguyên văn</b> từ hồ sơ. Mọi kết luận AI là NHÁP; cán bộ xác nhận từng dòng, ký, rồi mới có thư kết quả.</div>
@@ -314,8 +338,8 @@ async function renderMeasurementStatus(){
     <div class="conf" style="margin-top:6px">${esc(d.warning)}</div></div>`;
 }
 async function approveRuleset(rid,ack,reason){
-  const mgr=prompt('Tên QUẢN LÝ phê chuẩn (phải có role manager trong sổ cán bộ):',(META.managers||[])[0]||'');if(!mgr)return;
-  try{const d=await api(`/rulesets/${rid}/approve`,{officer:mgr,role:'manager',acknowledge_low_coverage:!!ack,reason:reason||''});
+  if(!isManager()){toast('Chỉ tài khoản QUẢN LÝ mới phê chuẩn được bộ tiêu chí',true);return;}
+  try{const d=await api(`/rulesets/${rid}/approve`,{...officer(),acknowledge_low_coverage:!!ack,reason:reason||''});
     toast(`Đã phê chuẩn ${rid} — độ phủ guard ${d.coverage.n_guarded}/${d.coverage.n_rules}`);
     RULESETS=(await api('/rulesets')).rulesets;renderRuleset();
   }catch(e){
@@ -324,7 +348,7 @@ async function approveRuleset(rid,ack,reason){
   }
 }
 async function approveTestset(rid){
-  askOfficer(false);if(!OFFICER)return;
+  if(!isManager()){toast('Chỉ tài khoản QUẢN LÝ mới phê chuẩn được nhãn bộ test',true);return;}
   if(!confirm(`Xác nhận: bạn ĐÃ RÀ văn bản và nhãn của bộ test "${rid}"?\n\nSau khi phê chuẩn, số đo trên bộ này không còn gắn nhãn "tạm tính".`))return;
   try{const d=await api(`/rulesets/${rid}/testset/approve`,officer());toast(`Đã phê chuẩn nhãn (${d.n_cases} case)`);renderRuleset();}
   catch(e){toast(e.message,true);}
@@ -341,19 +365,29 @@ const VLBL={met:"ĐẠT",not_met:"KHÔNG ĐẠT",unclear:"CHƯA RÕ",not_address
 const CLBL={high:"tin cậy cao",medium:"tin cậy vừa",low:"tin cậy THẤP"};
 const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const $=id=>document.getElementById(id);
-let OFFICER=localStorage.getItem('gl_officer')||'';
-function officer(){return {officer:OFFICER,role:'officer'};}
-function askOfficer(force){
-  if(OFFICER&&!force)return;
-  const n=prompt('Tên cán bộ thẩm định (dùng để ký và ghi nhật ký):',OFFICER||'');
-  if(n&&n.trim()){OFFICER=n.trim();localStorage.setItem('gl_officer',OFFICER);}
-  $('whoname').textContent=OFFICER||'—';
-}
+/* Danh tính lấy từ PHIÊN phía máy chủ. officer()/role gửi kèm chỉ để tương thích — máy chủ GHI ĐÈ bằng phiên. */
+let USER=null,OFFICER='';
+const ROLE_VI={officer:'cán bộ thẩm định',manager:'quản lý',auditor:'thanh tra'};
+function officer(){return {officer:OFFICER,role:USER?USER.role:'officer'};}
+function isManager(){return !!USER&&USER.role==='manager';}
+function canAudit(){return !!USER&&(USER.role==='manager'||USER.role==='auditor');}
+function askOfficer(){if(!USER)showLogin();}
+function setUser(u){USER=u;OFFICER=u?u.name:'';$('whoname').textContent=OFFICER||'—';
+  const r=$('whorole');r.textContent=u?ROLE_VI[u.role]||u.role:'';r.className='rolechip'+(u&&u.role==='manager'?' manager':'');}
+function showLogin(msg){$('login').hidden=false;$('lg-err').textContent=msg||'';setTimeout(()=>$('lg-user').focus(),50);}
+async function doLogin(ev){ev.preventDefault();$('lg-err').textContent='';
+  try{const res=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:$('lg-user').value,password:$('lg-pass').value})});
+    const d=await res.json().catch(()=>({}));if(!res.ok){$('lg-err').textContent=d.detail||'Đăng nhập thất bại';return false;}
+    $('lg-pass').value='';$('login').hidden=true;setUser(d.user);await init();}
+  catch(e){$('lg-err').textContent='Không kết nối được máy chủ';}
+  return false;}
+async function logout(){try{await fetch('/api/auth/logout',{method:'POST'});}catch(e){}setUser(null);showLogin('Đã đăng xuất.');}
 function toast(msg,bad){const t=$('toast');t.textContent=msg;t.className='toast on'+(bad?' bad':'');clearTimeout(t._h);t._h=setTimeout(()=>t.className='toast',bad?5000:2600);}
 async function api(path,body,method){
   const opt=body!==undefined?{method:method||'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{};
   const res=await fetch('/api'+path,opt);
   let data={};try{data=await res.json();}catch(e){}
+  if(res.status===401&&data.need_login){setUser(null);showLogin('Phiên đã hết hạn — đăng nhập lại.');}
   if(!res.ok){const e=new Error(data.detail||res.statusText);e.status=res.status;e.data=data;throw e;}
   return data;
 }
@@ -373,12 +407,16 @@ document.addEventListener('keydown',e=>{if(e.target.matches('input,textarea,sele
 
 /* ================= init ================= */
 async function init(){
-  askOfficer(false);
+  if(!USER){try{const me=await (await fetch('/api/auth/me')).json();
+      if(me.auth_enabled===false){setUser({name:'(xác thực đang TẮT)',role:'manager'});}
+      else if(me.user){setUser(me.user);}else{showLogin();return;}
+    }catch(e){showLogin('Không kết nối được máy chủ');return;}}
   try{
     META=await api('/meta');RULES=META.rules;
     const h=META.llm_health,ok=h.ok;
     $('asidefoot').innerHTML=`Lõi AI: <b style="color:#fff">${esc(META.llm.model)}</b><br>RAG: ${esc(META.embed_backend)} · ${META.llm.local?'chạy local, dữ liệu không rời máy':META.llm.backend}<div class="pill"><span class="dot ${ok?'':'bad'}"></span>${ok?'model sẵn sàng':'model chưa sẵn sàng'}</div>`;
-    $('llmbanner').innerHTML=META.llm.is_mock?`<div class="warn"><b>Đang ở chế độ MOCK</b> — không gọi model, kết quả AI là giả lập để kiểm thử luồng nghiệp vụ. Chạy thật: <span class="mono">ollama pull qwen3:8b</span> rồi khởi động server không có <span class="mono">GRANTLENS_LLM=mock</span>.</div>`:(!ok?`<div class="err"><b>Model chưa sẵn sàng:</b> ${esc(h.msg)}</div>`:'');
+    const authOff=META.auth_enabled===false?`<div class="err"><b>XÁC THỰC ĐANG TẮT</b> (GRANTLENS_AUTH=off) — chỉ dùng cho kiểm thử tự động. Tên cán bộ không được xác minh.</div>`:'';
+    $('llmbanner').innerHTML=authOff+(META.llm.is_mock?`<div class="warn"><b>Đang ở chế độ MOCK</b> — không gọi model, kết quả AI là giả lập để kiểm thử luồng nghiệp vụ. Chạy thật: <span class="mono">ollama pull qwen3:8b</span> rồi khởi động server không có <span class="mono">GRANTLENS_LLM=mock</span>.</div>`:(!ok?`<div class="err"><b>Model chưa sẵn sàng:</b> ${esc(h.msg)}</div>`:''));
     RULESETS=(await api('/rulesets')).rulesets;
     const rsOpts=RULESETS.map(r=>`<option value="${r.id}">${esc(r.name)} v${esc(r.version)}${r.region?' · '+esc(r.region):''} (${r.rules.length} tiêu chí)</option>`).join('');
     $('rulesetsel').innerHTML=rsOpts;$('upRuleset').innerHTML=rsOpts;renderRuleset();
@@ -402,10 +440,37 @@ async function renderDash(){
     <div class="tile"><div class="v">${s.spot_checks.n?`${s.spot_checks.agree}/${s.spot_checks.n}`:'—'}</div><div class="l">spot-check mù trùng AI</div></div>
     <div class="tile ${s.audit.ok?'ok':'bad'}"><div class="v">${s.audit.ok?'✓':'✗'}</div><div class="l">chuỗi nhật ký toàn vẹn (${s.audit.total} sự kiện)</div></div>
     <div class="tile"><div class="v">${s.feedback?s.feedback.total:0}</div><div class="l">mẫu feedback thu từ cán bộ (kho tinh chỉnh model)</div></div>
-    <div class="tile ${s.unguarded_met_confirmations?'bad':'ok'}"><div class="v">${s.unguarded_met_confirmations||0}</div><div class="l">lần xác nhận ĐẠT ở tiêu chí không có lưới đỡ code (đều kèm bằng chứng tự kiểm chứng)</div></div>`;
+    <div class="tile ${s.unguarded_met_confirmations?'bad':'ok'}"><div class="v">${s.unguarded_met_confirmations||0}</div><div class="l">lần xác nhận ĐẠT ở tiêu chí không có lưới đỡ code (đều kèm bằng chứng tự kiểm chứng)</div></div>
+    <div class="tile ${s.post_audit&&s.post_audit.disagree?'bad':''}"><div class="v">${s.post_audit?`${s.post_audit.audited}/${s.post_audit.eligible}`:'—'}</div><div class="l">đã hậu kiểm lấy mẫu${s.post_audit&&s.post_audit.disagree?` · <b>${s.post_audit.disagree} không đồng ý</b>`:''}</div></div>`;
+  renderPostAudit();
   const q=CASES.filter(c=>c.status!=='letter_approved').sort((a,b)=>META.states.indexOf(b.status)-META.states.indexOf(a.status)).slice(0,8);
   $('dashtable').innerHTML=`<tr><th>Mã</th><th>Người nộp</th><th>Tổ chức</th><th>Trạng thái</th><th>AI: không đạt / cần chú ý</th><th>Xác nhận</th><th></th></tr>`+
     q.map(c=>`<tr class="click" onclick="go('case','${c.id}')"><td class="mono">${c.id}</td><td><b>${esc(c.applicant)}</b></td><td>${esc(c.org)}</td><td><span class="st st-${c.status}">${META.state_vi[c.status]}</span></td><td>${c.n_rules?`<span class="chip c-not_met">${c.ai_not_met}</span> <span class="chip c-unclear">${c.ai_attention}</span>`:'<span class="conf">chưa đánh giá</span>'}</td><td class="mono">${c.n_rules?c.n_confirmed+'/'+c.n_rules:'—'}</td><td><button class="btn sm ghost">Mở</button></td></tr>`).join('');
+}
+/* HẬU KIỂM LẤY MẪU — quản lý/thanh tra rà ngẫu nhiên các lần cán bộ xác nhận ĐẠT ở tiêu chí không có lưới đỡ code.
+   Máy chỉ kiểm được đoạn chứng thực CÓ THẬT trong hồ sơ; đoạn đó có ĐÚNG tiêu chí không thì phải người thứ hai xem. */
+let PA_ITEMS=[];
+function renderPostAudit(){
+  if(!canAudit()){$('postaudit').innerHTML='';return;}
+  $('postaudit').innerHTML=`<h3>Hậu kiểm lấy mẫu</h3><div class="note">Rút ngẫu nhiên các lần cán bộ xác nhận <b>ĐẠT</b> ở tiêu chí không có lưới đỡ mã nguồn (hồ sơ đã ký, không phải do bạn xác nhận). Việc rút mẫu cũng được ghi nhật ký.
+    <div class="row" style="margin-top:8px"><button class="btn sm green" onclick="drawPostAudit()">Rút 5 mẫu</button><span class="conf" id="pa-info"></span></div><div id="pa-list"></div></div>`;
+}
+async function drawPostAudit(){
+  try{const d=await api('/post-audit/sample?n=5');PA_ITEMS=d.items;
+    $('pa-info').textContent=d.items.length?`${d.items.length} mẫu / ${d.pool} lần chờ hậu kiểm`:'Không còn lần xác nhận nào chờ hậu kiểm.';
+    $('pa-list').innerHTML=d.items.map((it,i)=>`<div class="rulecard" id="pa-${i}"><span class="rid">${esc(it.rule_id)}</span> <span class="chip c-unclear">${esc(GLBL[it.guard_level]||it.guard_level||'')}</span> <span class="conf">${esc(it.case_id)} · ${esc(it.applicant||'')} · xác nhận bởi <b>${esc(it.confirmed_by||'')}</b> lúc ${fmtT(it.confirmed_at)}</span>
+      <div style="font-weight:600;margin:6px 0 2px">${esc(it.rule_title||'')}</div><div class="rquote">"${esc(it.rule_quote||'')}"</div>
+      <div style="margin-top:6px"><b>Chứng thực của cán bộ:</b> ${esc(it.attestation||'(không ghi)')}</div>
+      ${it.ai_quote?`<div class="conf">Câu AI trích: "${esc(it.ai_quote)}"</div>`:''}
+      <div class="row" style="margin-top:8px"><input id="pa-note-${i}" placeholder="Ghi chú (bắt buộc nếu không đồng ý)" style="flex:1;min-width:200px;padding:6px 8px;border:1px solid var(--line);border-radius:6px">
+        <button class="btn sm green" onclick="savePostAudit(${i},'agree')">Đồng ý</button><button class="btn sm ghost" onclick="savePostAudit(${i},'disagree')">Không đồng ý</button><button class="btn sm ghost" onclick="go('case','${esc(it.case_id)}')">Mở hồ sơ</button></div></div>`).join('');
+  }catch(e){toast(e.message,true);}
+}
+async function savePostAudit(i,outcome){
+  const it=PA_ITEMS[i];
+  try{await api('/post-audit',{...officer(),case_id:it.case_id,rule_id:it.rule_id,outcome,note:$('pa-note-'+i).value});
+    $('pa-'+i).innerHTML=`<span class="chip ${outcome==='agree'?'c-met':'c-not_met'}">${outcome==='agree'?'ĐÃ HẬU KIỂM — đồng ý':'ĐÃ HẬU KIỂM — KHÔNG đồng ý, đề nghị mở lại hồ sơ'}</span> <span class="conf">${esc(it.case_id)} · ${esc(it.rule_id)}</span>`;
+  }catch(e){toast(e.message,true);}
 }
 function renderCaseList(){
   const f=($('casefilter').value||'').toLowerCase(),sf=$('statusfilter').value;
@@ -677,8 +742,8 @@ async function changeRuleset(){
   catch(e){toast(e.message,true);}
 }
 async function doCountersign(){
-  const mgr=$('mgrsel')?$('mgrsel').value:'';if(!mgr){toast('Chọn quản lý ký cấp 2',true);return;}
-  try{await api(`/cases/${CUR.case.id}/countersign`,{officer:mgr,role:'manager'});toast('Quản lý đã ký cấp 2 — được phép phát hành thư');await openCase(CUR.case.id);}
+  if(!isManager()){toast('Ký cấp 2 cần đăng nhập bằng tài khoản QUẢN LÝ (khác người thẩm định)',true);return;}
+  try{await api(`/cases/${CUR.case.id}/countersign`,officer());toast('Quản lý đã ký cấp 2 — được phép phát hành thư');await openCase(CUR.case.id);}
   catch(e){toast(e.message,true);}
 }
 
@@ -690,7 +755,7 @@ function renderLetter(){
   let h=`<div class="card" style="margin-top:14px"><h3 style="margin-top:0">Thư kết quả cho người nộp hồ sơ</h3><div class="conf">Soạn từ ${CUR.verdicts.length} kết luận cuối đã ký bởi ${esc(c.officer)} · ${fails.length} tiêu chí không đạt / cần bổ sung · tiếng Anh B1, có mục bổ sung và khiếu nại</div>`;
   if(c.status==='signed'&&CUR.needs_countersign){
     h+=`<div class="warn"><b>Cần chữ ký cấp 2:</b> hồ sơ có ${fails.length} tiêu chí không đạt/chưa rõ — theo quy trình, một <b>quản lý</b> (khác cán bộ thẩm định, qua kiểm COI) phải ký xác nhận trước khi phát hành thư.</div>
-    <div class="row"><label><b>Quản lý ký cấp 2:</b></label><select id="mgrsel">${(META.managers||[]).map(m=>`<option ${m===c.officer?'disabled':''}>${esc(m)}</option>`).join('')}</select><button class="btn green" onclick="doCountersign()">Ký xác nhận cấp quản lý</button><span class="conf">server kiểm vai trò manager + khác người ký + COI</span></div>`;
+    <div class="row">${isManager()&&OFFICER!==c.officer?`<button class="btn green" onclick="doCountersign()">Ký xác nhận cấp quản lý (${esc(OFFICER)})</button>`:`<span class="chip c-unclear">Chờ QUẢN LÝ đăng nhập để ký cấp 2</span>`}<span class="conf">máy chủ kiểm: tài khoản có vai trò quản lý · khác người thẩm định · không xung đột lợi ích</span></div>`;
   }
   else if(c.status==='signed')h+=`<div class="row"><button class="btn" id="genletter" onclick="genLetter()">Soạn thư (${esc(META.llm.model)})</button>${META.letter_template?'<span class="chip c-met">theo mẫu thư của đơn vị (data/letter-template.txt)</span>':'<span class="conf">chưa có mẫu đơn vị — dùng khung mặc định</span>'}</div>`;
   if(c.status==='letter_drafted')h+=`<div class="draftmark">NHÁP — CHƯA GỬI</div><textarea class="letter-edit" id="lettertext">${esc(c.letter)}</textarea><div class="row"><button class="btn green" onclick="approveLetter()">Phê duyệt nội dung thư (${esc(OFFICER)})</button><button class="btn ghost" onclick="genLetter()">Soạn lại</button><span class="conf">Có thể sửa tay trước khi phê duyệt — nhật ký ghi "có chỉnh sửa".</span></div>`;

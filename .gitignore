@@ -16,3 +16,7 @@ data/New-dataset/*.zip
 "data/New-dataset/Dữ liệu/abn/"
 data/New-dataset/**/abn/
 data/New-dataset/**/Ds*/
+
+# xác thực: khoá ký phiên + mật khẩu demo dạng rõ — KHÔNG đưa vào git
+data/.secret
+data/demo-accounts.txt

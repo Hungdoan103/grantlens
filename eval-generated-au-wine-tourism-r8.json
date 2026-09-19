@@ -7,7 +7,7 @@
   "label_scope": "target",
   "labels_generated_at": "2026-09-14T15:24:18",
   "labels_approved_at": "2026-09-14T15:48:46",
-  "evaluated_at": "2026-09-14T16:10:39",
+  "evaluated_at": "2026-09-19T12:12:41",
   "provisional": false,
   "labels_approved": true,
   "approved_by": "Rà kỹ thuật (nhà cung cấp) — chưa thay cán bộ đơn vị",
@@ -22,7 +22,7 @@
   "control": {
     "correct": 1,
     "total": 2,
-    "false_alarm": 1,
+    "false_alarm": 0,
     "note": "rule mục tiêu chấm trên hồ sơ sạch — báo động giả"
   },
   "secondary": null,
@@ -37,9 +37,9 @@
       "case": "GEN-au-wine-tourism-r8-00-clean",
       "rule": "W06",
       "kind": "control",
-      "pred": "not_met",
+      "pred": "unclear",
       "truth": "met",
-      "note": "Không có thông tin về việc sở hữu hoặc thuê một cửa hàng chai rượu vật lý tại Úc trong năm tài chính"
+      "note": "[CHỐT NHẤT QUÁN] AI kết luận KHÔNG ĐẠT nhưng không trỏ được vào dữ kiện nào nêu vi phạm — thiếu thôn"
     }
   ]
 }

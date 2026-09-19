@@ -7,21 +7,22 @@
   },
   "n_cases": 2,
   "accuracy": {
-    "total": "24/24",
-    "pct": 1.0,
+    "total": "23/24",
+    "pct": 0.9583,
     "by_type": {
-      "quantitative": "10/10",
+      "quantitative": "9/10",
       "qualitative": "14/14"
     },
     "by_confidence": {
-      "high": "24/24",
+      "high": "23/24",
       "medium": "0/0",
       "low": "0/0"
     }
   },
   "confusion": {
-    "met->met": 18,
-    "not_met->not_met": 6
+    "met->met": 17,
+    "not_met->not_met": 6,
+    "met->not_met": 1
   },
   "citation_match": {
     "ok": 24,
@@ -32,12 +33,28 @@
     "n": 0,
     "of": 6
   },
-  "errors": [],
-  "elapsed_sec": 1320,
+  "errors": [
+    {
+      "case": "HS-07",
+      "rule": "R07",
+      "pred": "not_met",
+      "truth": "met",
+      "confidence": "high",
+      "facts": [
+        "Prior CAREER history: Dr. Raman has never received a CAREER award",
+        "Dr. Raman submitted one CAREER proposal in the 2025 competition",
+        "This is her second submission to the CAREER competition",
+        "Dr. Raman is the sole Principal Investigator"
+      ],
+      "note": "Điều 3 cho thấy Dr. Raman đã nộp đơn lần thứ hai vào cuộc thi CAREER, vi phạm quy tắc về việc không được tham gia hơn ba cuộc thi CAREER."
+    }
+  ],
+  "elapsed_sec": 1089,
   "raw": {
     "HS-02": [
       {
         "guard": null,
+        "guard_level": "llm-only",
         "r": "R01",
         "title": "Tổ chức nộp hồ sơ hợp lệ",
         "type": "qualitative",
@@ -87,10 +104,11 @@
         "cite_rule_ok": true,
         "cite_app_ok": true,
         "needs_attention": false,
-        "note": "Tổ chức nộp hồ sơ là Lakeshore Technical University, một trường đại học tư thục được công nhận tại Mỹ, đáp ứng điều kiện của quy tắc R01."
+        "note": "Tổ chức nộp hồ sơ là Lakeshore Technical University, một trường đại học tư thục được công nhận tại Hoa Kỳ, đáp ứng điều kiện của quy tắc R01."
       },
       {
         "guard": null,
+        "guard_level": "llm-only",
         "r": "R02",
         "title": "PI có bằng tiến sĩ trong lĩnh vực NSF hỗ trợ",
         "type": "qualitative",
@@ -135,10 +153,11 @@
         "cite_rule_ok": true,
         "cite_app_ok": true,
         "needs_attention": false,
-        "note": "Ứng viên có bằng tiến sĩ trong lĩnh vực được NSF hỗ trợ, đáp ứng điều kiện."
+        "note": "Bằng tiến sĩ trong lĩnh vực kỹ thuật điện được NSF hỗ trợ, đáp ứng yêu cầu quy tắc R02."
       },
       {
         "guard": null,
+        "guard_level": "llm-only",
         "r": "R03",
         "title": "PI đang nghiên cứu trong lĩnh vực NSF hỗ trợ",
         "type": "qualitative",
@@ -146,7 +165,7 @@
         "confidence": "high",
         "facts": [
           {
-            "fact": "Degree is Ph.D. in Electrical Engineering",
+            "fact": "Degree is Electrical Engineering",
             "chunk_id": 3,
             "key_phrase": "Degree: I finished my Ph.D. degree in Electrical Engineering at Purdue University in 2016."
           },
@@ -161,7 +180,7 @@
             "key_phrase": "Current research: Now I do research about fault detection for power electronics converters."
           },
           {
-            "fact": "Area is inside NSF engineering",
+            "fact": "Research area is inside NSF engineering",
             "chunk_id": 4,
             "key_phrase": "This area is inside NSF engineering."
           }
@@ -188,14 +207,16 @@
         "cite_rule_ok": true,
         "cite_app_ok": true,
         "needs_attention": false,
-        "note": "Thông tin 2 xác nhận lĩnh vực đang nghiên cứu được NSF hỗ trợ, đáp ứng yêu cầu của quy tắc R03."
+        "note": "Thông tin 2 xác nhận lĩnh vực nghiên cứu được NSF hỗ trợ, đáp ứng quy tắc R03."
       },
       {
         "guard": {
           "action": "confirm",
           "verdict": "not_met",
+          "source": "hand",
           "reason": "Hồ sơ ghi chức danh Associate Professor — rule loại trừ rõ (code khớp mẫu chữ)"
         },
+        "guard_level": "code-guarded",
         "r": "R04",
         "title": "Vị trí tenure-track ≥50%, chức danh Assistant Professor",
         "type": "quantitative",
@@ -241,8 +262,10 @@
         "guard": {
           "action": "confirm",
           "verdict": "not_met",
+          "source": "hand",
           "reason": "Hồ sơ ghi đã nhận tenure (code khớp mẫu chữ)"
         },
+        "guard_level": "code-guarded",
         "r": "R05",
         "title": "PI chưa có tenure (untenured)",
         "type": "qualitative",
@@ -291,6 +314,7 @@
       },
       {
         "guard": null,
+        "guard_level": "llm-only",
         "r": "R06",
         "title": "Chưa từng nhận giải CAREER",
         "type": "qualitative",
@@ -344,6 +368,7 @@
       },
       {
         "guard": null,
+        "guard_level": "code-guarded",
         "r": "R07",
         "title": "Giới hạn số lần dự thi (1/năm, tối đa 3 lần)",
         "type": "quantitative",
@@ -394,8 +419,10 @@
         "guard": {
           "action": "override",
           "verdict": "not_met",
-          "reason": "Hồ sơ nêu có co-PI trên trang bìa — rule cấm co-PI (code khớp mẫu chữ)"
+          "source": "hand+compiler",
+          "reason": "Hồ sơ nêu có co-PI trên trang bìa — rule cấm co-PI (code khớp mẫu chữ) | Lớp tự biên dịch xác nhận: Hồ sơ nêu 'co-PI' — rule cấm mục này ('cấm: co-PIs') — guard tự biên dịch từ nguyên văn"
         },
+        "guard_level": "code-guarded",
         "r": "R08",
         "title": "Không có đồng chủ nhiệm (co-PI)",
         "type": "quantitative",
@@ -430,10 +457,11 @@
         "cite_rule_ok": true,
         "cite_app_ok": true,
         "needs_attention": true,
-        "note": "[CHẶN FALSE-PASS] Hồ sơ nêu có co-PI trên trang bìa — rule cấm co-PI (code khớp mẫu chữ). (LLM trả 'met' nhưng mã nguồn kiểm số liệu xác định vi phạm — rule định lượng do code quyết.) | LLM: Bìa đề cập đến một đồng PI, điều này vi phạm quy tắc R08."
+        "note": "[CHẶN FALSE-PASS] Hồ sơ nêu có co-PI trên trang bìa — rule cấm co-PI (code khớp mẫu chữ) | Lớp tự biên dịch xác nhận: Hồ sơ nêu 'co-PI' — rule cấm mục này ('cấm: co-PIs') — guard tự biên dịch từ nguyên văn. (LLM trả 'met' nhưng mã nguồn kiểm số liệu xác định vi phạm — rule định lượng do code quyết.) | LLM: Bìa đề cập đến người đồng phó chủ nhiệm, điều này vi phạm quy tắc R08."
       },
       {
         "guard": null,
+        "guard_level": "code-guarded",
         "r": "R09",
         "title": "Có thư của trưởng khoa (Departmental Letter), ≤2 trang",
         "type": "qualitative",
@@ -473,10 +501,11 @@
         "cite_rule_ok": true,
         "cite_app_ok": true,
         "needs_attention": false,
-        "note": "Đơn xin tài trợ bao gồm một lá thư từ trưởng bộ phận (hoặc chức danh tương đương) và lá thư không quá 2 trang, đáp ứng đầy đủ quy định R09."
+        "note": "Đơn xin tài trợ bao gồm một lá thư từ trưởng bộ phận (hoặc chức vụ tương đương) và lá thư có độ dài đúng quy định."
       },
       {
         "guard": null,
+        "guard_level": "code-guarded",
         "r": "R10",
         "title": "Thuyết minh ≤15 trang, tích hợp nghiên cứu + giáo dục",
         "type": "quantitative",
@@ -499,7 +528,7 @@
             "key_phrase": "Project Description also education plan"
           },
           {
-            "fact": "Project Description includes a new lab course about power electronics",
+            "fact": "Project Description includes making a new lab course about power electronics",
             "chunk_id": 7,
             "key_phrase": "I will make a new lab course about power electronics"
           }
@@ -526,14 +555,16 @@
         "cite_rule_ok": true,
         "cite_app_ok": true,
         "needs_attention": false,
-        "note": "Đơn xin hỗ trợ đạt yêu cầu vì Mô tả Dự án không vượt quá 15 trang và bao gồm cả hoạt động nghiên cứu và giáo dục."
+        "note": "Đơn xin tài trợ đáp ứng yêu cầu về số trang và nội dung của Mô tả Dự án."
       },
       {
         "guard": {
           "action": "confirm",
           "verdict": "not_met",
-          "reason": "Tổng ngân sách 350,000$ < mức tối thiểu 400,000$ (code so số liệu)"
+          "source": "hand+compiler",
+          "reason": "Tổng ngân sách 350,000$ < mức tối thiểu 400,000$ (code so số liệu) | Lớp tự biên dịch xác nhận: Giá trị 350,000 dưới ngưỡng 400,000 trong rule ('expected to total a minimum of $400,000 (rule có 2 ngưỡng theo điều kiện — dùng ngưỡng an toàn nhất)') — guard tự biên dịch từ nguyên văn"
         },
+        "guard_level": "code-guarded",
         "r": "R11",
         "title": "Ngân sách tối thiểu $400,000/5 năm ($500,000 với BIO/ENG/OPP)",
         "type": "quantitative",
@@ -577,6 +608,7 @@
       },
       {
         "guard": null,
+        "guard_level": "code-guarded",
         "r": "R12",
         "title": "Không có cost sharing tự nguyện",
         "type": "qualitative",
@@ -622,6 +654,7 @@
     "HS-07": [
       {
         "guard": null,
+        "guard_level": "llm-only",
         "r": "R01",
         "title": "Tổ chức nộp hồ sơ hợp lệ",
         "type": "qualitative",
@@ -636,7 +669,7 @@
           {
             "fact": "Bayview University is four-year private institution of higher education",
             "chunk_id": 1,
-            "key_phrase": "Bayview University, a four-year private institution of higher education"
+            "key_phrase": "four-year private institution of higher education"
           },
           {
             "fact": "Bayview University is accredited in the United States",
@@ -646,7 +679,7 @@
           {
             "fact": "Bayview University has its main campus located in Texas, USA",
             "chunk_id": 1,
-            "key_phrase": "with its main campus located in Texas, USA"
+            "key_phrase": "main campus located in Texas, USA"
           }
         ],
         "coverage": "direct",
@@ -675,6 +708,7 @@
       },
       {
         "guard": null,
+        "guard_level": "llm-only",
         "r": "R02",
         "title": "PI có bằng tiến sĩ trong lĩnh vực NSF hỗ trợ",
         "type": "qualitative",
@@ -728,6 +762,7 @@
       },
       {
         "guard": null,
+        "guard_level": "llm-only",
         "r": "R03",
         "title": "PI đang nghiên cứu trong lĩnh vực NSF hỗ trợ",
         "type": "qualitative",
@@ -737,26 +772,26 @@
           {
             "fact": "Current research is RNA-mediated stress signaling in drought-tolerant plants",
             "chunk_id": 4,
-            "key_phrase": "RNA-mediated stress signaling"
+            "key_phrase": "RNA-mediated stress signaling in drought-tolerant plants"
           },
           {
-            "fact": "Research area is biological sciences",
+            "fact": "Research area is supported by the NSF Directorate for Biological Sciences",
             "chunk_id": 4,
-            "key_phrase": "area of biological sciences"
-          },
-          {
-            "fact": "Research is supported by NSF Directorate for Biological Sciences",
-            "chunk_id": 4,
-            "key_phrase": "supported by the NSF Directorate for Biological Sciences"
+            "key_phrase": "area of biological sciences supported by the NSF Directorate for Biological Sciences"
           },
           {
             "fact": "Degree field is Molecular Biology",
             "chunk_id": 3,
             "key_phrase": "Ph.D. in Molecular Biology"
+          },
+          {
+            "fact": "Degree field is supported by NSF",
+            "chunk_id": 3,
+            "key_phrase": "a field supported by NSF"
           }
         ],
         "coverage": "direct",
-        "supporting_fact": 3,
+        "supporting_fact": 2,
         "rq": "Be engaged in research in an area of science, engineering, or education supported by NSF",
         "aq": "Current research: She is engaged in research on RNA-mediated stress signaling in drought-tolerant plants, an area of biological sciences supported by the NSF Directorate for Biological Sciences, with three peer-reviewed publications in the past two years.",
         "chunk_id": 4,
@@ -777,10 +812,11 @@
         "cite_rule_ok": true,
         "cite_app_ok": true,
         "needs_attention": false,
-        "note": "Sự nghiên cứu được hỗ trợ bởi NSF Directorate for Biological Sciences đáp ứng yêu cầu về lĩnh vực khoa học được NSF hỗ trợ."
+        "note": "Sự nghiên cứu thuộc lĩnh vực được NSF hỗ trợ, đáp ứng yêu cầu quy tắc R03."
       },
       {
         "guard": null,
+        "guard_level": "code-guarded",
         "r": "R04",
         "title": "Vị trí tenure-track ≥50%, chức danh Assistant Professor",
         "type": "quantitative",
@@ -815,10 +851,11 @@
         "cite_rule_ok": true,
         "cite_app_ok": true,
         "needs_attention": false,
-        "note": "Sự bổ nhiệm là 100% vị trí giảng dạy có thể tích, đáp ứng yêu cầu tối thiểu 50%."
+        "note": "Sự bổ nhiệm 100% vị trí giảng dạy có thời hạn (tenure-track) như Trợ lý Giáo sư đáp ứng yêu cầu tối thiểu 50% vị trí giảng dạy có thời hạn."
       },
       {
         "guard": null,
+        "guard_level": "code-guarded",
         "r": "R05",
         "title": "PI chưa có tenure (untenured)",
         "type": "qualitative",
@@ -863,10 +900,11 @@
         "cite_rule_ok": true,
         "cite_app_ok": true,
         "needs_attention": false,
-        "note": "Sự kiện được thuê là không có hợp đồng dài hạn (untenured) trực tiếp đáp ứng quy tắc R05."
+        "note": "Sự kiện được ghi nhận là 'untenured' trực tiếp đáp ứng điều kiện của quy tắc R05."
       },
       {
         "guard": null,
+        "guard_level": "llm-only",
         "r": "R06",
         "title": "Chưa từng nhận giải CAREER",
         "type": "qualitative",
@@ -905,10 +943,11 @@
       },
       {
         "guard": null,
+        "guard_level": "code-guarded",
         "r": "R07",
         "title": "Giới hạn số lần dự thi (1/năm, tối đa 3 lần)",
         "type": "quantitative",
-        "v": "met",
+        "v": "not_met",
         "confidence": "high",
         "facts": [
           {
@@ -922,9 +961,9 @@
             "key_phrase": "Dr. Raman submitted one CAREER proposal in the 2025 competition"
           },
           {
-            "fact": "Dr. Raman is submitting only this one proposal in the current competition",
+            "fact": "This is her second submission to the CAREER competition",
             "chunk_id": 5,
-            "key_phrase": "Dr. Raman is submitting only this one proposal in the current competition"
+            "key_phrase": "This is her second submission to the CAREER competition"
           },
           {
             "fact": "Dr. Raman is the sole Principal Investigator",
@@ -932,7 +971,7 @@
             "key_phrase": "Dr. Raman is the sole Principal Investigator"
           }
         ],
-        "coverage": "direct",
+        "coverage": "partial",
         "supporting_fact": 3,
         "rq": "A Principal Investigator (PI) may submit only one CAREER proposal per annual competition. In addition, a Principal Investigator may not participate in more than three CAREER competitions.",
         "aq": "This is her second submission to the CAREER competition, and she is submitting only this one proposal in the current competition.",
@@ -954,10 +993,11 @@
         "cite_rule_ok": true,
         "cite_app_ok": true,
         "needs_attention": false,
-        "note": "Đơn đăng ký chỉ có một đề xuất, phù hợp với quy định về số lượng đề xuất tối đa."
+        "note": "Điều 3 cho thấy Dr. Raman đã nộp đơn lần thứ hai vào cuộc thi CAREER, vi phạm quy tắc về việc không được tham gia hơn ba cuộc thi CAREER."
       },
       {
         "guard": null,
+        "guard_level": "code-guarded",
         "r": "R08",
         "title": "Không có đồng chủ nhiệm (co-PI)",
         "type": "quantitative",
@@ -970,7 +1010,7 @@
             "key_phrase": "No co-PIs are listed on the cover page"
           },
           {
-            "fact": "Cover page lists a principal investigator named Dr. Priya Raman",
+            "fact": "Principal investigator is Dr. Priya Raman",
             "chunk_id": 1,
             "key_phrase": "Principal Investigator: Dr. Priya Raman"
           }
@@ -997,14 +1037,16 @@
         "cite_rule_ok": true,
         "cite_app_ok": true,
         "needs_attention": false,
-        "note": "Bản đề nghị không có đồng chủ nhiệm, do đó đáp ứng quy tắc R08."
+        "note": "Bìa đề cập đến một người điều phối duy nhất, không có người điều phối phụ, do đó đáp ứng quy tắc."
       },
       {
         "guard": {
           "action": "confirm",
           "verdict": "not_met",
+          "source": "hand",
           "reason": "Thư trưởng khoa 3 trang > giới hạn 2 trang (code so số liệu)"
         },
+        "guard_level": "code-guarded",
         "r": "R09",
         "title": "Có thư của trưởng khoa (Departmental Letter), ≤2 trang",
         "type": "qualitative",
@@ -1048,6 +1090,7 @@
       },
       {
         "guard": null,
+        "guard_level": "code-guarded",
         "r": "R10",
         "title": "Thuyết minh ≤15 trang, tích hợp nghiên cứu + giáo dục",
         "type": "quantitative",
@@ -1062,17 +1105,17 @@
           {
             "fact": "Project Description presents research plan on small-RNA regulation of drought response",
             "chunk_id": 7,
-            "key_phrase": "Project Description presents the research plan on small-RNA regulation of drought response"
+            "key_phrase": "Project Description presents research plan on small-RNA regulation of drought response"
           },
           {
             "fact": "Project Description presents education plan creating undergraduate plant-genomics course",
             "chunk_id": 7,
-            "key_phrase": "Project Description presents the education plan creating an undergraduate plant-genomics course"
+            "key_phrase": "Project Description presents education plan creating undergraduate plant-genomics course"
           },
           {
             "fact": "Project Description presents education plan creating summer research program for first-generation college students",
             "chunk_id": 7,
-            "key_phrase": "Project Description presents the education plan creating a summer research program for first-generation college students"
+            "key_phrase": "Project Description presents education plan creating summer research program for first-generation college students"
           }
         ],
         "coverage": "direct",
@@ -1097,14 +1140,16 @@
         "cite_rule_ok": true,
         "cite_app_ok": true,
         "needs_attention": false,
-        "note": "Mô tả dự án có 15 trang, đáp ứng yêu cầu về giới hạn trang và bao gồm cả hoạt động nghiên cứu và giáo dục."
+        "note": "Mô tả dự án có 15 trang, đáp ứng yêu cầu giới hạn trang số 15."
       },
       {
         "guard": {
           "action": "confirm",
           "verdict": "not_met",
+          "source": "hand",
           "reason": "Tổng ngân sách 450,000$ < mức tối thiểu 500,000$ (code so số liệu)"
         },
+        "guard_level": "code-guarded",
         "r": "R11",
         "title": "Ngân sách tối thiểu $400,000/5 năm ($500,000 với BIO/ENG/OPP)",
         "type": "quantitative",
@@ -1148,6 +1193,7 @@
       },
       {
         "guard": null,
+        "guard_level": "code-guarded",
         "r": "R12",
         "title": "Không có cost sharing tự nguyện",
         "type": "qualitative",

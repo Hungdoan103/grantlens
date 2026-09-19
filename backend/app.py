@@ -5,10 +5,10 @@ Mở:    http://localhost:8000
 import json
 from pathlib import Path
 from typing import Optional
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request, Response
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
-from . import core, store, workflow, llm, rag, screening, tables, feedback, coi
+from . import core, store, workflow, llm, rag, screening, tables, feedback, coi, auth
 from .llm import LLMError
 from .workflow import WorkflowError
 
@@ -35,6 +35,49 @@ async def access_gate(request, call_next):
             resp.set_cookie("gl_key", ACCESS_KEY, httponly=True, max_age=86400 * 7)
         return resp
     return await call_next(request)
+
+
+# Danh tính + vai trò lấy từ PHIÊN phía máy chủ; trường officer/role trong request bị ghi đè (xem auth.py).
+app.add_middleware(auth.IdentityMiddleware)
+
+
+@app.exception_handler(auth.AuthError)
+async def _auth_err(request, exc: auth.AuthError):
+    from fastapi.responses import JSONResponse
+    return JSONResponse(status_code=exc.code, content={"detail": str(exc), "need_login": exc.code == 401})
+
+
+class LoginReq(BaseModel):
+    username: str
+    password: str
+
+
+@app.post("/api/auth/login")
+def auth_login(req: LoginReq, response: Response):
+    try:
+        user = auth.login(req.username, req.password)
+    except auth.AuthError as e:
+        store.log("Hệ thống", f"ĐĂNG NHẬP THẤT BẠI: '{req.username[:40]}' — {e}", None, "system")
+        raise
+    response.set_cookie(auth.COOKIE, auth.make_session(user), httponly=True, samesite="strict",
+                        max_age=int(auth.SESSION_HOURS * 3600))
+    store.log(user["name"], "ĐĂNG NHẬP", None, user["role"], {"username": user["username"]})
+    return {"user": user}
+
+
+@app.post("/api/auth/logout")
+def auth_logout(request: Request, response: Response):
+    u = getattr(request.state, "user", None)
+    if u:
+        store.log(u["name"], "ĐĂNG XUẤT", None, u["role"])
+    response.delete_cookie(auth.COOKIE)
+    return {"ok": True}
+
+
+@app.get("/api/auth/me")
+def auth_me(request: Request):
+    u = getattr(request.state, "user", None)
+    return {"auth_enabled": auth.ENABLED, "user": ({k: u[k] for k in ("name", "username", "role")} if u else None)}
 
 
 @app.on_event("startup")
@@ -80,7 +123,7 @@ def meta():
                           "n_rules": len(r["rules"]), "status": r.get("status", "approved"),
                           "default": r["id"] == all_rs["_default"]}
                          for k, r in all_rs.items() if k != "_default"],
-            "sla_days": coi.sla_days(),
+            "sla_days": coi.sla_days(), "auth_enabled": auth.ENABLED,
             "managers": [o["name"] for o in coi.load_officers() if o.get("role") == "manager"]}
 
 
@@ -148,8 +191,9 @@ def create_case(req: NewCase):
 
 
 @app.post("/api/cases/upload")
-async def upload_case(file: UploadFile = File(...), applicant: str = Form(""), org: str = Form(""),
+async def upload_case(request: Request, file: UploadFile = File(...), applicant: str = Form(""), org: str = Form(""),
                       directorate: str = Form(""), officer: str = Form("Cán bộ"), ruleset_id: str = Form("")):
+    officer = auth.current_user(request, officer)["name"]
     try:
         meta = tables.file_to_text(file.filename, await file.read())
     except Exception as e:
@@ -323,11 +367,10 @@ class ApproveRulesetReq(Officer):
 
 
 @app.post("/api/rulesets/{ruleset_id}/approve")
-def approve_ruleset(ruleset_id: str, req: ApproveRulesetReq):
+def approve_ruleset(ruleset_id: str, req: ApproveRulesetReq, request: Request):
     """QUẢN LÝ phê chuẩn bộ tiêu chí (kiểm độ phủ guard tối thiểu trước khi cho phép gán hồ sơ)."""
     from . import guards
-    if coi.role_of(req.officer) != "manager":
-        raise HTTPException(403, f"'{req.officer}' không có vai trò quản lý (manager) trong sổ cán bộ — không được phê chuẩn bộ tiêu chí")
+    auth.require_role(request, "manager", fallback_name=req.officer)
     try:
         rs = core.get_ruleset(ruleset_id)
     except KeyError:
@@ -507,9 +550,11 @@ class ApproveLabelsReq(Officer):
 
 
 @app.post("/api/rulesets/{ruleset_id}/testset/approve")
-def approve_testset(ruleset_id: str, req: ApproveLabelsReq):
-    """Cán bộ phê chuẩn nhãn bộ test — sau bước này số đo mới hết 'tạm/provisional'."""
+def approve_testset(ruleset_id: str, req: ApproveLabelsReq, request: Request):
+    """QUẢN LÝ phê chuẩn nhãn bộ test — sau bước này số đo mới hết 'tạm/provisional'.
+    Khoá vai trò: trước đây ai cũng gọi được cổng này."""
     from . import casegen
+    auth.require_role(request, "manager", fallback_name=req.officer)
     try:
         res = casegen.approve(ruleset_id, req.officer)
     except FileNotFoundError as e:
@@ -533,7 +578,7 @@ def dispute_testcase(ruleset_id: str, req: DisputeReq):
     if len((req.reason or "").strip()) < 8:
         raise HTTPException(400, "Loại case khỏi bộ test bắt buộc ghi lý do (≥ 8 ký tự)")
     try:
-        res = casegen.dispute(ruleset_id, req.case_id, req.reason)
+        res = casegen.dispute(ruleset_id, req.case_id, req.reason, by=req.officer)
     except (FileNotFoundError, KeyError) as e:
         raise HTTPException(404, str(e))
     store.log(req.officer, f"LOẠI case '{req.case_id}' khỏi bộ test '{ruleset_id}' — lý do: {req.reason}",
@@ -541,9 +586,67 @@ def dispute_testcase(ruleset_id: str, req: DisputeReq):
     return res
 
 
+# ---------------- hậu kiểm lấy mẫu (quản lý / thanh tra) ----------------
+# Lấp rủi ro còn lại của cổng chứng thực: máy kiểm được đoạn trích CÓ THẬT trong hồ sơ, không kiểm được nó có ĐÚNG
+# tiêu chí. Hồ sơ đạt toàn bộ lại không qua ký cấp 2 -> đây là "mắt thứ hai theo mẫu" cho đúng vùng đó.
+@app.get("/api/post-audit/sample")
+def post_audit_sample(request: Request, n: int = 5, officer: str = ""):
+    import random
+    u = auth.require_role(request, "manager", "auditor", fallback_name=officer)
+    pool = store.post_audit_candidates(u["name"])
+    picked = random.sample(pool, min(max(1, min(n, 20)), len(pool))) if pool else []
+    items = []
+    for v in picked:
+        c = store.get_case(v["case_id"], with_text=False)
+        rule = next((r for r in workflow.case_rules(c) if r["id"] == v["rule_id"]), {})
+        items.append({"case_id": v["case_id"], "applicant": v.get("applicant"), "rule_id": v["rule_id"],
+                      "rule_title": rule.get("title_vi"), "rule_quote": rule.get("quote"),
+                      "guard_level": v.get("guard_level"), "ai_verdict": v.get("ai_verdict"), "ai_quote": v.get("aq"),
+                      "attestation": v.get("officer_reason"), "confirmed_by": v.get("confirmed_by"),
+                      "confirmed_at": v.get("confirmed_at")})
+    if items:  # ghi cả việc RÚT MẪU: không ai rút đi rút lại tới khi gặp mẫu dễ mà không để lại dấu vết
+        store.log(u["name"], f"RÚT MẪU hậu kiểm: {len(items)}/{len(pool)} lần xác nhận ĐẠT ở tiêu chí không lưới đỡ",
+                  None, u["role"], {"sample": [[i["case_id"], i["rule_id"]] for i in items]})
+    return {"pool": len(pool), "items": items, "stats": store.post_audit_stats()}
+
+
+class PostAuditReq(Officer):
+    case_id: str
+    rule_id: str
+    outcome: str          # agree | disagree
+    note: str = ""
+
+
+@app.post("/api/post-audit")
+def post_audit_save(req: PostAuditReq, request: Request):
+    u = auth.require_role(request, "manager", "auditor", fallback_name=req.officer)
+    if req.outcome not in ("agree", "disagree"):
+        raise HTTPException(400, "outcome phải là agree hoặc disagree")
+    v = store.get_verdict(req.case_id, req.rule_id)
+    if not v or v.get("final_verdict") != "met":
+        raise HTTPException(404, "Không có lần xác nhận ĐẠT này")
+    if (v.get("confirmed_by") or "") == u["name"]:
+        raise HTTPException(409, "Không được tự hậu kiểm lần xác nhận của chính mình")
+    note = (req.note or "").strip()
+    if req.outcome == "disagree" and len(note) < 8:
+        raise HTTPException(400, "Không đồng ý thì bắt buộc ghi lý do (≥ 8 ký tự)")
+    store.save_post_audit(req.case_id, req.rule_id, u["name"], req.outcome, note)
+    verb = "ĐỒNG Ý với" if req.outcome == "agree" else "KHÔNG ĐỒNG Ý với"
+    store.log(u["name"], f"HẬU KIỂM {req.rule_id}: {verb} chứng thực của {v.get('confirmed_by')}"
+              + (f" — {note}" if note else "") + (" → đề nghị MỞ LẠI hồ sơ" if req.outcome == "disagree" else ""),
+              req.case_id, u["role"], {"rule": req.rule_id, "outcome": req.outcome, "confirmed_by": v.get("confirmed_by")})
+    return {"ok": True, "stats": store.post_audit_stats()}
+
+
+@app.get("/api/post-audit")
+def post_audit_list():
+    return {"stats": store.post_audit_stats(), "items": store.post_audit_list()}
+
+
 # ---------------- ký cấp 2 (quản lý) + vòng bổ sung hồ sơ ----------------
 @app.post("/api/cases/{case_id}/countersign")
-def countersign(case_id: str, req: Officer):
+def countersign(case_id: str, req: Officer, request: Request):
+    auth.require_role(request, "manager", fallback_name=req.officer)
     return workflow.countersign(case_id, req.officer)
 
 
@@ -585,8 +688,9 @@ def crosscheck_run(case_id: str, req: Officer):
 
 
 @app.post("/api/cases/{case_id}/attach")
-async def attach(case_id: str, file: UploadFile = File(None), name: str = Form(""),
+async def attach(request: Request, case_id: str, file: UploadFile = File(None), name: str = Form(""),
                  text: str = Form(""), officer: str = Form("Cán bộ")):
+    officer = auth.current_user(request, officer)["name"]
     if file is not None:
         try:
             meta_doc = tables.file_to_text(file.filename, await file.read())

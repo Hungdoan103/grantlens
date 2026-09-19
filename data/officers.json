@@ -15,7 +15,9 @@
       "affiliations": [
         "Grants Office"
       ],
-      "notes": "cán bộ thẩm định mẫu"
+      "notes": "cán bộ thẩm định mẫu",
+      "username": "nguyen.van.an",
+      "password": "pbkdf2_sha256$240000$PfkafyOmzm1uDVUpSg/VyA==$CZHXw246v9pyHEnqTLP49LBfEdQYB+RRPjhpeDMZzls="
     },
     {
       "name": "Tran Thi Binh",
@@ -24,7 +26,9 @@
         "Grants Office",
         "Riverside State University"
       ],
-      "notes": "demo chặn COI với HS-01"
+      "notes": "demo chặn COI với HS-01",
+      "username": "tran.thi.binh",
+      "password": "pbkdf2_sha256$240000$dBt88YsItgRloxd9zUm3Mg==$GHuwKWSPihwkhSpJH2GhTa5L7V4dO88JC4z1P8j2NrA="
     },
     {
       "name": "James Miller",
@@ -32,7 +36,9 @@
       "affiliations": [
         "Lakeshore Technical University"
       ],
-      "notes": "demo cảnh báo trùng tên HS-02"
+      "notes": "demo cảnh báo trùng tên HS-02",
+      "username": "james.miller",
+      "password": "pbkdf2_sha256$240000$kW8/GbW9uqcD9tS5JGpOZg==$WrWsh013IxF06i85k/fPp57+1Q7IsULxGewLBFHixD0="
     },
     {
       "name": "Pham Van Quyet",
@@ -40,7 +46,19 @@
       "affiliations": [
         "Grants Office"
       ],
-      "notes": "quản lý — ký xác nhận cấp 2 trước khi loại hồ sơ"
+      "notes": "quản lý — ký xác nhận cấp 2 trước khi loại hồ sơ",
+      "username": "pham.van.quyet",
+      "password": "pbkdf2_sha256$240000$qvu9lMnnU1EQAsa/xWcxuA==$6+m57qnleY//80ouyvLGN2lcbmEW84Ufs0voXyGyqCU="
+    },
+    {
+      "name": "Le Minh Chau",
+      "role": "auditor",
+      "affiliations": [
+        "Internal Audit"
+      ],
+      "notes": "thanh tra nội bộ — chỉ hậu kiểm, không thẩm định",
+      "username": "le.minh.chau",
+      "password": "pbkdf2_sha256$240000$ghotuy6IOyEHrdesB0UGvQ==$yioS4NXS3BTE0bWU4Ag6UqEYbCe9Wxy0bFaU4S5wFY4="
     }
   ]
 }

@@ -157,6 +157,33 @@ def _short(q: str, n: int = 45) -> str:
     return q if len(w) <= n else " ".join(w[:n]) + " ..."
 
 
+def judge_consistency(verdict: str, confidence: str, note: str, raw_idx, n_facts: int, coverage: str):
+    """CHỐT NHẤT QUÁN cho lượt phán quyết (mã nguồn, không hỏi lại model).
+
+    "KHÔNG ĐẠT" là kết luận ảnh hưởng quyền lợi người nộp nên PHẢI trỏ được vào một dữ kiện nêu vi phạm.
+    Nếu model kết luận not_met mà (a) không trỏ vào dữ kiện nào (supporting_fact = 0 / ngoài phạm vi), hoặc
+    (b) lượt trích báo không có gì liên quan (coverage = none) -> đó là "thiếu thông tin", không phải vi phạm:
+    hạ xuống CHƯA RÕ và đẩy về cán bộ. Lỗi đo được 14/09/2026 (Wine W06): hồ sơ hợp lệ bị chấm "không đạt"
+    với lý do "không có thông tin về sở hữu hay thuê".
+
+    PROMPT GIỮ NGUYÊN: bản thử 19/09/2026 có thêm 2 câu vào SYS_JUDGE ("not_met REQUIRES one fact..."). Đo đối chứng
+    cho thấy hai bản prompt ra kết quả GỘP Y HỆT (6 quỹ + NSF), tức câu thêm vào không có tác dụng đo được -> bỏ,
+    giữ bản prompt gốc; mọi thay đổi hành vi nằm trong hàm này (mã nguồn: kiểm được, lặp lại được).
+    Lưu ý khi đọc số: bộ NSF 07/09 là 24/24, hôm 19/09 là 23/24 ở CẢ HAI bản prompt — nguyên nhân KHÔNG phải prompt
+    hay hàm này mà là hệ không tái lập bit-by-bit giữa các lần chạy (xem README, mục Đợt 6).
+
+    Trước đây dòng `idx = supporting_fact or 1` còn ép 0 thành 1 -> hệ vẫn trích dữ kiện số 1 làm "bằng chứng"
+    cho một kết luận mà chính model nói là không có dữ kiện hỗ trợ.
+    Trả (verdict, confidence, note, idx) — idx luôn hợp lệ để lớp trích dẫn dùng."""
+    valid = isinstance(raw_idx, int) and 1 <= raw_idx <= n_facts
+    if verdict == "not_met" and (not valid or coverage == "none"):
+        why = "không trỏ được vào dữ kiện nào nêu vi phạm" if not valid else "lượt trích dữ kiện báo không có gì liên quan"
+        note = (f"[CHỐT NHẤT QUÁN] AI kết luận KHÔNG ĐẠT nhưng {why} — thiếu thông tin không phải là vi phạm, "
+                f"hạ xuống CHƯA RÕ để cán bộ quyết. | LLM: {note}")
+        verdict, confidence = "unclear", "low"
+    return verdict, confidence, note, (raw_idx if valid else 1)
+
+
 def assess_rule(case_id: str, text: str, rule: dict, k: int = 3, ruleset_id: str = None, meta: dict = None) -> dict:
     ret = get_retriever(case_id, text)
     hits = ret.retrieve(f"{rule['title_vi']} — {rule['quote']}", k=k)
@@ -190,9 +217,9 @@ def assess_rule(case_id: str, text: str, rule: dict, k: int = 3, ruleset_id: str
         )
         verdict = jd.get("verdict") if jd.get("verdict") in VERDICTS else "unclear"
         confidence = jd.get("confidence") if jd.get("confidence") in CONFIDENCE else "low"
-        idx = jd.get("supporting_fact") or 1
-        idx = idx if 1 <= idx <= len(facts) else 1
         note = jd.get("note_vi", "")
+        verdict, confidence, note, idx = judge_consistency(verdict, confidence, note, jd.get("supporting_fact"),
+                                                           len(facts), coverage)
     else:
         verdict, confidence, idx, note = "not_addressed", "high", 0, "Không có dữ kiện nào trong hồ sơ liên quan tới tiêu chí này."
 

@@ -37,6 +37,10 @@ CREATE TABLE IF NOT EXISTS verdicts (
   final_verdict TEXT, officer_reason TEXT, confirmed_by TEXT, confirmed_at TEXT,
   PRIMARY KEY (case_id, rule_id)
 );
+CREATE TABLE IF NOT EXISTS post_audit (
+  case_id TEXT, rule_id TEXT, auditor TEXT, outcome TEXT, note TEXT, audited_at TEXT,
+  PRIMARY KEY (case_id, rule_id)
+);
 CREATE TABLE IF NOT EXISTS audit (
   seq INTEGER PRIMARY KEY AUTOINCREMENT,
   ts TEXT NOT NULL, case_id TEXT, actor TEXT NOT NULL, role TEXT, action TEXT NOT NULL,
@@ -236,6 +240,42 @@ def verify_chain() -> dict:
     return {"ok": True, "total": len(rows), "head": prev}
 
 
+# ---------------- hậu kiểm lấy mẫu ----------------
+UNGUARDED = ("needs-manual-guard", "llm-only")
+
+
+def post_audit_candidates(auditor: str):
+    """Các lần cán bộ xác nhận ĐẠT ở tiêu chí KHÔNG có lưới đỡ mã nguồn, hồ sơ đã ký, chưa ai hậu kiểm,
+    và KHÔNG do chính người hậu kiểm xác nhận (không tự kiểm việc của mình)."""
+    q = """SELECT v.*, c.applicant, c.status, c.officer AS case_officer, c.signed_at
+           FROM verdicts v JOIN cases c ON c.id = v.case_id
+           LEFT JOIN post_audit p ON p.case_id = v.case_id AND p.rule_id = v.rule_id
+           WHERE v.final_verdict = 'met' AND v.guard_level IN (?, ?) AND v.confirmed_at IS NOT NULL
+             AND c.signed_at IS NOT NULL AND p.case_id IS NULL AND COALESCE(v.confirmed_by, '') != ?"""
+    return [_row(r) for r in db().execute(q, (*UNGUARDED, auditor or "")).fetchall()]
+
+
+def save_post_audit(case_id, rule_id, auditor, outcome, note):
+    with _lock:
+        db().execute("INSERT OR REPLACE INTO post_audit (case_id, rule_id, auditor, outcome, note, audited_at) "
+                     "VALUES (?,?,?,?,?,?)", (case_id, rule_id, auditor, outcome, note, now()))
+        db().commit()
+
+
+def post_audit_stats() -> dict:
+    d = db()
+    total = d.execute("SELECT COUNT(*) n FROM verdicts v JOIN cases c ON c.id=v.case_id WHERE v.final_verdict='met' "
+                      "AND v.guard_level IN (?, ?) AND v.confirmed_at IS NOT NULL AND c.signed_at IS NOT NULL",
+                      UNGUARDED).fetchone()["n"]
+    r = d.execute("SELECT COUNT(*) n, SUM(outcome='disagree') bad FROM post_audit").fetchone()
+    return {"eligible": total, "audited": r["n"] or 0, "disagree": r["bad"] or 0,
+            "coverage": ((r["n"] or 0) / total) if total else None}
+
+
+def post_audit_list(limit: int = 100):
+    return [_row(r) for r in db().execute("SELECT * FROM post_audit ORDER BY audited_at DESC LIMIT ?", (limit,)).fetchall()]
+
+
 # ---------------- stats ----------------
 def stats():
     d = db()
@@ -260,5 +300,6 @@ def stats():
         "avg_review_seconds": rev,
         "spot_checks": {"n": spot["n"] or 0, "agree": spot["agree"] or 0},
         "unguarded_met_confirmations": unguarded,
+        "post_audit": post_audit_stats(),
         "audit": verify_chain(),
     }

@@ -9,6 +9,7 @@ backend/
   workflow.py  Máy trạng thái ca hồ sơ + quy tắc "trust twist" kiểm tra Ở SERVER
   core.py      Pipeline 4 lớp: RAG → EXTRACT (LLM lượt 1) → JUDGE (LLM lượt 2) → CITE (code)
   store.py     SQLite: ca hồ sơ, kết luận, nhật ký kiểm toán chuỗi hash SHA-256 (tamper-evident)
+  auth.py      Đăng nhập + phiên ký HMAC + middleware ép danh tính từ phiên (không tin tên tự khai)
   llm.py       Backend LLM: ollama (mặc định) | openai-compatible | mock (kiểm thử không cần GPU)
   rag.py       Chunk theo đoạn (giữ offset) + TF-IDF (mặc định) / BGE-M3+FAISS (tùy chọn)
   verify.py    Citation-by-retrieval: code cắt câu nguyên văn + string-match lớp 2
@@ -88,14 +89,14 @@ Mỗi quỹ đi riêng chuỗi `--gen --target-only` → rà từng hồ sơ (`-
 | Quỹ | Bắt đúng vi phạm | False-pass | Đẩy về cán bộ (chưa rõ) | Hồ sơ sạch: đúng · báo động giả |
 |---|---|---|---|---|
 | NSF 22-586 CAREER (Mỹ) | 1/1 | 0/1 | 0 | 1/1 · 0/1 |
-| Wine Tourism R8 | 2/2 | 0/2 | 0 | 1/2 · 1/2 |
+| Wine Tourism R8 | 2/2 | 0/2 | 0 | 1/2 · 0/2 |
 | Cyber Security Skills R2 | 2/2 | 0/2 | 0 | 2/2 · 0/2 |
 | Boosting Female Founders R1 | 1/2 | 0/2 | 1 | 2/2 · 0/2 |
 | On-farm Water | 1/1 | 0/1 | 0 | 1/1 · 0/1 |
 | Quỹ minh hoạ (demo) | 1/1 | 0/1 | 0 | 1/1 · 0/1 |
 <!-- /KET-QUA-DO -->
 
-**Phát hiện từ phép đo (không làm đẹp số):**
+**Phát hiện từ lần đo 14/09 — TRƯỚC khi có chốt nhất quán (bảng trên là số mới nhất, xem mục Đợt 6 để so trước/sau):**
 - **Tổng 6 quỹ:** bắt đúng **8/9** vi phạm cài sẵn · **false-pass 0/9** · 1 case đẩy về cán bộ · hồ sơ sạch đúng 8/9 · **báo động giả 1/9**.
 - **Guard chặn false-pass thật của AI** (Female Founders F05): hồ sơ ghi "registered income tax exempt entity" nhưng `qwen3:8b` chấm **đạt**; guard tay F05 bắt, hạ `unclear` + cảnh báo `[NGHI FALSE-PASS]` → cán bộ quyết. Đây là case "đẩy về cán bộ" duy nhất.
 - **Báo động giả** (Wine W06, hồ sơ sạch): hồ sơ ghi "operates a dedicated physical cellar door located on our property"; lượt phán quyết trả **`not_met`** với ghi chú "không có thông tin về việc sở hữu hoặc thuê" — thiếu thông tin lẽ ra là `unclear`. Prompt đã dặn đúng nhưng model không tuân, và **code chưa có chốt nhất quán** cho trường hợp này.
@@ -121,6 +122,35 @@ Mỗi quỹ đi riêng chuỗi `--gen --target-only` → rà từng hồ sơ (`-
 - **Hai lỗi tự phát hiện khi rà và đã sửa**: (1) guard W04 bản đầu tính sai chiều logic (dùng `total − cellar` thay vì phần vượt ngưỡng) → sửa đúng câu chữ rule; (2) compiler báo oan trần grant $100k khi câu chỉ tình cờ chứa một từ khóa → ràng buộc `max` nay đòi **≥ 2 từ khóa** trong câu mới kết luận (`min` giữ 1 vì vốn đã an toàn).
 - **Bộ test Wine đã qua pipeline đầy đủ**: rà từng case → `dispute` 1 case sai nhãn (W06/related entity) → `flag_weak` 2 nhãn phụ sai (W04 ở case W03 và W09, vì doanh số đúng bằng ngưỡng nên không thể có phần vượt) → `approve` → `--eval` lấy **metric MỤC TIÊU**.
 
+## Đợt 6 (09/2026) — đóng các lỗ cấu trúc: xác thực, phân quyền, hậu kiểm, chốt nhất quán
+Bối cảnh: cam kết của sản phẩm chuyển từ **thống kê** ("false-pass dưới x%" — không chứng minh nổi khi chưa có hồ sơ thật) sang **cấu trúc** ("không có kết luận nào đi qua mà không có người ký tên" — kiểm được trên một hồ sơ). Muốn cam kết cấu trúc đứng vững thì các lỗ dưới đây phải đóng.
+- **Đăng nhập + phiên phía máy chủ** (`backend/auth.py`, chỉ dùng thư viện chuẩn): mật khẩu PBKDF2-SHA256 240.000 vòng có muối; phiên là cookie `httpOnly` + `SameSite=Strict` ký HMAC-SHA256, hết hạn 8 giờ; sai 5 lần khoá tài khoản 5 phút; thông báo lỗi và thời gian phản hồi không lộ tên nào tồn tại. Vai trò **đọc lại từ sổ cán bộ ở mỗi request** nên hạ quyền có hiệu lực ngay.
+- **Không endpoint nào còn tin danh tính tự khai**: `IdentityMiddleware` (ASGI) chặn mọi `/api/*` chưa đăng nhập (401) và **ghi đè** trường `officer`/`role` trong mọi request JSON bằng danh tính của phiên — kể cả endpoint viết sau này quên kiểm. Endpoint multipart (tải hồ sơ, đính kèm) đọc từ `request.state.user`. Nhật ký chuỗi băm vì thế ghi **danh tính đã xác thực**, không còn là tên gõ vào.
+- **Bốn cổng khoá vai trò**: phê chuẩn bộ tiêu chí, **phê chuẩn nhãn bộ test** (trước đây ai cũng gọi được), ký cấp 2 → `manager`; rút mẫu và ghi hậu kiểm → `manager` hoặc `auditor`. Ba vai trò: `officer` · `manager` · `auditor` (chỉ hậu kiểm, không thẩm định, không ký).
+- **Tách nhiệm vụ ở bộ nhãn**: người đã loại case (rà nhãn) qua API **không được tự phê chuẩn** bộ nhãn đó.
+- **Hậu kiểm lấy mẫu** (`GET /api/post-audit/sample`, `POST /api/post-audit`, bảng trên Tổng quan): quản lý/thanh tra rút ngẫu nhiên các lần cán bộ xác nhận **ĐẠT ở tiêu chí không có lưới đỡ mã nguồn** trên hồ sơ đã ký, không tự kiểm việc của mình; không đồng ý phải ghi lý do; **cả việc rút mẫu cũng vào nhật ký** (không rút đi rút lại tới khi gặp mẫu dễ). Lấp đúng rủi ro còn lại đã công bố: máy kiểm được đoạn chứng thực *có thật trong hồ sơ*, không kiểm được nó *đúng tiêu chí*; và hồ sơ đạt toàn bộ vốn không qua ký cấp 2.
+- **Chốt nhất quán lượt phán quyết** (`core.judge_consistency`): "KHÔNG ĐẠT" phải trỏ được vào một dữ kiện nêu vi phạm; model trả `not_met` mà `supporting_fact = 0`/ngoài phạm vi, hoặc lượt trích báo `coverage = none` → hạ **CHƯA RÕ**, đẩy về cán bộ. Sửa luôn lỗi `supporting_fact or 1` (ép 0 thành 1 rồi trích dữ kiện số 1 làm "bằng chứng"). Nguồn gốc: ca báo động giả Wine W06 đo ngày 14/09. **Prompt phán quyết giữ nguyên**: đã thử thêm 2 câu vào prompt, đo đối chứng thấy kết quả gộp y hệt bản không thêm → bỏ, vì thay đổi không có tác dụng đo được thì không giữ.
+- **Kiểm thử**: `test_auth_e2e` 39/39 (chưa đăng nhập → 401; cookie sửa nội dung → 401; tên tự khai bị ghi đè; cán bộ thường bị 403 ở cả 4 cổng; hậu kiểm; ký cấp 2; chốt nhất quán; tách nhiệm vụ; chuỗi băm toàn vẹn; không lộ hash mật khẩu) · guard 42/42 · casegen 66/66 · giao diện thật chạy qua Playwright, không lỗi JS.
+- `GRANTLENS_AUTH=off` tắt xác thực **chỉ cho kiểm thử tự động**; giao diện hiện cảnh báo đỏ khi tắt.
+
+### Đo lại sau khi thêm chốt nhất quán (19/09/2026, qwen3:8b, cùng bộ nhãn đã phê chuẩn)
+| | Trước | Sau (chỉ chốt mã nguồn) |
+|---|---|---|
+| 6 quỹ — bắt đúng vi phạm | 8/9 | 8/9 |
+| 6 quỹ — false-pass | 0/9 | 0/9 |
+| 6 quỹ — đẩy về cán bộ | 1 (F05, guard chặn) | 1 (F05) |
+| 6 quỹ — **báo động giả trên hồ sơ sạch** | **1/9** (W06) | **0/9** — W06 nay là CHƯA RÕ kèm nhãn `[CHỐT NHẤT QUÁN]` |
+| NSF HS-02 + HS-07 — accuracy | 24/24 (đo 07/09) | **23/24** |
+| NSF — false-pass | 0/6 | 0/6 |
+
+AI **vẫn sai** ở W06 (vẫn kết luận "không đạt"); cái thay đổi là lỗi đó không còn đi thẳng thành kết luận mà bị mã nguồn hạ xuống CHƯA RÕ và đẩy về cán bộ.
+
+**⚠ Phát hiện quan trọng — hệ KHÔNG tái lập y hệt giữa các lần chạy.** Bộ NSF tụt 24/24 → 23/24 (HS-07 R07: AI trích "this is her second submission" rồi phán sai rằng 2 lần vượt giới hạn 3 lần). Đã loại trừ lần lượt: model cùng digest (bản 03/09), cùng phiên bản Ollama, prompt giống hệt (đo cả hai bản prompt đều 23/24), bộ tiêu chí và hồ sơ không đổi, kho phản hồi few-shot trống. Nhưng **5/24 tiêu chí có dữ kiện trích khác** giữa lần đo 07/09 và 19/09 dù đầu vào y hệt. Nguyên nhân khả dĩ nhất: qwen3:8b (5,2 GB) chạy trên GPU 4 GB nên bị chia tầng GPU/CPU, tỷ lệ chia đổi theo VRAM trống lúc nạp → sai khác số học nhỏ → ở temperature 0 vẫn lật token khi hai lựa chọn sát nhau. Hệ quả phải nói thẳng:
+  - Con số **24/24 ngày 07/09 có phần may**; một lần đo đơn lẻ không phải thước đo tin cậy. Muốn báo cáo thì phải đo lặp và báo khoảng dao động.
+  - Chỉ số an toàn **false-pass ổn định 0/6 ở cả ba lần đo**; sai khác rơi vào phía báo động giả — phía có người xem lại và có ký cấp 2.
+  - Triển khai thật nên dùng GPU đủ chứa trọn model (≥ 8 GB) để bỏ việc chia tầng; chưa kiểm chứng được trên máy này.
+  - **Cố ý KHÔNG thêm guard cho R07** để kéo lại 24/24: đó đúng là kiểu vá theo đề thi (overfit). Ghi vào backlog là điểm yếu suy luận số đếm của model 8B; chỉ thêm guard khi hồ sơ thật lộ lỗ.
+
 ## Điểm phương pháp
 **Chống thiên lệch văn phong (2 lượt gọi thật):** lượt 1 chỉ trích *dữ kiện* trung tính (số liệu, ngày, directorate…) kèm chunk_id + key_phrase; lượt 2 phán quyết **chỉ nhìn danh sách dữ kiện**, không nhìn văn gốc ⇒ ngữ pháp/độ trôi chảy không thể ảnh hưởng. Kiểm chứng bằng 2 cặp HS-04A/B và HS-11A/B (Bias Lab + eval).
 
@@ -132,14 +162,17 @@ Mỗi quỹ đi riêng chuỗi `--gen --target-only` → rà từng hồ sơ (`-
 ```bash
 pip install -r requirements.txt
 ollama pull qwen3:8b            # ~6GB VRAM; máy yếu: qwen3:8b-q4_K_M (đặt GRANTLENS_MODEL)
+python -m backend.auth init-demo     # tạo tài khoản + mật khẩu ngẫu nhiên -> data/demo-accounts.txt (không vào git)
 uvicorn backend.app:app --port 8000
-# mở http://localhost:8000 — lần đầu nhập tên cán bộ thẩm định
+# mở http://localhost:8000 — đăng nhập bằng tài khoản trong data/demo-accounts.txt
 ```
+Quản lý tài khoản: sửa `data/officers.json` (tên, vai trò `officer|manager|auditor`, tổ chức), rồi `python -m backend.auth set-password <username> <mật khẩu>`; `python -m backend.auth list` để xem. **Đổi mật khẩu demo và đặt `GRANTLENS_SECRET` trước khi triển khai thật.**
 Biến môi trường:
 - `GRANTLENS_LLM=ollama|openai|mock` — `mock` để demo luồng nghiệp vụ không cần model (UI gắn nhãn rõ, không dùng báo cáo số liệu)
 - `GRANTLENS_MODEL`, `OLLAMA_URL`, `OPENAI_BASE_URL`, `OPENAI_API_KEY`
 - `EMBED_BACKEND=bge` (cần `pip install sentence-transformers faiss-cpu`)
 - `GRANTLENS_DB` đường dẫn SQLite
+- `GRANTLENS_SECRET` khoá ký phiên (mặc định tự sinh vào `data/.secret`), `GRANTLENS_SESSION_HOURS` (mặc định 8), `GRANTLENS_AUTH=off` chỉ cho kiểm thử
 
 ## Đánh giá định lượng
 ```bash

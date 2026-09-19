@@ -474,6 +474,8 @@ def approve(ruleset_id: str, officer: str):
     """Phê chuẩn nhãn sau khi đã rà văn bản — từ đây số đo mới hết 'provisional'.
     Từ chối nếu còn case bị verifier gắn cờ mà chưa ai xử lý (confirm hoặc dispute)."""
     p, doc = _load(ruleset_id)
+    if officer in (doc.get("reviewers") or []):
+        raise ValueError(f"Tách nhiệm vụ: '{officer}' đã tham gia rà nhãn bộ này nên không được tự phê chuẩn — cần người khác duyệt")
     pending = [c["id"] for c in doc["cases"] if c.get("status") == "needs_review"]
     if pending:
         raise ValueError(f"Còn {len(pending)} case bị verifier gắn cờ chưa rà: {pending} — "
@@ -540,11 +542,14 @@ def flag_weak(ruleset_id: str, case_id: str, rule_id: str, reason: str):
     return {"ok": True, "case": case_id, "rule": rule_id, "reason": reason}
 
 
-def dispute(ruleset_id: str, case_id: str, reason: str):
+def dispute(ruleset_id: str, case_id: str, reason: str, by: str = None):
     """Đánh dấu một case là sai/đáng ngờ -> loại khỏi mọi metric (giữ lại để truy vết)."""
     p, doc = _load(ruleset_id)
     hit = _case(doc, case_id)
     hit.update(status="disputed", dispute_reason=reason)
+    if by:  # ghi người rà -> tách nhiệm vụ: người rà nhãn không được tự phê chuẩn bộ nhãn đó
+        hit["disputed_by"] = by
+        doc["reviewers"] = sorted(set(doc.get("reviewers") or []) | {by})
     _save_edited(p, doc)
     return {"ok": True, "case": case_id, "reason": reason}
 
