@@ -71,6 +71,8 @@ def db():
         vcols = {r[1] for r in _db.execute("PRAGMA table_info(verdicts)")}
         if "guard_level" not in vcols:
             _db.execute("ALTER TABLE verdicts ADD COLUMN guard_level TEXT")
+        if "note_en" not in vcols:   # bản tiếng Anh của ghi chú AI (dịch bằng model sau đánh giá), cạnh bản gốc
+            _db.execute("ALTER TABLE verdicts ADD COLUMN note_en TEXT")
         cols = {r[1] for r in _db.execute("PRAGMA table_info(cases)")}
         for col, typ in [("screening", "TEXT"), ("crosscheck", "TEXT"), ("ruleset_id", "TEXT"),
                          ("ruleset_version", "TEXT"), ("ruleset_snapshot", "TEXT"),
@@ -156,17 +158,17 @@ def save_ai_verdict(case_id: str, v: dict):
     with _lock:
         db().execute(
             """INSERT INTO verdicts (case_id, rule_id, ai_verdict, ai_confidence, facts, rq, aq, chunk_id, cite_ok, note, retrieval, needs_attention,
-                                     guard_level, final_verdict, officer_reason, confirmed_by, confirmed_at)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,NULL,NULL,NULL,NULL)
+                                     guard_level, note_en, final_verdict, officer_reason, confirmed_by, confirmed_at)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,NULL,NULL,NULL,NULL)
                ON CONFLICT(case_id, rule_id) DO UPDATE SET ai_verdict=excluded.ai_verdict, ai_confidence=excluded.ai_confidence,
                  facts=excluded.facts, rq=excluded.rq, aq=excluded.aq, chunk_id=excluded.chunk_id, cite_ok=excluded.cite_ok,
                  note=excluded.note, retrieval=excluded.retrieval, needs_attention=excluded.needs_attention,
-                 guard_level=excluded.guard_level,
+                 guard_level=excluded.guard_level, note_en=excluded.note_en,
                  final_verdict=NULL, officer_reason=NULL, confirmed_by=NULL, confirmed_at=NULL""",
             (case_id, v["r"], v["v"], v.get("confidence"), json.dumps(v.get("facts", []), ensure_ascii=False),
              v["rq"], v["aq"], v.get("chunk_id"), int(bool(v.get("cite_app_ok"))), v.get("note", ""),
              json.dumps(v.get("retrieval_scores", [])), int(bool(v.get("needs_attention"))),
-             v.get("guard_level")),
+             v.get("guard_level"), v.get("note_en")),
         )
         db().commit()
 

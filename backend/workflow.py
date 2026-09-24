@@ -134,11 +134,17 @@ def assess_stream(case_id, actor="AI"):
     for i, rule in enumerate(rules):
         yield {"type": "progress", "rule": rule["id"], "title": rule["title_vi"], "i": i, "n": len(rules)}
         v = core.assess_rule(case_id, c["text"], rule, ruleset_id=rs["id"], meta=meta)
+        # Bản tiếng Anh của ghi chú AI cho giao diện EN: một lượt dịch riêng, KHÔNG đụng prompt phán quyết.
+        # Tắt bằng GRANTLENS_NOTE_EN=off (kiểm thử/đo không cần).
+        if os.environ.get("GRANTLENS_NOTE_EN", "on") != "off":
+            from . import i18n
+            v["note_en"] = i18n.note_to_en(v.get("note"))
         store.save_ai_verdict(case_id, v)
         if v.get("guard") and v["guard"]["action"] in ("override", "flag"):
             store.log("Hệ thống", f"GUARD chặn false-pass {rule['id']}: {v['guard']['reason']} → {v['v']}",
                       case_id, "system", {"rule": rule["id"], "guard": v["guard"]})
-        yield {"type": "verdict", **v}
+        # "type" của rule (qualitative/quantitative) từng ghi đè "type": "verdict" -> giao diện không nhận được sự kiện
+        yield {**v, "rule_type": v.get("type"), "type": "verdict"}
     store.update_case(case_id, status="assessed", assessed_at=store.now(),
                       llm_model=info["model"], embed_backend=rag.EMBED_BACKEND)
     vs = store.get_verdicts(case_id)
@@ -445,7 +451,7 @@ def case_view(case_id):
     masked = spot_pending(c)
     if masked:
         for v in vs:
-            for k in ("ai_verdict", "ai_confidence", "facts", "aq", "note", "chunk_id", "retrieval", "needs_attention"):
+            for k in ("ai_verdict", "ai_confidence", "facts", "aq", "note", "note_en", "chunk_id", "retrieval", "needs_attention"):
                 v[k] = None
     snap = c.get("ruleset_snapshot") or {}
     rules = snap.get("rules") or core.get_ruleset(c.get("ruleset_id"))["rules"]

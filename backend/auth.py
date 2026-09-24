@@ -33,7 +33,7 @@ MAX_FAILS, LOCK_SECONDS = 5, 300
 ROLES = ("officer", "manager", "auditor")
 
 # Đường dẫn không cần phiên: trang chủ, đăng nhập, thông tin hệ thống (để màn đăng nhập hiển thị trạng thái).
-PUBLIC_PATHS = {"/", "/api/auth/login", "/api/auth/logout", "/api/auth/me", "/api/meta", "/favicon.ico"}
+PUBLIC_PATHS = {"/", "/api/auth/login", "/api/auth/logout", "/api/auth/me", "/api/meta", "/favicon.ico", "/api/i18n/en"}
 
 # THANH TRA (auditor) chỉ ĐỌC + HẬU KIỂM: mọi thao tác ghi khác bị chặn ngay ở middleware (một chỗ duy nhất,
 # không phụ thuộc từng endpoint có nhớ kiểm hay không) — người hậu kiểm không được đồng thời là người thẩm định.
@@ -189,12 +189,12 @@ def read_session(token: str):
         return None
 
 
-def _cookie_from_scope(scope) -> str:
+def _cookie_from_scope(scope, cookie_name: str = None) -> str:
     for k, v in scope.get("headers", []):
         if k == b"cookie":
             for part in v.decode("latin-1").split(";"):
                 name, _, val = part.strip().partition("=")
-                if name == COOKIE:
+                if name == (cookie_name or COOKIE):
                     return val
     return ""
 
@@ -214,13 +214,16 @@ class IdentityMiddleware:
             return await self.app(scope, receive, send)
         path = scope.get("path", "")
         state = scope.setdefault("state", {})
+        # ngôn ngữ hiển thị của request (cookie gl_lang, do nút VI|EN đặt) -> contextvar cho lớp dịch đầu ra
+        from . import i18n
+        i18n.set_lang(_cookie_from_scope(scope, i18n.COOKIE))
         if not ENABLED:
             state["user"] = None
             return await self.app(scope, receive, send)
         user = read_session(_cookie_from_scope(scope))
         state["user"] = user
         if path.startswith("/api/") and path not in PUBLIC_PATHS and not user:
-            body = json.dumps({"detail": "Chưa đăng nhập hoặc phiên đã hết hạn", "need_login": True},
+            body = json.dumps({"detail": i18n.tr("Chưa đăng nhập hoặc phiên đã hết hạn"), "need_login": True},
                               ensure_ascii=False).encode("utf-8")
             await send({"type": "http.response.start", "status": 401,
                         "headers": [(b"content-type", b"application/json; charset=utf-8"),
@@ -229,8 +232,8 @@ class IdentityMiddleware:
 
         if user and user["role"] == "auditor" and scope.get("method") in ("POST", "PUT", "PATCH", "DELETE") \
                 and path.startswith("/api/") and path not in AUDITOR_WRITE_OK:
-            body = json.dumps({"detail": f"Tài khoản thanh tra '{user['name']}' chỉ được xem và hậu kiểm — "
-                                         "không thẩm định, không ký, không phê chuẩn"}, ensure_ascii=False).encode("utf-8")
+            body = json.dumps({"detail": i18n.tr(f"Tài khoản thanh tra '{user['name']}' chỉ được xem và hậu kiểm — "
+                                                 "không thẩm định, không ký, không phê chuẩn")}, ensure_ascii=False).encode("utf-8")
             await send({"type": "http.response.start", "status": 403,
                         "headers": [(b"content-type", b"application/json; charset=utf-8"),
                                     (b"content-length", str(len(body)).encode())]})

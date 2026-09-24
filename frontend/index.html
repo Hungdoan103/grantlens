@@ -182,12 +182,13 @@ pre.json{font-family:'IBM Plex Mono',monospace;font-size:11px;background:#F6F7F5
     <label for="lg-pass">Mật khẩu</label><input id="lg-pass" type="password" autocomplete="current-password" required>
     <button class="btn green" type="submit">Đăng nhập</button>
     <div class="loginerr" id="lg-err"></div>
+    <div class="conf" style="text-align:center;margin-top:8px"><a href="#" id="langlink" class="notranslate" onclick="toggleLang();return false">English</a></div>
   </form>
 </div>
 <main>
   <div class="topbar">
     <h1 id="pagetitle">Tổng quan</h1>
-    <div class="who"><b id="whoname">—</b><span class="rolechip" id="whorole"></span><button onclick="logout()">Đăng xuất</button></div>
+    <div class="who"><b id="whoname">—</b><span class="rolechip" id="whorole"></span><button id="langbtn" class="notranslate" onclick="toggleLang()" title="Đổi ngôn ngữ hiển thị (VI/EN)">EN</button><button onclick="logout()">Đăng xuất</button></div>
   </div>
 
   <!-- ===== DASHBOARD ===== -->
@@ -285,6 +286,55 @@ pre.json{font-family:'IBM Plex Mono',monospace;font-size:11px;background:#F6F7F5
 <div class="modal" id="spotmodal"><div class="box" id="spotbox"></div></div>
 <div class="toast" id="toast"></div>
 
+<script>
+/* ================= i18n: lớp hiển thị tiếng Anh (tiếng Việt là bản gốc) =================
+   Từ điển lấy từ /api/i18n/en — cùng một nguồn với lớp dịch JSON phía máy chủ. Dịch text node, placeholder/title
+   và hộp thoại confirm/prompt/alert. KHÔNG dịch vùng nguyên văn: văn bản hồ sơ (.doc), câu tiêu chí (.rquote/.qt),
+   dữ kiện AI trích (.facts), thư (.letter), ô nhập (textarea/input), JSON nhật ký (pre), lý do cán bộ tự ghi (.notranslate). */
+const LANG=(document.cookie.match(/(?:^|;\s*)gl_lang=(vi|en)/)||[])[1]||'vi';
+let I18N=null,I18N_PATS=[],I18N_PATS_LAST=[],I18N_PHRASE=null;
+const VI_RE=/[àáảãạăằắẳẵặâầấẩẫậđèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵ]/i;
+const I18N_SKIP='script,style,textarea,input,pre,.doc,.rquote,.qt,.letter,.facts,.notranslate,#whoname';
+function setLang(l){document.cookie=`gl_lang=${l}; path=/; max-age=31536000; SameSite=Lax`;location.reload();}
+function toggleLang(){setLang(LANG==='en'?'vi':'en');}
+function t(s){
+  if(!I18N||typeof s!=='string'||!s)return s;
+  const m=s.match(/^(\s*)([\s\S]*?)(\s*)$/);const core=m[2];if(!core)return s;
+  if(core.includes('\n'))return m[1]+core.split('\n').map(t).join('\n')+m[3];
+  let out=I18N.exact[core];
+  if(out===undefined){
+    if(!VI_RE.test(core))return s;
+    out=core;for(const [re,rep] of I18N_PATS)out=out.replace(re,rep);
+    if(VI_RE.test(out))out=out.replace(I18N_PHRASE,k=>I18N.exact[k]??k);
+    if(VI_RE.test(out))for(const [re,rep] of I18N_PATS_LAST)out=out.replace(re,rep);
+  }
+  return m[1]+out+m[3];
+}
+function trNode(n){
+  if(n.nodeType===3){const p=n.parentElement;if(!p||p.closest(I18N_SKIP))return;const v=n.data;if(n.__gl===v)return;const o=t(v);if(o!==v)n.data=o;n.__gl=n.data;return;}
+  if(n.nodeType!==1)return;
+  for(const a of ['placeholder','title']){if(n.hasAttribute(a)){const v=n.getAttribute(a),o=t(v);if(o!==v)n.setAttribute(a,o);}}
+  if(n.matches('script,style,pre,.doc,.letter'))return;   // vùng chỉ có nguyên văn: không cần đi xuống
+  for(const c of Array.from(n.childNodes))trNode(c);
+}
+async function loadI18n(){
+  const b=document.getElementById('langbtn'),a=document.getElementById('langlink');
+  if(b)b.textContent=LANG==='en'?'VI':'EN';if(a)a.textContent=LANG==='en'?'Tiếng Việt':'English';
+  if(LANG!=='en')return;
+  try{
+    I18N=await (await fetch('/api/i18n/en')).json();
+    I18N_PATS=I18N.patterns.map(([p,r])=>[new RegExp(p,'g'),r]);I18N_PATS_LAST=(I18N.patterns_last||[]).map(([p,r])=>[new RegExp(p,'g'),r]);
+    const keys=Object.keys(I18N.exact).filter(k=>k.length>=(I18N.min_phrase||6)).sort((x,y)=>y.length-x.length);
+    I18N_PHRASE=new RegExp('(?<![\\p{L}\\p{N}_])(?:'+keys.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')(?![\\p{L}\\p{N}_])','gu');
+    const _c=window.confirm.bind(window),_p=window.prompt.bind(window),_a=window.alert.bind(window);
+    window.confirm=m=>_c(t(String(m)));window.prompt=(m,d)=>_p(t(String(m)),d);window.alert=m=>_a(t(String(m)));
+    document.documentElement.lang='en';document.title=t(document.title);
+    trNode(document.documentElement);
+    new MutationObserver(ms=>{for(const r of ms){if(r.type==='characterData')trNode(r.target);else for(const n of r.addedNodes)trNode(n);}})
+      .observe(document.documentElement,{childList:true,subtree:true,characterData:true});
+  }catch(e){console.warn('i18n',e);}
+}
+</script>
 <script>
 /* ================= state & helpers ================= */
 let META=null,RULES=[],RULESETS=[],CASES=[],CUR=null;   // CUR = {case, verdicts, rules, ruleset, ai_masked}
@@ -460,7 +510,7 @@ async function drawPostAudit(){
     $('pa-info').textContent=d.items.length?`${d.items.length} mẫu / ${d.pool} lần chờ hậu kiểm`:'Không còn lần xác nhận nào chờ hậu kiểm.';
     $('pa-list').innerHTML=d.items.map((it,i)=>`<div class="rulecard" id="pa-${i}"><span class="rid">${esc(it.rule_id)}</span> <span class="chip c-unclear">${esc(GLBL[it.guard_level]||it.guard_level||'')}</span> <span class="conf">${esc(it.case_id)} · ${esc(it.applicant||'')} · xác nhận bởi <b>${esc(it.confirmed_by||'')}</b> lúc ${fmtT(it.confirmed_at)}</span>
       <div style="font-weight:600;margin:6px 0 2px">${esc(it.rule_title||'')}</div><div class="rquote">"${esc(it.rule_quote||'')}"</div>
-      <div style="margin-top:6px"><b>Chứng thực của cán bộ:</b> ${esc(it.attestation||'(không ghi)')}</div>
+      <div style="margin-top:6px"><b>Chứng thực của cán bộ:</b> ${it.attestation?`<span class="notranslate">${esc(it.attestation)}</span>`:'(không ghi)'}</div>
       ${it.ai_quote?`<div class="conf">Câu AI trích: "${esc(it.ai_quote)}"</div>`:''}
       <div class="row" style="margin-top:8px"><input id="pa-note-${i}" placeholder="Ghi chú (bắt buộc nếu không đồng ý)" style="flex:1;min-width:200px;padding:6px 8px;border:1px solid var(--line);border-radius:6px">
         <button class="btn sm green" onclick="savePostAudit(${i},'agree')">Đồng ý</button><button class="btn sm ghost" onclick="savePostAudit(${i},'disagree')">Không đồng ý</button><button class="btn sm ghost" onclick="go('case','${esc(it.case_id)}')">Mở hồ sơ</button></div></div>`).join('');
@@ -627,7 +677,7 @@ function renderMatrix(){
       </div>
       <div class="ainote"><b>AI:</b> ${esc(v.note)}</div>
       <div class="ragline">retrieval: ${(v.retrieval||[]).map(x=>`chunk ${x.chunk}=${x.score}`).join(' · ')} · confidence=${v.ai_confidence}</div>
-      ${rev?decideBlock(v):conf?`<div class="decide"><b>Kết luận cuối:</b> <span class="chip c-${v.final_verdict}">${VLBL[v.final_verdict]}</span> — ${esc(v.confirmed_by)} · ${fmtT(v.confirmed_at)}${v.officer_reason?`<div style="margin-top:4px">Lý do: ${esc(v.officer_reason)}</div>`:''}</div>`:''}
+      ${rev?decideBlock(v):conf?`<div class="decide"><b>Kết luận cuối:</b> <span class="chip c-${v.final_verdict}">${VLBL[v.final_verdict]}</span> — ${esc(v.confirmed_by)} · ${fmtT(v.confirmed_at)}${v.officer_reason?`<div style="margin-top:4px">Lý do: <span class="notranslate">${esc(v.officer_reason)}</span></div>`:''}</div>`:''}
     </div>`;
     return `<div class="vrow ${attn?'attn':''} ${conf?'confirmed':''}" id="row-${v.rule_id}">${head}${body}</div>`;
   }).join('');
@@ -635,7 +685,7 @@ function renderMatrix(){
 }
 function decideBlock(v){
   const needH=v.ai_verdict==='unclear'||v.ai_verdict==='not_addressed';
-  if(v.confirmed_at)return `<div class="decide"><div class="row" style="margin:0"><b>Đã xác nhận:</b> <span class="chip c-${v.final_verdict}">${VLBL[v.final_verdict]}</span> <span class="conf">${esc(v.confirmed_by)} · ${fmtT(v.confirmed_at)}</span><span class="grow"></span><button class="btn sm ghost" onclick="event.stopPropagation();unconfirm('${v.rule_id}')">Bỏ xác nhận</button></div>${v.officer_reason?`<div style="font-size:13px;margin-top:4px">Lý do: ${esc(v.officer_reason)}</div>`:''}</div>`;
+  if(v.confirmed_at)return `<div class="decide"><div class="row" style="margin:0"><b>Đã xác nhận:</b> <span class="chip c-${v.final_verdict}">${VLBL[v.final_verdict]}</span> <span class="conf">${esc(v.confirmed_by)} · ${fmtT(v.confirmed_at)}</span><span class="grow"></span><button class="btn sm ghost" onclick="event.stopPropagation();unconfirm('${v.rule_id}')">Bỏ xác nhận</button></div>${v.officer_reason?`<div style="font-size:13px;margin-top:4px">Lý do: <span class="notranslate">${esc(v.officer_reason)}</span></div>`:''}</div>`;
   const fv=v.final_verdict||(needH?'':v.ai_verdict);
   const noNet=v.guard_level==='needs-manual-guard';
   const onlyLLM=v.guard_level==='llm-only';
@@ -835,7 +885,7 @@ async function extractRules(){
   }catch(e){msg.innerHTML=`<span class="chip c-not_met">${esc(e.message)}</span>`;}
 }
 
-init();
+loadI18n().then(init);
 </script>
 </body>
 </html>

@@ -9,49 +9,57 @@
       "id": "O01",
       "type": "qualitative",
       "title_vi": "Thuộc ngành CHĂN NUÔI (grazing industry), có Land and Stock Return",
-      "quote": "You are a property owner, share-farmer or lessee in the grazing industry (as confirmed by your Land and Stock Return)"
+      "quote": "You are a property owner, share-farmer or lessee in the grazing industry (as confirmed by your Land and Stock Return)",
+      "title_en": "In the GRAZING industry, with a Land and Stock Return"
     },
     {
       "id": "O02",
       "type": "qualitative",
       "title_vi": "Loại hình kinh doanh hợp lệ, giao dịch nông sản",
-      "quote": "Your business operates as a sole trader, partnership, trust or private company and trades agricultural products"
+      "quote": "Your business operates as a sole trader, partnership, trust or private company and trades agricultural products",
+      "title_en": "Eligible business type trading in primary produce"
     },
     {
       "id": "O03",
       "type": "qualitative",
       "title_vi": "Đăng ký primary producer với ATO + có ABN",
-      "quote": "Your business is registered with the Australian Taxation Office as a primary producer, and has an Australian Business Number (ABN)"
+      "quote": "Your business is registered with the Australian Taxation Office as a primary producer, and has an Australian Business Number (ABN)",
+      "title_en": "Registered as a primary producer with the ATO + has an ABN"
     },
     {
       "id": "O04",
       "type": "qualitative",
       "title_vi": "Có nhu cầu khẩn cấp về nước cho vật nuôi (kèm water availability statement)",
-      "quote": "Your property has, or is at risk of, an emergency animal welfare need - as assessed through submission of a completed water availability statement with your application"
+      "quote": "Your property has, or is at risk of, an emergency animal welfare need - as assessed through submission of a completed water availability statement with your application",
+      "title_en": "Urgent stock-water need (with a water availability statement)"
     },
     {
       "id": "O05",
       "type": "quantitative",
       "title_vi": ">50% tổng thu nhập từ sản xuất nông nghiệp",
-      "quote": "As the owner and operator, you earn more than 50% of your gross income from your primary production enterprise under normal seasonal circumstances"
+      "quote": "As the owner and operator, you earn more than 50% of your gross income from your primary production enterprise under normal seasonal circumstances",
+      "title_en": ">50% of total income from primary production"
     },
     {
       "id": "O06",
       "type": "quantitative",
       "title_vi": "Tài sản ngoài nông trại ≤ $5.000.000",
-      "quote": "You do not have gross off farm assets exceeding $5,000,000 excluding funds in a registered superannuation fund"
+      "quote": "You do not have gross off farm assets exceeding $5,000,000 excluding funds in a registered superannuation fund",
+      "title_en": "Off-farm assets ≤ $5,000,000"
     },
     {
       "id": "O07",
       "type": "quantitative",
       "title_vi": "Rebate 25% chi phí, tối đa $25.000/farm enterprise",
-      "quote": "The rebate is 25 per cent of the cost of purchase, delivery and if applicable, the labour cost to engage a person to install water infrastructure for animal welfare needs. The maximum that can be claimed is $25,000 per farm enterprise."
+      "quote": "The rebate is 25 per cent of the cost of purchase, delivery and if applicable, the labour cost to engage a person to install water infrastructure for animal welfare needs. The maximum that can be claimed is $25,000 per farm enterprise.",
+      "title_en": "25% rebate on costs, up to $25,000 per farm enterprise"
     },
     {
       "id": "O08",
       "type": "qualitative",
       "title_vi": "Hạ tầng nước cho vật nuôi THƯỜNG TRÚ tại trại (không phải agistment)",
-      "quote": "The water infrastructure is installed for livestock permanently residing on your property and not currently part of an agistment"
+      "quote": "The water infrastructure is installed for livestock permanently residing on your property and not currently part of an agistment",
+      "title_en": "Water infrastructure for stock PERMANENTLY on the farm (not agistment)"
     }
   ],
   "status": "approved",

@@ -8,11 +8,12 @@ from typing import Optional
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request, Response
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
-from . import core, store, workflow, llm, rag, screening, tables, feedback, coi, auth
+from . import core, store, workflow, llm, rag, screening, tables, feedback, coi, auth, i18n
 from .llm import LLMError
 from .workflow import WorkflowError
 
-app = FastAPI(title="GrantLens", version="2.2")
+# Mọi JSON trả về đi qua lớp dịch (chỉ đổi khi cookie gl_lang=en; nguyên văn hồ sơ/tiêu chí không bao giờ bị dịch)
+app = FastAPI(title="GrantLens", version="2.3", default_response_class=i18n.I18nJSONResponse)
 FRONTEND = Path(__file__).resolve().parent.parent / "frontend" / "index.html"
 
 # --- khóa truy cập cho bản demo public: đặt GRANTLENS_ACCESS_KEY thì mọi request phải có key ---
@@ -43,8 +44,19 @@ app.add_middleware(auth.IdentityMiddleware)
 
 @app.exception_handler(auth.AuthError)
 async def _auth_err(request, exc: auth.AuthError):
+    return i18n.I18nJSONResponse(status_code=exc.code, content={"detail": str(exc), "need_login": exc.code == 401})
+
+
+@app.exception_handler(HTTPException)
+async def _http_err(request, exc: HTTPException):
+    return i18n.I18nJSONResponse(status_code=exc.status_code, content={"detail": exc.detail}, headers=exc.headers)
+
+
+@app.get("/api/i18n/en")
+def i18n_dictionary():
+    """Từ điển VI->EN cho giao diện (cùng nguồn với lớp dịch JSON phía máy chủ). Công khai, không cần đăng nhập."""
     from fastapi.responses import JSONResponse
-    return JSONResponse(status_code=exc.code, content={"detail": str(exc), "need_login": exc.code == 401})
+    return JSONResponse(i18n.dictionary_payload())
 
 
 class LoginReq(BaseModel):
@@ -94,14 +106,12 @@ def seed():
 
 @app.exception_handler(WorkflowError)
 async def _wf(request, exc: WorkflowError):
-    from fastapi.responses import JSONResponse
-    return JSONResponse(status_code=exc.code, content={"detail": str(exc), **exc.extra})
+    return i18n.I18nJSONResponse(status_code=exc.code, content={"detail": str(exc), **exc.extra})
 
 
 @app.exception_handler(LLMError)
 async def _llm(request, exc: LLMError):
-    from fastapi.responses import JSONResponse
-    return JSONResponse(status_code=502, content={"detail": str(exc)})
+    return i18n.I18nJSONResponse(status_code=502, content={"detail": str(exc)})
 
 
 @app.get("/")
@@ -211,16 +221,21 @@ async def upload_case(request: Request, file: UploadFile = File(...), applicant:
 @app.post("/api/cases/{case_id}/assess")
 def assess(case_id: str):
     workflow.can_assess(case_id)
+    lang = i18n.get_lang()   # generator chạy ngoài context của request -> chốt ngôn ngữ ở đây
 
     def gen():
+        def line(ev):
+            if lang == "en":
+                ev = i18n._walk(ev)
+            return json.dumps(ev, ensure_ascii=False) + "\n"
         try:
             for ev in workflow.assess_stream(case_id):
-                yield json.dumps(ev, ensure_ascii=False) + "\n"
+                yield line(ev)
         except LLMError as e:
             store.log("Hệ thống", f"LỖI LLM khi đánh giá: {e}", case_id, "system")
-            yield json.dumps({"type": "error", "detail": str(e)}, ensure_ascii=False) + "\n"
+            yield line({"type": "error", "detail": str(e)})
         except WorkflowError as e:
-            yield json.dumps({"type": "error", "detail": str(e)}, ensure_ascii=False) + "\n"
+            yield line({"type": "error", "detail": str(e)})
     return StreamingResponse(gen(), media_type="application/x-ndjson")
 
 

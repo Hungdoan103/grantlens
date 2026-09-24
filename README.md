@@ -10,6 +10,7 @@ backend/
   core.py      Pipeline 4 lớp: RAG → EXTRACT (LLM lượt 1) → JUDGE (LLM lượt 2) → CITE (code)
   store.py     SQLite: ca hồ sơ, kết luận, nhật ký kiểm toán chuỗi hash SHA-256 (tamper-evident)
   auth.py      Đăng nhập + phiên ký HMAC + middleware ép danh tính từ phiên (không tin tên tự khai)
+  i18n.py      Lớp hiển thị tiếng Anh: dịch JSON/DOM bằng từ điển (i18n_en.py); nguyên văn không bao giờ dịch
   llm.py       Backend LLM: ollama (mặc định) | openai-compatible | mock (kiểm thử không cần GPU)
   rag.py       Chunk theo đoạn (giữ offset) + TF-IDF (mặc định) / BGE-M3+FAISS (tùy chọn)
   verify.py    Citation-by-retrieval: code cắt câu nguyên văn + string-match lớp 2
@@ -150,6 +151,17 @@ AI **vẫn sai** ở W06 (vẫn kết luận "không đạt"); cái thay đổi 
   - Chỉ số an toàn **false-pass ổn định 0/6 ở cả ba lần đo**; sai khác rơi vào phía báo động giả — phía có người xem lại và có ký cấp 2.
   - Triển khai thật nên dùng GPU đủ chứa trọn model (≥ 8 GB) để bỏ việc chia tầng; chưa kiểm chứng được trên máy này.
   - **Cố ý KHÔNG thêm guard cho R07** để kéo lại 24/24: đó đúng là kiểu vá theo đề thi (overfit). Ghi vào backlog là điểm yếu suy luận số đếm của model 8B; chỉ thêm guard khi hồ sơ thật lộ lỗ.
+
+## Đợt 7 (09/2026) — bản tiếng Anh của ứng dụng (VI là bản gốc, EN là lớp hiển thị)
+
+Khách cần trình bày cho hội đồng/đối tác đọc tiếng Anh nhưng lo "dịch ngược" làm sai nội dung lấy nguyên văn từ tài liệu của họ. Cách làm:
+
+- **Tiếng Việt vẫn là bản gốc** trong mã nguồn và dữ liệu. Tiếng Anh là **một lớp áp lên đầu ra**: nút **VI | EN** trên thanh đầu trang (và ở màn đăng nhập) đặt cookie `gl_lang`; khi `en`, máy chủ dịch mọi JSON trả về (`backend/i18n.py`, `I18nJSONResponse`) và giao diện dịch DOM (text node, placeholder/title, hộp thoại) bằng **cùng một từ điển** lấy từ `GET /api/i18n/en` (`backend/i18n_en.py`: ~550 chuỗi khớp nguyên + ~170 mẫu regex có nhóm, kèm `title_en` cho 46 tiêu chí trong 6 bộ).
+- **Không có câu chữ nguyên văn nào đi qua từ điển**: văn bản hồ sơ, câu tiêu chí (`quote`), trích dẫn hai chiều (`rq`/`aq`), dữ kiện AI trích, thư kết quả, mẫu thư, tên người/tổ chức, và lời chứng thực/lý do do cán bộ tự gõ đều nằm trong danh sách bỏ qua ở cả hai phía (`SKIP_KEYS` phía máy chủ; vùng `.doc/.rquote/.qt/.facts/.letter/.notranslate` phía giao diện). Đây là câu trả lời cho nỗi lo "dịch sai nội dung lấy từ tài liệu của tôi": nội dung đó không được dịch, chỉ nhãn/giải thích của hệ thống mới được dịch.
+- **Ghi chú của AI** (câu tiếng Việt do model viết ở lượt phán quyết) là văn tự do nên không dịch bằng từ điển: ngay sau mỗi lượt đánh giá, hệ thống gọi model dịch riêng một lần và lưu `note_en` cạnh bản gốc (cột mới trong `verdicts`; prompt phán quyết **không đổi**, nên số đo không bị ảnh hưởng; tắt bằng `GRANTLENS_NOTE_EN=off` khi đo/kiểm thử). Kết luận cũ chưa có bản dịch thì hiện nguyên tiếng Việt kèm nhãn *(AI note in Vietnamese — not yet translated)*; dịch bù bằng `python -m backend.i18n backfill`.
+- **Nhật ký kiểm toán** lưu đúng chuỗi tiếng Việt lúc ghi (chuỗi băm không đổi); bản EN chỉ dịch lúc hiển thị theo mẫu của từng loại sự kiện. Lý do tự gõ trong dòng nhật ký được giữ nguyên câu chữ.
+- Kiểm: bộ test `test_i18n` 43/43 (từ điển sạch, vùng không dịch, cookie → JSON EN, VI mặc định không đổi, stream đánh giá, note_en, backfill) + quét Playwright toàn bộ màn ở chế độ EN: **0 chuỗi tiếng Việt còn sót ngoài vùng nguyên văn** (chỉ còn ghi chú AI cũ chưa dịch, có nhãn rõ). Bộ xác thực/phân quyền 43/43 vẫn xanh.
+- Sửa kèm một lỗi có sẵn: sự kiện stream `verdict` bị khoá `type` của rule (qualitative/quantitative) ghi đè nên giao diện chưa bao giờ nhận được nó; nay là `type: "verdict"` + `rule_type`.
 
 ## Điểm phương pháp
 **Chống thiên lệch văn phong (2 lượt gọi thật):** lượt 1 chỉ trích *dữ kiện* trung tính (số liệu, ngày, directorate…) kèm chunk_id + key_phrase; lượt 2 phán quyết **chỉ nhìn danh sách dữ kiện**, không nhìn văn gốc ⇒ ngữ pháp/độ trôi chảy không thể ảnh hưởng. Kiểm chứng bằng 2 cặp HS-04A/B và HS-11A/B (Bias Lab + eval).
