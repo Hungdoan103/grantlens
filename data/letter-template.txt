@@ -1,4 +1,4 @@
-[Mẫu thư đơn vị — dịch ngược từ CGRP 2024 + Gov Style Manual letters guide (khách cung cấp 2026-09-05); cán bộ rà tại tab Nạp dữ liệu]
+[Office letter template — reverse-engineered from CGRP 2024 + the Government Style Manual letters guide (provided by the customer 2026-09-05); reviewed by staff in the Data intake tab]
 **{ORGANIZATION_LETTERHEAD}**  
 {DATE}  
 

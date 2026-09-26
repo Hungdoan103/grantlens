@@ -14,10 +14,10 @@
   ],
   "generated_at": "2026-09-14T15:46:12",
   "approved": true,
-  "approved_by": "Rà kỹ thuật (nhà cung cấp) — chưa thay cán bộ đơn vị",
+  "approved_by": "Technical review (vendor) — not a substitute for the office's officers",
   "approved_at": "2026-09-14T15:48:53",
   "n_needs_review": 0,
-  "note": "Vi phạm do mã nguồn chốt trước (câu dữ kiện được guard/verifier xác nhận, văn bản phải chứa nguyên văn); chặn lộ đáp án bằng mã nguồn; verifier dùng model tách khỏi hệ bị đo. CHƯA PHÊ CHUẨN — số đo từ bộ này là TẠM (provisional). Rà văn bản, xử lý hết cờ rồi --approve.",
+  "note": "Violations fixed by code first (the fact sentence is confirmed by guard/verifier and the text must contain it verbatim); answer leaks blocked by code; the verifier uses a model separate from the system under test. NOT APPROVED — measurements from this set are PROVISIONAL. Review the texts, resolve every flag, then --approve.",
   "cases": [
     {
       "id": "GEN-au-onfarm-water-00-clean",
@@ -69,9 +69,9 @@
         "O06"
       ],
       "weak_reasons": {
-        "O01": "Người rà đọc văn bản: không nêu tư cách property owner / share-farmer / lessee, không nhắc Land and Stock Return — O01 KHÔNG được thoả rõ, verifier gemma trả yes/yes là sai; bỏ khỏi đối chứng",
-        "O05": "Soát lại bằng bộ lọc hiện hành: câu về thu nhập kèm bình luận 'aligning with the specified benchmark' gợi ý O05 đạt — bỏ O05 khỏi đối chứng",
-        "O07": "Soát lại bằng bộ lọc hiện hành: câu về khoản hoàn kèm bình luận 'the maximum allowable claim under this scheme' gợi ý O07 đạt — bỏ O07 khỏi đối chứng. Dấu [[FACT]] sót trong văn bản là lỗi hình thức, không gắn tiêu chí nào; giữ O06 (câu tài sản nêu trơn)"
+        "O01": "Reviewer read the text: it does not state property owner / share-farmer / lessee status and never mentions a Land and Stock Return — O01 is NOT clearly satisfied although the gemma verifier said yes; removed from the control.",
+        "O05": "Re-screened with the current filter: the income sentence carries the commentary 'aligning with the specified benchmark', which hints that O05 is met — O05 removed from the control.",
+        "O07": "Re-screened with the current filter: the rebate sentence carries the commentary 'the maximum allowable claim under this scheme', which hints that O07 is met — O07 removed from the control. A leftover [[FACT]] marker is formatting noise."
       }
     },
     {
@@ -107,7 +107,7 @@
         ]
       },
       "status": "disputed",
-      "dispute_reason": "Đáp án mơ hồ: rule đo thu nhập 'under normal seasonal circumstances' nhưng câu vi phạm lấy số 'last financial year' trong khi hồ sơ nêu đang hạn hán kéo dài — cán bộ cẩn thận sẽ kết luận 'chưa rõ', không phải 'không đạt'"
+      "dispute_reason": "Ambiguous answer: the rule measures income 'under normal seasonal circumstances' but the violation sentence uses the 'last financial year' figure while the text says a prolonged drought is under way — a real officer could accept the normal-season figure."
     },
     {
       "id": "GEN-au-onfarm-water-03-O06",
@@ -176,13 +176,13 @@
         ]
       },
       "status": "disputed",
-      "dispute_reason": "Nhãn SAI: rule giới hạn SỐ TIỀN HOÀN ($25,000), không giới hạn chi phí lắp đặt; chi phí $100,000 thì hoàn 25% = $25,000 là đúng quy định — câu vi phạm đọc sai rule"
+      "dispute_reason": "WRONG LABEL: the rule caps the REBATE AMOUNT ($25,000), not the installation cost; a $100,000 cost rebated at 25% = $25,000 is exactly within the scheme — the violation sentence misreads the rule."
     }
   ],
   "skipped": [
     {
       "id": "GEN-au-onfarm-water-01-O01",
-      "reason": "guard bắn vào rule ngoài mục tiêu: ['O05'] (sau 3 lần viết)",
+      "reason": "guard fired on a non-target rule: ['O05'] (after 3 attempts)",
       "fact": "The applicant's Land and Stock Return shows they are a tenant farmer, not a property owner, share-farmer or lessee in the grazing industry.",
       "last_text": "Applicant, Entity and Registration Details\n\nApplicant Name: Riverbend Grazing Pty Ltd\nContact Person: Mr. Samuel Harding\nAddress: 123 Willow Creek Road, Gundagai, NSW 2624\nABN: 12 345 678 901\nEntity Type: Private Company\n\nWater Availability Assessment\n\nThe applicant's Land and Stock Return shows they are a tenant farmer, not a property owner, share-farmer or lessee in the grazing industry. Riverbend Grazing Pty Ltd operates as a private company trading agricultural products. The company is registered with the Australian Taxation Office as a primary producer, holding ABN 12 345 678 901. A completed water availability statement was submitted alongside this application, detailing a critical shortfall in water supply to the property due to recent drought conditions, as assessed by an independent veterinarian.\n\nIncome Verification and Asset Disclosure\n\nThe applicant, Riverbend Grazing Pty Ltd, confirms that over 50% of its gross income is derived from primary production activities under typical seasonal conditions. Furthermore, a review of company records indicates that gross off-farm assets, excluding funds held within a registered superannuation fund, do not exceed $5,000,000. The proposed rebate of $25,000 per farm enterprise will cover the cost of installing new water infrastructure.\n\nInfrastructure Details\n\nThe planned water infrastructure installation is intended for permanent livestock residing on the Riverbend Grazing Pty Ltd property and is not currently used for agistment purposes. The rebate applies to the purchase, delivery and installation labour costs associated with this project."
     }

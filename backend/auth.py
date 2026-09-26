@@ -1,21 +1,21 @@
-"""auth.py — xác thực + phiên đăng nhập. Chỉ dùng thư viện chuẩn (không thêm phụ thuộc).
+"""auth.py — authentication + login sessions. Standard library only (no new dependencies).
 
-Vì sao cần: trước đây tên cán bộ và vai trò do TRÌNH DUYỆT tự gửi lên trong nội dung request -> ai gõ đúng tên
-một quản lý là qua mọi cổng, và nhật ký chuỗi băm chỉ chống SỬA SAU KHI GHI chứ không chống MẠO DANH.
-Từ bản này: danh tính và vai trò lấy từ PHIÊN phía máy chủ; mọi trường officer/role trong request bị GHI ĐÈ
-(xem IdentityMiddleware) nên không endpoint nào còn tin dữ liệu tự khai.
+Why it is needed: previously the officer name and role were sent by the BROWSER inside the request body -> anyone who
+typed a manager's name passed every gate, and the hash-chained audit log only protects against EDITING AFTER THE FACT,
+not against IMPERSONATION. From this version identity and role come from the server-side SESSION; every officer/role
+field in a request is OVERWRITTEN (see IdentityMiddleware), so no endpoint trusts self-declared data any more.
 
-  • Mật khẩu: PBKDF2-HMAC-SHA256, 240.000 vòng, muối riêng từng tài khoản — lưu trong data/officers.json.
-  • Phiên: cookie httpOnly + SameSite=Strict, nội dung ký HMAC-SHA256 bằng khoá máy chủ (data/.secret hoặc
-    biến GRANTLENS_SECRET), hết hạn sau GRANTLENS_SESSION_HOURS giờ (mặc định 8).
-  • Chống dò mật khẩu: sai 5 lần -> khoá tài khoản đó 5 phút.
-  • GRANTLENS_AUTH=off tắt xác thực (CHỈ cho kiểm thử tự động); /api/meta báo trạng thái để UI cảnh báo đỏ.
+  • Passwords: PBKDF2-HMAC-SHA256, 240,000 rounds, per-account salt — stored in data/officers.json.
+  • Session: httpOnly + SameSite=Strict cookie whose payload is signed with HMAC-SHA256 using the server key
+    (data/.secret or the GRANTLENS_SECRET variable); expires after GRANTLENS_SESSION_HOURS hours (default 8).
+  • Brute-force protection: 5 failures -> that account is locked for 5 minutes.
+  • GRANTLENS_AUTH=off disables authentication (ONLY for automated tests); /api/meta reports it so the UI shows a red banner.
 
 CLI:
   python -m backend.auth list
-  python -m backend.auth set-password "<tên cán bộ | username>" "<mật khẩu>"
-  python -m backend.auth init-demo        tạo username + mật khẩu ngẫu nhiên cho tài khoản chưa có, ghi ra
-                                          data/demo-accounts.txt (file này KHÔNG đưa vào git)
+  python -m backend.auth set-password "<officer name | username>" "<password>"
+  python -m backend.auth init-demo        create a username + random password for every account without one; written to
+                                          data/demo-accounts.txt (this file is NOT committed to git)
 """
 import base64, hashlib, hmac, json, os, re, secrets, sys, time, unicodedata
 from pathlib import Path
@@ -32,17 +32,18 @@ PBKDF2_ROUNDS = 240_000
 MAX_FAILS, LOCK_SECONDS = 5, 300
 ROLES = ("officer", "manager", "auditor")
 
-# Đường dẫn không cần phiên: trang chủ, đăng nhập, thông tin hệ thống (để màn đăng nhập hiển thị trạng thái).
-PUBLIC_PATHS = {"/", "/api/auth/login", "/api/auth/logout", "/api/auth/me", "/api/meta", "/favicon.ico", "/api/i18n/en"}
+# Paths that need no session: home page, login, system info (so the login screen can show the status), UI locale.
+PUBLIC_PATHS = {"/", "/api/auth/login", "/api/auth/logout", "/api/auth/me", "/api/meta", "/favicon.ico",
+                "/api/i18n/vi", "/api/i18n/en"}
 
-# THANH TRA (auditor) chỉ ĐỌC + HẬU KIỂM: mọi thao tác ghi khác bị chặn ngay ở middleware (một chỗ duy nhất,
-# không phụ thuộc từng endpoint có nhớ kiểm hay không) — người hậu kiểm không được đồng thời là người thẩm định.
+# AUDITORS only READ + POST-AUDIT: every other write is blocked right in the middleware (one place, independent of
+# whether each endpoint remembers to check) — the person who post-audits may not also be the reviewer.
 AUDITOR_WRITE_OK = {"/api/post-audit", "/api/auth/logout", "/api/screening/lookup"}
 
-_fails: dict = {}   # username -> [số lần sai, thời điểm bị khoá tới]
+_fails: dict = {}   # username -> [failure count, locked-until timestamp]
 
 
-# ---------------- khoá máy chủ ----------------
+# ---------------- server key ----------------
 def _secret() -> bytes:
     env = os.environ.get("GRANTLENS_SECRET")
     if env:
@@ -53,7 +54,7 @@ def _secret() -> bytes:
     return SECRET_FILE.read_text(encoding="utf-8").strip().encode("utf-8")
 
 
-# ---------------- mật khẩu ----------------
+# ---------------- passwords ----------------
 def hash_password(password: str, salt: bytes = None) -> str:
     salt = salt or secrets.token_bytes(16)
     dk = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, PBKDF2_ROUNDS)
@@ -71,7 +72,7 @@ def verify_password(password: str, stored: str) -> bool:
         return False
 
 
-# ---------------- sổ tài khoản (data/officers.json) ----------------
+# ---------------- account register (data/officers.json) ----------------
 def _load() -> dict:
     return json.loads(OFFICERS.read_text(encoding="utf-8"))
 
@@ -98,7 +99,7 @@ def find_account(login: str):
 
 def set_password(login: str, password: str) -> dict:
     if len(password) < 8:
-        raise ValueError("Mật khẩu tối thiểu 8 ký tự")
+        raise ValueError("Password must be at least 8 characters")
     doc = _load()
     for o in doc["officers"]:
         if login.strip().lower() in ((o.get("username") or "").lower(), o["name"].lower()):
@@ -106,11 +107,11 @@ def set_password(login: str, password: str) -> dict:
             o["password"] = hash_password(password)
             _save(doc)
             return {"name": o["name"], "username": o["username"], "role": o.get("role", "officer")}
-    raise KeyError(f"Không có tài khoản '{login}' trong sổ cán bộ")
+    raise KeyError(f"No account '{login}' in the officer register")
 
 
 def init_demo() -> list:
-    """Tạo username + mật khẩu ngẫu nhiên cho mọi tài khoản CHƯA có mật khẩu. Trả danh sách để in một lần."""
+    """Create a username + random password for every account WITHOUT a password. Returns the list to print once."""
     doc, made = _load(), []
     for o in doc["officers"]:
         o.setdefault("username", _slug(o["name"]))
@@ -120,15 +121,15 @@ def init_demo() -> list:
             made.append({"name": o["name"], "username": o["username"], "role": o.get("role", "officer"), "password": pw})
     _save(doc)
     if made:
-        lines = ["# Tài khoản demo GrantLens — sinh tự động, ĐỔI MẬT KHẨU trước khi triển khai thật.",
-                 "# File này không đưa vào git. Đổi mật khẩu: python -m backend.auth set-password <username> <mật khẩu>", ""]
+        lines = ["# GrantLens demo accounts — generated automatically; CHANGE THE PASSWORDS before a real deployment.",
+                 "# This file is not committed to git. Change a password: python -m backend.auth set-password <username> <password>", ""]
         lines += [f"{m['role']:8s}  {m['username']:24s}  {m['password']:14s}  ({m['name']})" for m in made]
         old = DEMO_FILE.read_text(encoding="utf-8") if DEMO_FILE.exists() else ""
         DEMO_FILE.write_text((old + "\n" if old else "") + "\n".join(lines) + "\n", encoding="utf-8")
     return made
 
 
-# ---------------- đăng nhập ----------------
+# ---------------- login ----------------
 class AuthError(Exception):
     def __init__(self, msg, code=401):
         super().__init__(msg)
@@ -139,20 +140,20 @@ def login(username: str, password: str) -> dict:
     key = (username or "").strip().lower()
     n, locked_until = _fails.get(key, [0, 0])
     if time.time() < locked_until:
-        raise AuthError(f"Tài khoản tạm khoá do đăng nhập sai nhiều lần — thử lại sau {int(locked_until - time.time())} giây", 429)
+        raise AuthError(f"Account temporarily locked after repeated failed sign-ins — try again in {int(locked_until - time.time())} seconds", 429)
     acc = find_account(username)
-    # luôn chạy phép băm kể cả khi không có tài khoản -> thời gian phản hồi không lộ tên nào tồn tại
+    # always run the hash even when the account does not exist -> response time does not reveal which names exist
     ok = verify_password(password or "", (acc or {}).get("password") or hash_password("x", b"0" * 16))
     if not acc or not acc.get("password") or not ok:
         n += 1
         _fails[key] = [0, time.time() + LOCK_SECONDS] if n >= MAX_FAILS else [n, 0]
-        raise AuthError("Sai tên đăng nhập hoặc mật khẩu")
+        raise AuthError("Wrong username or password")
     _fails.pop(key, None)
     role = acc.get("role", "officer")
     return {"name": acc["name"], "username": acc.get("username"), "role": role if role in ROLES else "officer"}
 
 
-# ---------------- phiên (cookie ký HMAC) ----------------
+# ---------------- session (HMAC-signed cookie) ----------------
 def _b64(b: bytes) -> str:
     return base64.urlsafe_b64encode(b).decode().rstrip("=")
 
@@ -169,8 +170,9 @@ def make_session(user: dict) -> str:
 
 
 def read_session(token: str):
-    """Trả user nếu cookie hợp lệ, chưa hết hạn VÀ tài khoản vẫn còn trong sổ với đúng vai trò; ngược lại None.
-    Vai trò luôn đọc lại từ sổ cán bộ -> hạ quyền/xoá tài khoản có hiệu lực ngay, không chờ cookie hết hạn."""
+    """Return the user when the cookie is valid, unexpired AND the account still exists in the register with a role;
+    otherwise None. The role is always re-read from the register -> demotion/removal takes effect immediately,
+    without waiting for the cookie to expire."""
     try:
         body, sig = (token or "").split(".")
         good = _b64(hmac.new(_secret(), body.encode(), hashlib.sha256).digest())
@@ -199,12 +201,13 @@ def _cookie_from_scope(scope, cookie_name: str = None) -> str:
     return ""
 
 
-# ---------------- middleware ASGI: ép danh tính từ phiên ----------------
+# ---------------- ASGI middleware: identity is enforced from the session ----------------
 class IdentityMiddleware:
-    """1) /api/* (trừ PUBLIC_PATHS) không có phiên hợp lệ -> 401.
-       2) Mọi request JSON: GHI ĐÈ trường officer + role bằng danh tính của phiên — endpoint nào cũng nhận tên thật,
-          kể cả endpoint viết sau này quên kiểm. Request multipart đọc danh tính từ request.state.user.
-       3) Gắn user vào scope['state'] để endpoint dùng (request.state.user)."""
+    """1) /api/* (except PUBLIC_PATHS) without a valid session -> 401.
+       2) Every JSON request: the officer + role fields are OVERWRITTEN with the session identity — every endpoint
+          receives the real name, including endpoints written later that forget to check. Multipart requests read the
+          identity from request.state.user.
+       3) The user is attached to scope['state'] for endpoints (request.state.user)."""
 
     def __init__(self, app):
         self.app = app
@@ -214,7 +217,7 @@ class IdentityMiddleware:
             return await self.app(scope, receive, send)
         path = scope.get("path", "")
         state = scope.setdefault("state", {})
-        # ngôn ngữ hiển thị của request (cookie gl_lang, do nút VI|EN đặt) -> contextvar cho lớp dịch đầu ra
+        # display language of the request (cookie gl_lang, set by the language switch) -> context variable for the output locale layer
         from . import i18n
         i18n.set_lang(_cookie_from_scope(scope, i18n.COOKIE))
         if not ENABLED:
@@ -222,8 +225,9 @@ class IdentityMiddleware:
             return await self.app(scope, receive, send)
         user = read_session(_cookie_from_scope(scope))
         state["user"] = user
-        if path.startswith("/api/") and path not in PUBLIC_PATHS and not user:
-            body = json.dumps({"detail": i18n.tr("Chưa đăng nhập hoặc phiên đã hết hạn"), "need_login": True},
+        public = path in PUBLIC_PATHS or path.startswith("/api/i18n/")
+        if path.startswith("/api/") and not public and not user:
+            body = json.dumps({"detail": i18n.tr("Not signed in or session expired"), "need_login": True},
                               ensure_ascii=False).encode("utf-8")
             await send({"type": "http.response.start", "status": 401,
                         "headers": [(b"content-type", b"application/json; charset=utf-8"),
@@ -232,8 +236,8 @@ class IdentityMiddleware:
 
         if user and user["role"] == "auditor" and scope.get("method") in ("POST", "PUT", "PATCH", "DELETE") \
                 and path.startswith("/api/") and path not in AUDITOR_WRITE_OK:
-            body = json.dumps({"detail": i18n.tr(f"Tài khoản thanh tra '{user['name']}' chỉ được xem và hậu kiểm — "
-                                                 "không thẩm định, không ký, không phê chuẩn")}, ensure_ascii=False).encode("utf-8")
+            body = json.dumps({"detail": i18n.tr(f"Auditor account '{user['name']}' may only view and post-audit — "
+                                                 "no reviewing, signing or approving")}, ensure_ascii=False).encode("utf-8")
             await send({"type": "http.response.start", "status": 403,
                         "headers": [(b"content-type", b"application/json; charset=utf-8"),
                                     (b"content-length", str(len(body)).encode())]})
@@ -273,28 +277,28 @@ class IdentityMiddleware:
 
 
 def current_user(request, fallback_name: str = None, fallback_role: str = "officer") -> dict:
-    """Danh tính của request: từ phiên; chỉ khi xác thực TẮT (kiểm thử) mới dùng giá trị tự khai."""
+    """Identity of the request: from the session; only when authentication is OFF (tests) is the self-declared value used."""
     u = getattr(request.state, "user", None)
     if u:
         return u
     if ENABLED:
-        raise AuthError("Chưa đăng nhập")
-    return {"name": fallback_name or "Cán bộ", "role": fallback_role, "username": None}
+        raise AuthError("Not signed in")
+    return {"name": fallback_name or "Officer", "role": fallback_role, "username": None}
 
 
 def require_role(request, *roles, fallback_name: str = None):
-    """Khoá vai trò ở cổng. Khi xác thực TẮT thì tra vai trò theo sổ cán bộ như trước (kiểm thử)."""
+    """Role lock at the gate. When authentication is OFF the role is looked up in the officer register as before (tests)."""
     u = getattr(request.state, "user", None)
     if u:
         if u["role"] not in roles:
-            raise AuthError(f"Tài khoản '{u['name']}' có vai trò '{u['role']}' — thao tác này cần: {', '.join(roles)}", 403)
+            raise AuthError(f"Account '{u['name']}' has role '{u['role']}' — this action requires: {', '.join(roles)}", 403)
         return u
     if ENABLED:
-        raise AuthError("Chưa đăng nhập")
+        raise AuthError("Not signed in")
     from . import coi
     role = coi.role_of(fallback_name or "")
     if role not in roles:
-        raise AuthError(f"'{fallback_name}' không có vai trò {', '.join(roles)} trong sổ cán bộ", 403)
+        raise AuthError(f"'{fallback_name}' does not have role {', '.join(roles)} in the officer register", 403)
     return {"name": fallback_name, "role": role, "username": None}
 
 
@@ -302,12 +306,12 @@ if __name__ == "__main__":
     args = sys.argv[1:]
     if args[:1] == ["list"]:
         for o in _load()["officers"]:
-            print(f"{o.get('role', 'officer'):8s} {o.get('username') or '-':24s} {'có mật khẩu' if o.get('password') else 'CHƯA có mật khẩu':16s} {o['name']}")
+            print(f"{o.get('role', 'officer'):8s} {o.get('username') or '-':24s} {'has password' if o.get('password') else 'NO password':16s} {o['name']}")
     elif args[:1] == ["set-password"] and len(args) == 3:
-        print("Đã đặt mật khẩu:", set_password(args[1], args[2]))
+        print("Password set:", set_password(args[1], args[2]))
     elif args[:1] == ["init-demo"]:
         made = init_demo()
-        print(f"Đã tạo {len(made)} tài khoản demo -> {DEMO_FILE}" if made else "Mọi tài khoản đã có mật khẩu.")
+        print(f"Created {len(made)} demo accounts -> {DEMO_FILE}" if made else "Every account already has a password.")
         for m in made:
             print(f"  {m['role']:8s} {m['username']:24s} {m['password']}")
     else:

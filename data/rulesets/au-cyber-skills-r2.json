@@ -3,66 +3,58 @@
   "name": "Cyber Security Skills Partnership Innovation Fund — Round 2 (AU)",
   "region": "AU",
   "version": "R2-2021.07",
-  "source": "Department of Industry — Cyber Security Skills Partnership Innovation Fund Round 2, Grant opportunity guidelines July 2021 (khách cung cấp 2026-09-07). Bẫy đặc thù: bắt buộc LIÊN DANH, không cấp cho công ty đơn lẻ.",
+  "source": "Department of Industry — Cyber Security Skills Partnership Innovation Fund Round 2, Grant opportunity guidelines July 2021 (provided by the customer 2026-09-07). Fund-specific traps per the customer's analysis: consortium required; government bodies may only be partners; the WGEA exclusion is conditional on headcount.",
   "rules": [
     {
       "id": "C01",
       "type": "quantitative",
-      "title_vi": "BẮT BUỘC liên danh: lead + ít nhất 1 partner",
-      "quote": "Each application must be a joint application with a lead organisation, who is the main driver of the project and is eligible to apply, and at least one other project partner.",
-      "title_en": "Consortium REQUIRED: lead + at least 1 partner"
+      "title": "Consortium REQUIRED: lead + at least 1 partner",
+      "quote": "Each application must be a joint application with a lead organisation, who is the main driver of the project and is eligible to apply, and at least one other project partner."
     },
     {
       "id": "C02",
       "type": "qualitative",
-      "title_vi": "Lead có ABN + đăng ký GST",
-      "quote": "To be eligible you must: have an Australian Business Number (ABN); be registered for the Goods and Services Tax (GST)",
-      "title_en": "Lead has an ABN + GST registration"
+      "title": "Lead has an ABN + GST registration",
+      "quote": "To be eligible you must: have an Australian Business Number (ABN); be registered for the Goods and Services Tax (GST)"
     },
     {
       "id": "C03",
       "type": "qualitative",
-      "title_vi": "Loại pháp nhân hợp lệ (incorporated tại Úc)",
-      "quote": "and be one of the following entities: an entity incorporated in Australia; an incorporated association; an incorporated not for profit organisation",
-      "title_en": "Eligible entity type (incorporated in Australia)"
+      "title": "Eligible entity type (incorporated in Australia)",
+      "quote": "and be one of the following entities: an entity incorporated in Australia; an incorporated association; an incorporated not for profit organisation"
     },
     {
       "id": "C04",
       "type": "qualitative",
-      "title_vi": "Cơ quan nhà nước KHÔNG được làm lead (chỉ được làm partner)",
-      "quote": "A state, territory or local government department is not eligible as the lead applicant, but may be a project partner in a joint application.",
-      "title_en": "Government bodies may NOT lead (partner only)"
+      "title": "Government bodies may NOT lead (partner only)",
+      "quote": "A state, territory or local government department is not eligible as the lead applicant, but may be a project partner in a joint application."
     },
     {
       "id": "C05",
       "type": "qualitative",
-      "title_vi": "Có thư ủng hộ của TỪNG project partner",
-      "quote": "We can only accept applications: where you provide a letter from each of your project partners supporting the project",
-      "title_en": "Letter of support from EACH project partner"
+      "title": "Letter of support from EACH project partner",
+      "quote": "We can only accept applications: where you provide a letter from each of your project partners supporting the project"
     },
     {
       "id": "C06",
       "type": "qualitative",
-      "title_vi": "Board/CEO xác nhận hỗ trợ dự án và cam kết phần vốn còn lại",
-      "quote": "where you can certify that your board supports the project (or chief executive officer or equivalent if there is no board), and that you can complete the project and meet the costs of the project not covered by grant funding",
-      "title_en": "Board/CEO endorses the project and commits the remaining funding"
+      "title": "Board/CEO endorses the project and commits the remaining funding",
+      "quote": "where you can certify that your board supports the project (or chief executive officer or equivalent if there is no board), and that you can complete the project and meet the costs of the project not covered by grant funding"
     },
     {
       "id": "C07",
       "type": "quantitative",
-      "title_vi": "Chi tiêu hợp lệ của dự án ≥ $500.000",
-      "quote": "To be eligible your project must: include eligible activities and eligible expenditure; have at least $500,000 in eligible expenditure",
-      "title_en": "Eligible project expenditure ≥ $500,000"
+      "title": "Eligible project expenditure ≥ $500,000",
+      "quote": "To be eligible your project must: include eligible activities and eligible expenditure; have at least $500,000 in eligible expenditure"
     },
     {
       "id": "C08",
       "type": "qualitative",
-      "title_vi": "Không thuộc diện loại trừ (cá nhân, unincorporated, vi phạm WGEA...)",
-      "quote": "You are not eligible to apply if you are: ... an employer of 100 or more employees that has not complied with the Workplace Gender Equality Act (2012); an individual; unincorporated association",
-      "title_en": "Not an excluded entity (individuals, unincorporated, WGEA non-compliance…)"
+      "title": "Not an excluded entity (individuals, unincorporated, WGEA non-compliance…)",
+      "quote": "You are not eligible to apply if you are: ... an employer of 100 or more employees that has not complied with the Workplace Gender Equality Act (2012); an individual; unincorporated association"
     }
   ],
   "status": "approved",
-  "approved_by": "Khởi tạo hệ thống",
+  "approved_by": "System initialisation",
   "approved_at": "2026-09-07"
 }

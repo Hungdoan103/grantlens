@@ -1,9 +1,9 @@
-"""store.py — lưu trữ bền vững (SQLite) cho ca hồ sơ, kết luận và nhật ký kiểm toán.
+"""store.py — persistent storage (SQLite) for cases, verdicts and the audit log.
 
-Nhật ký kiểm toán là chuỗi băm (hash chain): mỗi sự kiện chứa SHA-256 của sự kiện trước.
-Sửa/xóa một dòng ở giữa sẽ làm mọi hash phía sau sai -> verify_chain() phát hiện được.
-Đây là cơ chế "tamper-evident" đủ cho thanh tra nội bộ; bản triển khai lớn có thể
-neo hash cuối ngày ra hệ thống ngoài (ký số / WORM storage).
+The audit log is a hash chain: every event carries the SHA-256 of the previous event.
+Editing/deleting a row in the middle invalidates every later hash -> verify_chain() detects it.
+This "tamper-evident" mechanism is sufficient for internal inspection; a large deployment can anchor the
+end-of-day hash in an external system (digital signature / WORM storage).
 """
 import os, json, sqlite3, hashlib, threading
 from datetime import datetime
@@ -71,14 +71,12 @@ def db():
         vcols = {r[1] for r in _db.execute("PRAGMA table_info(verdicts)")}
         if "guard_level" not in vcols:
             _db.execute("ALTER TABLE verdicts ADD COLUMN guard_level TEXT")
-        if "note_en" not in vcols:   # bản tiếng Anh của ghi chú AI (dịch bằng model sau đánh giá), cạnh bản gốc
-            _db.execute("ALTER TABLE verdicts ADD COLUMN note_en TEXT")
         cols = {r[1] for r in _db.execute("PRAGMA table_info(cases)")}
         for col, typ in [("screening", "TEXT"), ("crosscheck", "TEXT"), ("ruleset_id", "TEXT"),
                          ("ruleset_version", "TEXT"), ("ruleset_snapshot", "TEXT"),
                          ("countersigned_by", "TEXT"), ("countersigned_at", "TEXT"),
                          ("supplement", "TEXT"), ("supplement_round", "INTEGER DEFAULT 0")]:
-            if col not in cols:  # migration cho DB cũ
+            if col not in cols:  # migration for older databases
                 _db.execute(f"ALTER TABLE cases ADD COLUMN {col} {typ}")
         _db.commit()
     return _db
@@ -158,17 +156,17 @@ def save_ai_verdict(case_id: str, v: dict):
     with _lock:
         db().execute(
             """INSERT INTO verdicts (case_id, rule_id, ai_verdict, ai_confidence, facts, rq, aq, chunk_id, cite_ok, note, retrieval, needs_attention,
-                                     guard_level, note_en, final_verdict, officer_reason, confirmed_by, confirmed_at)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,NULL,NULL,NULL,NULL)
+                                     guard_level, final_verdict, officer_reason, confirmed_by, confirmed_at)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,NULL,NULL,NULL,NULL)
                ON CONFLICT(case_id, rule_id) DO UPDATE SET ai_verdict=excluded.ai_verdict, ai_confidence=excluded.ai_confidence,
                  facts=excluded.facts, rq=excluded.rq, aq=excluded.aq, chunk_id=excluded.chunk_id, cite_ok=excluded.cite_ok,
                  note=excluded.note, retrieval=excluded.retrieval, needs_attention=excluded.needs_attention,
-                 guard_level=excluded.guard_level, note_en=excluded.note_en,
+                 guard_level=excluded.guard_level,
                  final_verdict=NULL, officer_reason=NULL, confirmed_by=NULL, confirmed_at=NULL""",
             (case_id, v["r"], v["v"], v.get("confidence"), json.dumps(v.get("facts", []), ensure_ascii=False),
              v["rq"], v["aq"], v.get("chunk_id"), int(bool(v.get("cite_app_ok"))), v.get("note", ""),
              json.dumps(v.get("retrieval_scores", [])), int(bool(v.get("needs_attention"))),
-             v.get("guard_level"), v.get("note_en")),
+             v.get("guard_level")),
         )
         db().commit()
 
@@ -242,13 +240,13 @@ def verify_chain() -> dict:
     return {"ok": True, "total": len(rows), "head": prev}
 
 
-# ---------------- hậu kiểm lấy mẫu ----------------
+# ---------------- post-audit sampling ----------------
 UNGUARDED = ("needs-manual-guard", "llm-only")
 
 
 def post_audit_candidates(auditor: str):
-    """Các lần cán bộ xác nhận ĐẠT ở tiêu chí KHÔNG có lưới đỡ mã nguồn, hồ sơ đã ký, chưa ai hậu kiểm,
-    và KHÔNG do chính người hậu kiểm xác nhận (không tự kiểm việc của mình)."""
+    """Officer MET confirmations on criteria WITHOUT a code safety net, on signed cases, not yet post-audited,
+    and NOT confirmed by the auditor themselves (nobody audits their own work)."""
     q = """SELECT v.*, c.applicant, c.status, c.officer AS case_officer, c.signed_at
            FROM verdicts v JOIN cases c ON c.id = v.case_id
            LEFT JOIN post_audit p ON p.case_id = v.case_id AND p.rule_id = v.rule_id

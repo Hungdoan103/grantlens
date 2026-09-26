@@ -1,11 +1,13 @@
-"""core.py — pipeline thẩm định (dùng chung cho API và eval).
+"""core.py — assessment pipeline (shared by the API and the evaluation scripts).
 
-Với MỖI tiêu chí, 3 lớp xử lý tách biệt:
-  Lớp A  RAG      : retrieve top-k đoạn của hồ sơ liên quan tới tiêu chí.
-  Lớp B  EXTRACT  : LLM lượt 1 — chỉ trích DỮ KIỆN trung tính (fact, chunk_id, key_phrase). Không phán quyết.
-  Lớp C  JUDGE    : LLM lượt 2 — chỉ nhìn danh sách dữ kiện đã chuẩn hóa + tiêu chí. KHÔNG nhìn văn gốc
-                    => văn phong, ngữ pháp của người nộp không thể ảnh hưởng tới phán quyết (language-bias control).
-  Lớp D  CITE     : code cắt CÂU nguyên văn từ chunk theo key_phrase (citation-by-retrieval) + string-match lớp 2.
+For EACH criterion, separate processing layers:
+  Layer A  RAG      : retrieve the top-k passages of the application relevant to the criterion.
+  Layer B  EXTRACT  : LLM pass 1 — extracts neutral FACTS only (fact, chunk_id, key_phrase). No judgement.
+  Layer C  JUDGE    : LLM pass 2 — sees only the normalised fact list + the criterion. It NEVER sees the original text
+                      => the applicant's writing style and grammar cannot influence the verdict (language-bias control).
+  Layer D  CITE     : code cuts the VERBATIM sentence from the chunk using the key_phrase (citation-by-retrieval)
+                      + a second-layer string match.
+  Layer E  GUARD    : code re-checks quantitative / pattern-checkable rules and blocks false passes (guards.py).
 """
 import json
 from pathlib import Path
@@ -44,9 +46,9 @@ JUDGE_SCHEMA = {
         "verdict": {"type": "string", "enum": VERDICTS},
         "confidence": {"type": "string", "enum": CONFIDENCE},
         "supporting_fact": {"type": "integer"},
-        "note_vi": {"type": "string"},
+        "note": {"type": "string"},
     },
-    "required": ["verdict", "confidence", "supporting_fact", "note_vi"],
+    "required": ["verdict", "confidence", "supporting_fact", "note"],
 }
 
 SYS_EXTRACT = """You are a FACT EXTRACTOR for a grants office. You do NOT judge eligibility.
@@ -69,7 +71,7 @@ Check thresholds carefully: compare numbers to the rule's minimum/maximum; note 
 Never guess. If facts are missing or ambiguous, answer "unclear" or "not_addressed".
 supporting_fact: the 1-based index of the single fact that best supports your verdict (0 if no facts).
 confidence: "high" when the facts are explicit and decisive; "medium" when some interpretation is needed; "low" when you are close to unclear.
-note_vi: one short sentence in Vietnamese explaining the mapping from facts to verdict."""
+note: one short sentence in English explaining the mapping from facts to verdict."""
 
 SYS_LETTER = """You draft outcome letters for a grants office. Write in PLAIN English (CEFR B1: short sentences, common words, no jargon). Max 350 words.
 Structure:
@@ -81,14 +83,14 @@ Never comment on the applicant's English or writing style. Output plain text onl
 
 SYS_RULES = """You convert a funding guideline into a checklist of ELIGIBILITY rules for automated evidence mapping.
 Only include eligibility / compliance requirements (who may apply, PI status, limits, required documents, page limits, budget minimums, prohibitions). Skip review criteria and general advice.
-Each rule: id (R01, R02...), type ("quantitative" if it contains a number/threshold/count, else "qualitative"), title_vi (short Vietnamese title), quote (the VERBATIM sentence(s) from the guideline, max 60 words, do not paraphrase)."""
+Each rule: id (R01, R02...), type ("quantitative" if it contains a number/threshold/count, else "qualitative"), title (short English title), quote (the VERBATIM sentence(s) from the guideline, max 60 words, do not paraphrase)."""
 
 RULES_SCHEMA = {
     "type": "object",
     "properties": {"rules": {"type": "array", "items": {"type": "object", "properties": {
         "id": {"type": "string"}, "type": {"type": "string", "enum": ["quantitative", "qualitative"]},
-        "title_vi": {"type": "string"}, "quote": {"type": "string"}},
-        "required": ["id", "type", "title_vi", "quote"]}}},
+        "title": {"type": "string"}, "quote": {"type": "string"}},
+        "required": ["id", "type", "title", "quote"]}}},
     "required": ["rules"],
 }
 
@@ -98,7 +100,7 @@ RULESETS_DIR = DATA / "rulesets"
 
 @lru_cache(maxsize=1)
 def load_rulesets() -> dict:
-    """Multi-GO: mỗi đợt/quỹ tài trợ một bộ tiêu chí riêng, có version. {id -> ruleset}."""
+    """Multi-GO: one criteria set per grant round / fund, with a version. {id -> ruleset}."""
     idx = json.loads((RULESETS_DIR / "index.json").read_text(encoding="utf-8"))
     out = {}
     for e in idx["rulesets"]:
@@ -115,11 +117,11 @@ def get_ruleset(ruleset_id: str = None, require_approved: bool = False) -> dict:
     all_rs = load_rulesets()
     rid = ruleset_id or all_rs["_default"]
     if rid not in all_rs:
-        raise KeyError(f"Không có bộ tiêu chí '{rid}'")
+        raise KeyError(f"No criteria set '{rid}'")
     rs = all_rs[rid]
     if require_approved and rs.get("status", "approved") != "approved":
-        raise KeyError(f"Bộ tiêu chí '{rid}' đang ở trạng thái NHÁP — cần quản lý phê chuẩn "
-                       f"(kèm kiểm độ phủ guard) trước khi gán cho hồ sơ")
+        raise KeyError(f"Criteria set '{rid}' is a DRAFT — a manager must approve it "
+                       f"(with a guard-coverage check) before it can be assigned to cases")
     return rs
 
 
@@ -128,7 +130,7 @@ def reload_rulesets():
 
 
 def load_rules():
-    """Bộ tiêu chí mặc định (tương thích chỗ gọi cũ)."""
+    """The default criteria set (kept for older call sites)."""
     return get_ruleset()["rules"]
 
 
@@ -158,39 +160,40 @@ def _short(q: str, n: int = 45) -> str:
 
 
 def judge_consistency(verdict: str, confidence: str, note: str, raw_idx, n_facts: int, coverage: str):
-    """CHỐT NHẤT QUÁN cho lượt phán quyết (mã nguồn, không hỏi lại model).
+    """CONSISTENCY LOCK for the judgement pass (code, no second model call).
 
-    "KHÔNG ĐẠT" là kết luận ảnh hưởng quyền lợi người nộp nên PHẢI trỏ được vào một dữ kiện nêu vi phạm.
-    Nếu model kết luận not_met mà (a) không trỏ vào dữ kiện nào (supporting_fact = 0 / ngoài phạm vi), hoặc
-    (b) lượt trích báo không có gì liên quan (coverage = none) -> đó là "thiếu thông tin", không phải vi phạm:
-    hạ xuống CHƯA RÕ và đẩy về cán bộ. Lỗi đo được 14/09/2026 (Wine W06): hồ sơ hợp lệ bị chấm "không đạt"
-    với lý do "không có thông tin về sở hữu hay thuê".
+    "NOT MET" affects the applicant's rights, so it MUST point at a fact that states the violation.
+    If the model returns not_met but (a) points at no fact (supporting_fact = 0 / out of range), or
+    (b) the extraction pass reported nothing relevant (coverage = none) -> that is "missing information", not a
+    violation: downgrade to UNCLEAR and route to the officer. Observed on 2026-09-14 (Wine W06): a valid application
+    was judged "not met" with the reason "no information about ownership or lease".
 
-    PROMPT GIỮ NGUYÊN: bản thử 19/09/2026 có thêm 2 câu vào SYS_JUDGE ("not_met REQUIRES one fact..."). Đo đối chứng
-    cho thấy hai bản prompt ra kết quả GỘP Y HỆT (6 quỹ + NSF), tức câu thêm vào không có tác dụng đo được -> bỏ,
-    giữ bản prompt gốc; mọi thay đổi hành vi nằm trong hàm này (mã nguồn: kiểm được, lặp lại được).
-    Lưu ý khi đọc số: bộ NSF 07/09 là 24/24, hôm 19/09 là 23/24 ở CẢ HAI bản prompt — nguyên nhân KHÔNG phải prompt
-    hay hàm này mà là hệ không tái lập bit-by-bit giữa các lần chạy (xem README, mục Đợt 6).
+    PROMPT UNCHANGED: a 2026-09-19 trial added two sentences to SYS_JUDGE ("not_met REQUIRES one fact..."). A
+    controlled re-measurement showed the two prompt versions produce IDENTICAL aggregate results (6 funds + NSF), i.e.
+    the added sentences had no measurable effect -> dropped; every behaviour change lives in this function (code:
+    testable, repeatable). Note when reading the numbers: the NSF set was 24/24 on 09-07 and 23/24 on 09-19 with BOTH
+    prompt versions — the cause is NOT the prompt or this function but bit-level non-reproducibility across runs
+    (see README, phase 6).
 
-    Trước đây dòng `idx = supporting_fact or 1` còn ép 0 thành 1 -> hệ vẫn trích dữ kiện số 1 làm "bằng chứng"
-    cho một kết luận mà chính model nói là không có dữ kiện hỗ trợ.
-    Trả (verdict, confidence, note, idx) — idx luôn hợp lệ để lớp trích dẫn dùng."""
+    Previously the line `idx = supporting_fact or 1` coerced 0 into 1 -> the system still quoted fact #1 as
+    "evidence" for a verdict the model itself said had no supporting fact.
+    Returns (verdict, confidence, note, idx) — idx is always valid for the citation layer."""
     valid = isinstance(raw_idx, int) and 1 <= raw_idx <= n_facts
     if verdict == "not_met" and (not valid or coverage == "none"):
-        why = "không trỏ được vào dữ kiện nào nêu vi phạm" if not valid else "lượt trích dữ kiện báo không có gì liên quan"
-        note = (f"[CHỐT NHẤT QUÁN] AI kết luận KHÔNG ĐẠT nhưng {why} — thiếu thông tin không phải là vi phạm, "
-                f"hạ xuống CHƯA RÕ để cán bộ quyết. | LLM: {note}")
+        why = "could not point to any fact stating a violation" if not valid else "the extraction pass reported nothing relevant"
+        note = (f"[CONSISTENCY LOCK] AI concluded NOT MET but {why} — missing information is not a violation; "
+                f"downgraded to UNCLEAR for the officer to decide. | LLM: {note}")
         verdict, confidence = "unclear", "low"
     return verdict, confidence, note, (raw_idx if valid else 1)
 
 
 def assess_rule(case_id: str, text: str, rule: dict, k: int = 3, ruleset_id: str = None, meta: dict = None) -> dict:
     ret = get_retriever(case_id, text)
-    hits = ret.retrieve(f"{rule['title_vi']} — {rule['quote']}", k=k)
+    hits = ret.retrieve(f"{rule['title']} — {rule['quote']}", k=k)
     valid_ids = {h["id"] for h in hits}
     passages = "\n".join(f"[chunk {h['id']}] {h['text']}" for h in hits)
 
-    # ---- Lớp B: EXTRACT (lượt 1) ----
+    # ---- Layer B: EXTRACT (pass 1) ----
     ex = llm.chat_json(
         SYS_EXTRACT,
         f"RULE {rule['id']}: \"{rule['quote']}\"\n\nPASSAGES:\n{passages}\n\nExtract the relevant facts.",
@@ -205,7 +208,7 @@ def assess_rule(case_id: str, text: str, rule: dict, k: int = 3, ruleset_id: str
                       "key_phrase": str(f.get("key_phrase", "")).strip()})
     coverage = ex.get("coverage", "none" if not facts else "partial")
 
-    # ---- Lớp C: JUDGE (lượt 2) — chỉ dữ kiện, không văn gốc ----
+    # ---- Layer C: JUDGE (pass 2) — facts only, never the original text ----
     if facts:
         from . import feedback
         fact_list = "\n".join(f"{i + 1}. {f['fact']}" for i, f in enumerate(facts))
@@ -217,13 +220,13 @@ def assess_rule(case_id: str, text: str, rule: dict, k: int = 3, ruleset_id: str
         )
         verdict = jd.get("verdict") if jd.get("verdict") in VERDICTS else "unclear"
         confidence = jd.get("confidence") if jd.get("confidence") in CONFIDENCE else "low"
-        note = jd.get("note_vi", "")
+        note = jd.get("note", "")
         verdict, confidence, note, idx = judge_consistency(verdict, confidence, note, jd.get("supporting_fact"),
                                                            len(facts), coverage)
     else:
-        verdict, confidence, idx, note = "not_addressed", "high", 0, "Không có dữ kiện nào trong hồ sơ liên quan tới tiêu chí này."
+        verdict, confidence, idx, note = "not_addressed", "high", 0, "No facts in the application relate to this criterion."
 
-    # ---- Lớp D: CITE — code cắt câu nguyên văn ----
+    # ---- Layer D: CITE — code cuts the verbatim sentence ----
     if facts:
         sf = facts[idx - 1]
         chunk = next(h for h in hits if h["id"] == sf["chunk_id"])
@@ -233,27 +236,27 @@ def assess_rule(case_id: str, text: str, rule: dict, k: int = 3, ruleset_id: str
         aq, chunk_id = "", hits[0]["id"]
     cite_ok = (aq == "") or quote_in_source(aq, text)
 
-    # ---- Lớp E: GUARD — code chặn false-pass trên rule kiểm được bằng số liệu/mẫu chữ ----
+    # ---- Layer E: GUARD — code blocks false passes on rules checkable by figures / text patterns ----
     from . import guards
     guard = guards.check(ruleset_id or get_ruleset()["id"], rule, verdict, text, meta or {})
     if guard and guard["action"] == "override":
-        note = f"[CHẶN FALSE-PASS] {guard['reason']}. (LLM trả 'met' nhưng mã nguồn kiểm số liệu xác định vi phạm — rule định lượng do code quyết.) | LLM: {note}"
+        note = f"[FALSE-PASS BLOCKED] {guard['reason']}. (LLM returned 'met' but the code check of the figures found a violation — quantitative rules are decided by code.) | LLM: {note}"
         verdict, confidence = guard["verdict"], "high"
     elif guard and guard["action"] == "flag":
-        note = f"[NGHI FALSE-PASS] {guard['reason']} — hạ xuống CHƯA RÕ, bắt buộc cán bộ quyết. | LLM: {note}"
+        note = f"[SUSPECTED FALSE PASS] {guard['reason']} — downgraded to UNCLEAR, officer must decide. | LLM: {note}"
         verdict, confidence = "unclear", "low"
 
-    # Mức bảo vệ của tiêu chí này -> lớp trên dùng để ép ma sát khi cán bộ xác nhận ĐẠT
+    # Protection level of this criterion -> the workflow layer uses it to enforce friction when an officer confirms MET
     guard_level = guards.rule_guard_level(ruleset_id or get_ruleset()["id"], rule)
-    # Tiêu chí không có lưới đỡ code mà AI nói ĐẠT: luôn kéo vào diện cần chú ý —
-    # đây đúng là chỗ false-pass lọt nếu cán bộ lướt nhanh (phê bình của khách).
+    # A criterion without a code safety net where the AI says MET always needs attention —
+    # this is exactly where a false pass slips through if the officer skims (customer critique).
     unguarded_pass = guard_level == "needs-manual-guard" and verdict == "met"
     needs_attention = (verdict in ("unclear", "not_addressed") or confidence == "low"
                        or not cite_ok or bool(guard) or unguarded_pass)
 
     return {
         "guard": guard, "guard_level": guard_level,
-        "r": rule["id"], "title": rule["title_vi"], "type": rule["type"],
+        "r": rule["id"], "title": rule["title"], "type": rule["type"],
         "v": verdict, "confidence": confidence,
         "facts": facts, "coverage": coverage, "supporting_fact": idx,
         "rq": _short(rule["quote"]), "aq": aq, "chunk_id": chunk_id,
@@ -266,10 +269,10 @@ def assess_rule(case_id: str, text: str, rule: dict, k: int = 3, ruleset_id: str
 
 def assess_case(case_id: str, text: str, progress=None, ruleset_id: str = None, meta: dict = None,
                 only_rules=None):
-    """Generator: yield từng verdict để API stream tiến độ.
+    """Generator: yields one verdict at a time so the API can stream progress.
 
-    only_rules: giới hạn ở một tập rule (dùng cho đo [MỤC TIÊU] — mỗi case chỉ cần chấm đúng
-    rule có vi phạm cài sẵn, không phải chấm cả bộ). Mặc định None = chấm đủ như cũ.
+    only_rules: restrict to a subset of rules (used for the [TARGET] measurement — each case only needs the rule
+    with the planted violation, not the whole set). Default None = assess every rule as before.
     """
     rules = get_ruleset(ruleset_id)["rules"]
     if only_rules:
@@ -286,7 +289,7 @@ Requirements:
 - Follow EVERY requirement in the rules exactly (sections, order, deadlines, named bodies, required statements). Do not invent requirements that are not in the rules; where the rules are silent, use this safe default skeleton: decision -> findings with two-sided verbatim quotes -> what the applicant can do -> right to appeal.
 - Structure: letterhead lines, date/reference, salutation, numbered sections with UPPERCASE headings, sign-off.
 - Use {PLACEHOLDERS} in curly braces for variable content: {APPLICANT_NAME}, {CASE_ID}, {DATE}, {OFFICER_NAME}, {ORGANIZATION_LETTERHEAD}, and section bodies described in (parentheses) telling the writer what to fill in.
-- Language of the template follows the language the rules are written in (English rules -> English template; Vietnamese rules -> Vietnamese template). Keep instructions in parentheses short.
+- Language of the template follows the language the rules are written in. Keep instructions in parentheses short.
 - Output ONLY the template text. No commentary, no markdown fences."""
 
 
@@ -295,7 +298,7 @@ def generate_letter_template(rules_text: str) -> str:
 
 
 def load_letter_template() -> str:
-    """Mẫu thư của đơn vị (data/letter-template.txt) — dòng đầu là ghi chú nội bộ thì bỏ qua."""
+    """The office's letter template (data/letter-template.txt) — a first line in [brackets] is an internal note and is skipped."""
     p = DATA / "letter-template.txt"
     if not p.exists():
         return ""
@@ -324,25 +327,25 @@ def draft_letter(case_id: str, applicant: str, finals: list, officer: str = "", 
 
 
 def _sanitize_letter(letter: str, allowed: str) -> str:
-    """Lớp chặn deterministic: email / số điện thoại / ngày không có trong dữ liệu đầu vào
-    là do model bịa -> thay bằng placeholder cho cán bộ điền. Không tin prompt suông."""
+    """Deterministic blocking layer: an email / phone number / date that does not appear in the input data was
+    invented by the model -> replaced with a placeholder for the officer to fill in. Never trust the prompt alone."""
     import re
     from datetime import date
     letter = re.sub(r"[\w.+-]+@[\w-]+\.[\w.]+",
-                    lambda m: m.group(0) if m.group(0) in allowed else "{EMAIL LIÊN HỆ — cán bộ điền}", letter)
+                    lambda m: m.group(0) if m.group(0) in allowed else "{CONTACT EMAIL — to be completed by staff}", letter)
     letter = re.sub(r"\+?\d[\d ()\-]{7,}\d",
-                    lambda m: m.group(0) if m.group(0) in allowed else "{SĐT LIÊN HỆ — cán bộ điền}", letter)
+                    lambda m: m.group(0) if m.group(0) in allowed else "{CONTACT PHONE — to be completed by staff}", letter)
     today = date.today().isoformat()
     letter = re.sub(r"\b\d{4}-\d{2}-\d{2}\b",
                     lambda m: m.group(0) if (m.group(0) == today or m.group(0) in allowed)
-                    else "{HẠN — cán bộ ấn định}", letter)
+                    else "{DEADLINE — to be set by staff}", letter)
     return letter
 
 
 def extract_rules(guideline_text: str) -> list:
     out = llm.chat_json(SYS_RULES, f"GUIDELINE TEXT:\n{guideline_text[:12000]}", RULES_SCHEMA, max_tokens=2500)
     rules = out.get("rules") or []
-    # Lớp phòng thủ: quote phải là nguyên văn trong guideline, không thì gắn cờ
+    # Defensive layer: the quote must appear verbatim in the guideline, otherwise it is flagged
     norm = " ".join(guideline_text.split()).lower()
     for r in rules:
         r["verbatim_ok"] = " ".join(str(r.get("quote", "")).split()).lower() in norm

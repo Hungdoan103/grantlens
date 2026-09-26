@@ -7,23 +7,23 @@
   "label_scope": "target",
   "labels_generated_at": "2026-09-14T16:02:27",
   "labels_approved_at": "2026-09-14T16:03:17",
-  "evaluated_at": "2026-09-19T12:19:17",
+  "evaluated_at": "2026-09-26T18:01:37",
   "provisional": false,
   "labels_approved": true,
-  "approved_by": "Rà kỹ thuật (nhà cung cấp) — chưa thay cán bộ đơn vị",
+  "approved_by": "Technical review (vendor) — not a substitute for the office's officers",
   "primary_metric": "target",
   "target": {
     "correct": 1,
     "total": 1,
     "false_pass": 0,
     "routed_to_officer": 0,
-    "note": "THƯỚC ĐO CHÍNH — vi phạm cài sẵn có bị bắt không"
+    "note": "PRIMARY METRIC — is the planted violation caught"
   },
   "control": {
     "correct": 1,
     "total": 1,
     "false_alarm": 0,
-    "note": "rule mục tiêu chấm trên hồ sơ sạch — báo động giả"
+    "note": "target rules assessed on the clean application — false alarms"
   },
   "secondary": null,
   "excluded_weak_labels": 0,

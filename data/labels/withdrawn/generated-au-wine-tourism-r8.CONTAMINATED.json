@@ -4,7 +4,7 @@
   "generated_by": "qwen3:8b",
   "generated_at": "2026-09-07T15:19:07",
   "approved": false,
-  "note": "Nhãn gán by-construction; guard đối soát + verifier độc lập. CHƯA PHÊ CHUẨN — số đo là TẠM. Case W06 đã bị LOẠI: nhãn sai do rule cho phép related entity (bằng chứng cơ chế dispute hoạt động).",
+  "note": "Labels assigned by construction; guard cross-check + independent verifier. NOT APPROVED — measurements are PROVISIONAL. Case W06 was REMOVED: wrong label because the rule allows a related entity (the AI was right).",
   "cases": [
     {
       "id": "GEN-au-wine-tourism-r8-00-clean",
@@ -48,7 +48,7 @@
       "verifier": {},
       "status": "approved",
       "weak_reasons": {
-        "W04": "Rà tay: case này doanh số dưới ngưỡng (mục tiêu W03) nên W04 cũng không thể met — nhãn phụ không đáng tin."
+        "W04": "Manual review: this case's sales are below the threshold (target W03), so W04 cannot be met either — the secondary label is unreliable."
       }
     },
     {
@@ -70,7 +70,7 @@
       "weak_labels": [],
       "verifier": {},
       "status": "disputed",
-      "dispute_reason": "Nhãn sai: case nêu related entity sở hữu cellar door — rule W06 cho phép 'and/or their related entity/ies', nên đúng ra là ĐẠT. AI chấm đúng, đề thi sai."
+      "dispute_reason": "Wrong label: the case says a related entity owns the cellar door — rule W06 allows 'and/or their related entity/ies', so the correct label is MET. The AI judged correctly; the test was wrong."
     },
     {
       "id": "GEN-au-wine-tourism-r8-03-W08",
@@ -114,13 +114,13 @@
       "verifier": {},
       "status": "approved",
       "weak_reasons": {
-        "W04": "Rà tay: hồ sơ ghi rebatable wine sales = đúng ngưỡng $1,207,000 nên không còn phần vượt; nhãn W04=met sai theo câu chữ rule."
+        "W04": "Manual review: the text states rebatable wine sales exactly equal to the $1,207,000 threshold, so nothing is in excess; the label W04=met contradicts the rule wording."
       }
     }
   ],
   "skipped": [],
-  "approved_by": "Rà kỹ thuật (nhà cung cấp) — chưa thay cán bộ đơn vị",
+  "approved_by": "Technical review (vendor) — not a substitute for the office's officers",
   "approved_at": "2026-09-10T01:49:35",
   "withdrawn": true,
-  "withdrawn_reason": "THU HỒI 12/09/2026: văn bản thi tự sinh có câu tự thú lộ đáp án (case 03-W08 ghi thẳng 'violating W08'; nhiều case nhắc mã rule W01..W09). Hệ thẩm định có thể chấm đúng vì ĐỌC được đáp án chứ không phải vì suy luận -> metric [MỤC TIÊU] 3/3 đo trên bộ này KHÔNG dùng được nữa. Giữ lại để truy vết. Bộ thay thế sinh bằng casegen có bộ lọc chống lộ đề."
+  "withdrawn_reason": "WITHDRAWN 2026-09-12: the generated test texts contained self-confessing sentences that leak the answer (case 03-W08 literally says 'violating W08'; several cases mention rule IDs W01..W09). The assessment system may have scored well by READING the answer rather than reasoning, so the 3/3 figure is unusable. Kept for traceability only."
 }

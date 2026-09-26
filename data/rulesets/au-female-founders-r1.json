@@ -3,52 +3,46 @@
   "name": "Boosting Female Founders Initiative — Round 1 (AU, GO3792)",
   "region": "AU",
   "version": "R1-2020",
-  "source": "Department of Industry, Science and Resources — GrantConnect GO3792 (trích nguyên văn từ tài liệu phân tích khách cung cấp 2026-09-07). Nhóm quỹ: Cross-industry. Bẫy đặc thù: majority (≥51%) female owned and led.",
+  "source": "Department of Industry, Science and Resources — GrantConnect GO3792 (quoted verbatim from the analysis document provided by the customer 2026-09-07). Fund group: cross-industry, targeted at a demographic (women founders).",
   "rules": [
     {
       "id": "F01",
       "type": "quantitative",
-      "title_vi": "Startup do nữ giới SỞ HỮU VÀ LÃNH ĐẠO ĐA SỐ (>50%)",
-      "quote": "To be eligible you must: be a female founded (majority owned and led by women) startup; show evidence that your startup is a female founded (majority owned and led by women)",
-      "title_en": "Startup MAJORITY OWNED AND LED by women (>50%)"
+      "title": "Startup MAJORITY OWNED AND LED by women (>50%)",
+      "quote": "To be eligible you must: be a female founded (majority owned and led by women) startup; show evidence that your startup is a female founded (majority owned and led by women)"
     },
     {
       "id": "F02",
       "type": "qualitative",
-      "title_vi": "Có Australian Business Number (ABN)",
-      "quote": "have an Australian Business Number (ABN)",
-      "title_en": "Has an Australian Business Number (ABN)"
+      "title": "Has an Australian Business Number (ABN)",
+      "quote": "have an Australian Business Number (ABN)"
     },
     {
       "id": "F03",
       "type": "qualitative",
-      "title_vi": "Đăng ký GST",
-      "quote": "be registered for the Goods and Services Tax (GST)",
-      "title_en": "Registered for GST"
+      "title": "Registered for GST",
+      "quote": "be registered for the Goods and Services Tax (GST)"
     },
     {
       "id": "F04",
       "type": "qualitative",
-      "title_vi": "Loại pháp nhân hợp lệ",
-      "quote": "be one of the following entities: an entity incorporated in Australia; an incorporated trustee on behalf of a trust; an Aboriginal and Torres Strait Islander Corporation registered under the Corporations (Aboriginal and Torres Strait Islander) Act 2006 (Cth); a partnership; a sole trader.",
-      "title_en": "Eligible entity type"
+      "title": "Eligible entity type",
+      "quote": "be one of the following entities: an entity incorporated in Australia; an incorporated trustee on behalf of a trust; an Aboriginal and Torres Strait Islander Corporation registered under the Corporations (Aboriginal and Torres Strait Islander) Act 2006 (Cth); a partnership; a sole trader."
     },
     {
       "id": "F05",
       "type": "qualitative",
-      "title_vi": "Không thuộc diện loại trừ (miễn thuế TNDN, unincorporated, trust, cơ quan nhà nước)",
-      "quote": "You are not eligible to apply if you are: income tax exempt; an unincorporated association; a trust (however, an incorporated trustee may apply on behalf of a trust); a Commonwealth, State, Territory or local government body (including government business enterprises)",
-      "title_en": "Not an excluded entity (income tax exempt, unincorporated, trust, government body)"
+      "title": "Not an excluded entity (income tax exempt, unincorporated, trust, government body)",
+      "quote": "You are not eligible to apply if you are: income tax exempt; an unincorporated association; a trust (however, an incorporated trustee may apply on behalf of a trust); a Commonwealth, State, Territory or local government body (including government business enterprises)"
     },
     {
       "id": "F06",
       "type": "quantitative",
-      "title_vi": "Mức grant $25.000–$480.000, tối đa 50% chi phí hợp lệ",
-      "quote": "Estimated Grant Value (AUD): From $25,000.00 to $480,000.00. The grant amount will be up to 50 per cent of eligible project costs",
-      "title_en": "Grant $25,000–$480,000, up to 50% of eligible costs"
+      "title": "Grant $25,000–$480,000, up to 50% of eligible costs",
+      "quote": "Estimated Grant Value (AUD): From $25,000.00 to $480,000.00. The grant amount will be up to 50 per cent of eligible project costs"
     }
   ],
   "status": "approved",
-  "approved_by": "Khởi tạo hệ thống",
+  "approved_by": "System initialisation",
   "approved_at": "2026-09-07"
 }

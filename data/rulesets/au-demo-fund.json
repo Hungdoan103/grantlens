@@ -10,26 +10,23 @@
     {
       "id": "A01",
       "type": "qualitative",
-      "title_vi": "Tổ chức đăng ký tại Úc",
-      "quote": "The applicant must be an entity registered in Australia with an active ABN.",
-      "title_en": "Organisation registered in Australia"
+      "title": "Organisation registered in Australia",
+      "quote": "The applicant must be an entity registered in Australia with an active ABN."
     },
     {
       "id": "A02",
       "type": "quantitative",
-      "title_vi": "Ngân sách tối thiểu",
-      "quote": "Projects are expected to total a minimum of $200,000 for the grant period.",
-      "title_en": "Minimum budget"
+      "title": "Minimum budget",
+      "quote": "Projects are expected to total a minimum of $200,000 for the grant period."
     },
     {
       "id": "A03",
       "type": "qualitative",
-      "title_vi": "Không nằm trong danh sách cấm",
-      "quote": "Applicants must not appear on any Commonwealth sanctions or disqualification list.",
-      "title_en": "Not on a sanctions list"
+      "title": "Not on a sanctions list",
+      "quote": "Applicants must not appear on any Commonwealth sanctions or disqualification list."
     }
   ],
   "status": "approved",
-  "approved_by": "Khởi tạo hệ thống",
+  "approved_by": "System initialisation",
   "approved_at": "2026-09-07"
 }

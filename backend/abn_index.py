@@ -1,8 +1,8 @@
-"""abn_index.py — lập chỉ mục ABR Bulk Extract (1 lần) vào SQLite FTS5.
-Chạy:  python -m backend.abn_index
-Đọc STREAM trực tiếp từ 2 file zip (không giải nén 12.6 GB), ~20.5 triệu bản ghi.
-Kết quả: data/external/abn/abn.sqlite (bảng abn + abn_fts) — backend/screening.py tra cứu tên tổ chức.
-Chạy lại an toàn: xoá file cũ và lập lại từ đầu.
+"""abn_index.py — index the ABR Bulk Extract (once) into SQLite FTS5.
+Run:  python -m backend.abn_index
+Streams directly from the 2 zip files (no need to unpack 12.6 GB), ~20.5 million records.
+Output: data/external/abn/abn.sqlite (tables abn + abn_fts) — backend/screening.py looks up organisation names in it.
+Safe to re-run: the old file is deleted and rebuilt from scratch.
 """
 import re, sqlite3, sys, time, zipfile
 import xml.etree.ElementTree as ET
@@ -44,7 +44,7 @@ def iter_records():
                         if abn and name:
                             yield abn, name, status, etype, state, pc
                         el.clear()
-                print(f"  xong {info.filename}", flush=True)
+                print(f"  done {info.filename}", flush=True)
 
 
 def main():
@@ -65,7 +65,7 @@ def main():
     n = _flush(con, batch, n, t0)
     con.execute("INSERT INTO meta VALUES ('done', datetime('now'))")
     con.commit(); con.close()
-    print(f"HOÀN TẤT: {n:,} bản ghi trong {(time.time()-t0)/60:.1f} phút → {ABN_DB}")
+    print(f"DONE: {n:,} records in {(time.time()-t0)/60:.1f} minutes → {ABN_DB}")
 
 
 def _flush(con, batch, n, t0):
@@ -77,7 +77,7 @@ def _flush(con, batch, n, t0):
     con.commit()
     n += len(batch)
     if n % 1000000 < 20000:
-        print(f"  {n:,} bản ghi · {(time.time()-t0)/60:.1f} phút", flush=True)
+        print(f"  {n:,} records · {(time.time()-t0)/60:.1f} minutes", flush=True)
     batch.clear()
     return n
 

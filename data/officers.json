@@ -1,5 +1,5 @@
 {
-  "_note": "Sổ cán bộ — COI + phân vai. role: officer (thẩm định) | manager (ký xác nhận cấp 2 khi loại hồ sơ). sla_days: hạn xử lý theo trạng thái (ngày), quá hạn UI cảnh báo.",
+  "_note": "Officer register — COI + roles. role: officer (reviews) | manager (countersigns rejections) | auditor (post-audit only). sla_days: processing deadline per status (days); the UI warns when overdue. username/password are set by backend/auth.py.",
   "sla_days": {
     "new": 2,
     "assessed": 3,
@@ -15,7 +15,7 @@
       "affiliations": [
         "Grants Office"
       ],
-      "notes": "cán bộ thẩm định mẫu",
+      "notes": "sample reviewing officer",
       "username": "nguyen.van.an",
       "password": "pbkdf2_sha256$240000$PfkafyOmzm1uDVUpSg/VyA==$CZHXw246v9pyHEnqTLP49LBfEdQYB+RRPjhpeDMZzls="
     },
@@ -26,7 +26,7 @@
         "Grants Office",
         "Riverside State University"
       ],
-      "notes": "demo chặn COI với HS-01",
+      "notes": "demo: COI block against HS-01",
       "username": "tran.thi.binh",
       "password": "pbkdf2_sha256$240000$dBt88YsItgRloxd9zUm3Mg==$GHuwKWSPihwkhSpJH2GhTa5L7V4dO88JC4z1P8j2NrA="
     },
@@ -36,7 +36,7 @@
       "affiliations": [
         "Lakeshore Technical University"
       ],
-      "notes": "demo cảnh báo trùng tên HS-02",
+      "notes": "demo: name-collision warning on HS-02",
       "username": "james.miller",
       "password": "pbkdf2_sha256$240000$kW8/GbW9uqcD9tS5JGpOZg==$WrWsh013IxF06i85k/fPp57+1Q7IsULxGewLBFHixD0="
     },
@@ -46,7 +46,7 @@
       "affiliations": [
         "Grants Office"
       ],
-      "notes": "quản lý — ký xác nhận cấp 2 trước khi loại hồ sơ",
+      "notes": "manager — countersigns before a case is rejected",
       "username": "pham.van.quyet",
       "password": "pbkdf2_sha256$240000$qvu9lMnnU1EQAsa/xWcxuA==$6+m57qnleY//80ouyvLGN2lcbmEW84Ufs0voXyGyqCU="
     },
@@ -56,7 +56,7 @@
       "affiliations": [
         "Internal Audit"
       ],
-      "notes": "thanh tra nội bộ — chỉ hậu kiểm, không thẩm định",
+      "notes": "internal auditor — post-audit only, no reviewing",
       "username": "le.minh.chau",
       "password": "pbkdf2_sha256$240000$ghotuy6IOyEHrdesB0UGvQ==$yioS4NXS3BTE0bWU4Ag6UqEYbCe9Wxy0bFaU4S5wFY4="
     }

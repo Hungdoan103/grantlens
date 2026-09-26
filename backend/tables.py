@@ -1,14 +1,14 @@
-"""tables.py — trích văn bản GIỮ CẤU TRÚC BẢNG từ PDF/DOCX trước bước RAG.
+"""tables.py — extract text from PDF/DOCX while PRESERVING TABLE STRUCTURE, before the RAG step.
 
-Vấn đề: hồ sơ xin ngân sách hay chứa bảng tài chính; nếu đọc PDF thô rồi chunk theo đoạn,
-hàng/cột bị trộn lẫn -> RAG lấy sai dữ kiện. Ở đây:
-  - PDF  : pdfplumber phân tích layout từng trang; vùng bảng -> render dạng pipe (| ô | ô |),
-           phần chữ ngoài bảng giữ theo dòng chảy tự nhiên.
-  - DOCX : đọc đúng thứ tự đoạn/bảng trong document.xml; bảng -> pipe.
-  - Bảng được bọc [BẢNG n] ... [/BẢNG n] và KHÔNG có dòng trống bên trong
-    -> rag.chunk_text (tách theo dòng trống) giữ mỗi bảng nguyên vẹn thành MỘT chunk.
-  - PDF scan (trang không có lớp chữ): gắn cảnh báo cần OCR; nếu cài pytesseract + Tesseract
-    thì tự OCR trang đó (tùy chọn, không bắt buộc cho bản demo).
+Problem: grant applications often contain financial tables; reading a PDF raw and chunking by paragraph mixes
+rows and columns, so RAG retrieves the wrong facts. Here:
+  - PDF  : pdfplumber analyses the layout of each page; table regions are rendered as pipes (| cell | cell |),
+           text outside tables keeps its natural flow.
+  - DOCX : paragraphs and tables are read in document order from document.xml; tables -> pipes.
+  - Tables are wrapped in [TABLE n] ... [/TABLE n] with NO blank line inside
+    -> rag.chunk_text (which splits on blank lines) keeps each table intact as ONE chunk.
+  - Scanned PDF (page without a text layer): flagged as needing OCR; if pytesseract + Tesseract are installed
+    the page is OCR'd automatically (optional, not required for the demo build).
 """
 import io, re
 
@@ -18,12 +18,12 @@ class ScannedPDFError(Exception):
 
 
 def _table_to_pipe(rows, idx: int) -> str:
-    lines = [f"[BẢNG {idx}]"]
+    lines = [f"[TABLE {idx}]"]
     for r in rows:
         cells = [re.sub(r"\s+", " ", str(c or "")).strip() for c in r]
         if any(cells):
             lines.append("| " + " | ".join(cells) + " |")
-    lines.append(f"[/BẢNG {idx}]")
+    lines.append(f"[/TABLE {idx}]")
     return "\n".join(lines)
 
 
@@ -36,7 +36,7 @@ def _find_tesseract():
 
 
 def _ocr_page(page):
-    """OCR dự phòng cho trang scan — chạy nếu máy có Tesseract (tự tìm trên Windows)."""
+    """Fallback OCR for a scanned page — runs when Tesseract is installed (auto-detected on Windows)."""
     try:
         import pytesseract
         exe = _find_tesseract()
@@ -49,7 +49,7 @@ def _ocr_page(page):
 
 
 def pdf_to_text(data: bytes) -> dict:
-    """Trả {text, n_tables, n_pages, scanned_pages, ocr_used}."""
+    """Returns {text, n_tables, n_pages, scanned_pages, ocr_used}."""
     import pdfplumber
     out, n_tables, scanned, ocr_used = [], 0, [], False
     with pdfplumber.open(io.BytesIO(data)) as pdf:
@@ -62,13 +62,13 @@ def pdf_to_text(data: bytes) -> dict:
                 return not any(x0 <= cx <= x1 and top <= cy <= bottom for x0, top, x1, bottom in regions)
 
             body = page.filter(outside).extract_text() or ""
-            if not body.strip() and not tables:  # trang không có lớp chữ -> scan
+            if not body.strip() and not tables:  # page without a text layer -> scanned
                 ocr = _ocr_page(page)
                 if ocr and ocr.strip():
                     body, ocr_used = ocr, True
                 else:
                     scanned.append(pno)
-                    body = f"[TRANG {pno}: ảnh scan — chưa trích được chữ, cần OCR]"
+                    body = f"[PAGE {pno}: scanned image — no text extracted, OCR needed]"
             parts = [body.strip()] if body.strip() else []
             for t in tables:
                 n_tables += 1
@@ -79,13 +79,13 @@ def pdf_to_text(data: bytes) -> dict:
 
 
 def docx_to_text(data: bytes) -> dict:
-    """Đọc .docx theo đúng thứ tự đoạn văn / bảng."""
+    """Read a .docx in true paragraph / table order."""
     from docx import Document
     from docx.table import Table
     from docx.text.paragraph import Paragraph
     doc = Document(io.BytesIO(data))
     out, n_tables = [], 0
-    # duyệt body theo thứ tự thật (đoạn xen kẽ bảng)
+    # walk the body in real order (paragraphs interleaved with tables)
     for child in doc.element.body.iterchildren():
         if child.tag.endswith("}p"):
             t = Paragraph(child, doc).text.strip()

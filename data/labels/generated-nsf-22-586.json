@@ -14,10 +14,10 @@
   ],
   "generated_at": "2026-09-14T15:57:14",
   "approved": true,
-  "approved_by": "Rà kỹ thuật (nhà cung cấp) — chưa thay cán bộ đơn vị",
+  "approved_by": "Technical review (vendor) — not a substitute for the office's officers",
   "approved_at": "2026-09-14T15:58:31",
   "n_needs_review": 0,
-  "note": "Vi phạm do mã nguồn chốt trước (câu dữ kiện được guard/verifier xác nhận, văn bản phải chứa nguyên văn); chặn lộ đáp án bằng mã nguồn; verifier dùng model tách khỏi hệ bị đo. CHƯA PHÊ CHUẨN — số đo từ bộ này là TẠM (provisional). Rà văn bản, xử lý hết cờ rồi --approve.",
+  "note": "Violations fixed by code first (the fact sentence is confirmed by guard/verifier and the text must contain it verbatim); answer leaks blocked by code; the verifier uses a model separate from the system under test. NOT APPROVED — measurements from this set are PROVISIONAL. Review the texts, resolve every flag, then --approve.",
   "cases": [
     {
       "id": "GEN-nsf-22-586-00-clean",
@@ -69,7 +69,7 @@
         "R05"
       ],
       "control_confirmed_by_reviewer": {
-        "R05": "Người rà đọc văn bản: 'Importantly, Dr. Hayes is untenured.' — nêu trơn, thoả rõ R05; verifier gemma dao động yes/no. KHÔNG dùng R04 (câu chức danh kèm bình luận 'fulfilling the required faculty commitment'); R07/R08 không có dữ kiện"
+        "R05": "Reviewer read the text: 'Importantly, Dr. Hayes is untenured.' — stated plainly, clearly satisfies R05; the gemma verifier's yes/no is unstable. R04 is NOT used (the title sentence carries commentary)."
       }
     },
     {
@@ -109,7 +109,7 @@
         ]
       },
       "status": "disputed",
-      "dispute_reason": "Nhãn SAI: người được ghi 'tenured' là Dr. Elena Rodriguez, nhưng PI của hồ sơ là Dr. Ben Carter (60% tenure-track assistant professor) — R05 xét PI nên hồ sơ KHÔNG vi phạm"
+      "dispute_reason": "WRONG LABEL: the person described as 'tenured' is Dr. Elena Rodriguez, but the PI of this application is Dr. Ben Carter (60% tenure-track assistant professor) — R05 concerns the PI, so the application does NOT violate it."
     },
     {
       "id": "GEN-nsf-22-586-03-R07",
@@ -150,7 +150,7 @@
         ]
       },
       "status": "disputed",
-      "dispute_reason": "Nhãn SAI + lộ đáp án: 'two CAREER proposals in the past two annual competitions' tức mỗi kỳ 1 đề xuất — đúng quy định; câu còn tự bình luận 'exceeding the one-per-competition limit'"
+      "dispute_reason": "WRONG LABEL + answer leak: 'two CAREER proposals in the past two annual competitions' means one proposal per competition — within the rule; the sentence also comments on itself ('exceeding the one-proposal...'), leaking the answer."
     },
     {
       "id": "GEN-nsf-22-586-04-R08",
@@ -196,7 +196,7 @@
   "skipped": [
     {
       "id": "GEN-nsf-22-586-01-R04",
-      "reason": "guard bắn vào rule ngoài mục tiêu: ['R08'] (sau 3 lần viết)",
+      "reason": "guard fired on a non-target rule: ['R08'] (after 3 attempts)",
       "fact": "Dr. Elena Rodriguez holds a 30% tenure-track position at State University as an assistant professor, not meeting the 50% threshold required for eligibility.",
       "last_text": "Applicant and Entity Details\n\nApplicant Name: Redwood Research Institute\nContact Person: Dr. Samuel Davies\nAddress: 123 Innovation Drive, Silicon Valley, CA 94043\nPhone: +1-555-123-4567\nEmail: samuel.davies@redwoodresearch.org\n\nEntity and Registration Details\n\nRedwood Research Institute is a 501(c)(3) non-profit organization, registered in California under registration number 123456789. We operate an independent research lab focused on advanced materials science. Our primary campus is located at the address listed above. We are accredited by the Accreditation Commission for Engineering and Technology (ACET).\n\nProject Information and Compliance\n\nThe Redwood Research Institute submitted a proposal for the NSF 22-586 CAREER award. Dr. Elena Rodriguez holds a 30% tenure-track position at State University as an assistant professor, not meeting the 50% threshold required for eligibility. The Project Description submitted with the proposal is 13 pages in length. The total anticipated award amount, including indirect costs, is $475,000 over the five-year project duration. We have not previously received a CAREER award, and there are no co-principal investigators listed on the cover page. A letter from the Head of the Department of Materials Science at State University, Dr. Michael Chen, is included with the proposal, and it is 1.8 pages in length. We have not included any voluntary committed cost sharing.\n\nAdditional Details\n"
     }

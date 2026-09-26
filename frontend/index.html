@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GrantLens — Thẩm định hồ sơ tài trợ</title>
+<title>GrantLens — Grant application review</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Spectral:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
 :root{--paper:#EEF0EC;--card:#FFF;--ink:#1C2826;--muted:#5A6672;--green:#175C4C;--green-soft:#DFEAE4;--red:#A33B2E;--red-soft:#F3E2DE;--amber:#9A6B1F;--amber-soft:#F2E8D4;--slate:#5A6672;--slate-soft:#E4E7EA;--line:#C9CFC8;--band:#DDE6E0;--blue:#2B5A8C;--blue-soft:#DCE6F1;--hl:#FFF1A8}
@@ -165,30 +165,30 @@ pre.json{font-family:'IBM Plex Mono',monospace;font-size:11px;background:#F6F7F5
 <div class="shell">
 <aside>
   <div class="brand">Grant<em>Lens</em></div>
-  <div class="brand-sub">Trợ lý thẩm định điều kiện hồ sơ tài trợ<br>AI đưa bằng chứng · con người quyết định</div>
-  <button class="navbtn on" data-v="dash">Tổng quan<span class="k">1</span></button>
-  <button class="navbtn" data-v="cases">Hồ sơ<span class="k">2</span></button>
-  <button class="navbtn" data-v="rules">Bộ tiêu chí<span class="k">3</span></button>
+  <div class="brand-sub">Grant eligibility screening assistant<br>AI supplies the evidence · people decide</div>
+  <button class="navbtn on" data-v="dash">Overview<span class="k">1</span></button>
+  <button class="navbtn" data-v="cases">Application<span class="k">2</span></button>
+  <button class="navbtn" data-v="rules">Criteria sets<span class="k">3</span></button>
   <button class="navbtn" data-v="bias">Bias Lab<span class="k">4</span></button>
-  <button class="navbtn" data-v="audit">Nhật ký kiểm toán<span class="k">5</span></button>
-  <button class="navbtn" data-v="ingest">Nạp dữ liệu<span class="k">6</span></button>
-  <div class="aside-foot" id="asidefoot">Đang kết nối backend…</div>
+  <button class="navbtn" data-v="audit">Audit log<span class="k">5</span></button>
+  <button class="navbtn" data-v="ingest">Data intake<span class="k">6</span></button>
+  <div class="aside-foot" id="asidefoot">Connecting to backend…</div>
 </aside>
 <div class="login" id="login" hidden>
   <form class="loginbox" onsubmit="return doLogin(event)">
     <h2>Grant<em>Lens</em></h2>
-    <p>Đăng nhập để thẩm định. Mọi thao tác ký, xác nhận, phê chuẩn được ghi vào nhật ký theo tài khoản này — tên không còn tự khai.</p>
-    <label for="lg-user">Tên đăng nhập</label><input id="lg-user" autocomplete="username" required>
-    <label for="lg-pass">Mật khẩu</label><input id="lg-pass" type="password" autocomplete="current-password" required>
-    <button class="btn green" type="submit">Đăng nhập</button>
+    <p>Sign in to review. Every signature, confirmation and approval is logged under this account — names are no longer self-declared.</p>
+    <label for="lg-user">Username</label><input id="lg-user" autocomplete="username" required>
+    <label for="lg-pass">Password</label><input id="lg-pass" type="password" autocomplete="current-password" required>
+    <button class="btn green" type="submit">Sign in</button>
     <div class="loginerr" id="lg-err"></div>
-    <div class="conf" style="text-align:center;margin-top:8px"><a href="#" id="langlink" class="notranslate" onclick="toggleLang();return false">English</a></div>
+    <div class="conf" style="text-align:center;margin-top:8px"><a href="#" id="langlink" class="notranslate" onclick="toggleLang();return false">Tiếng Việt</a></div>
   </form>
 </div>
 <main>
   <div class="topbar">
-    <h1 id="pagetitle">Tổng quan</h1>
-    <div class="who"><b id="whoname">—</b><span class="rolechip" id="whorole"></span><button id="langbtn" class="notranslate" onclick="toggleLang()" title="Đổi ngôn ngữ hiển thị (VI/EN)">EN</button><button onclick="logout()">Đăng xuất</button></div>
+    <h1 id="pagetitle">Overview</h1>
+    <div class="who"><b id="whoname">—</b><span class="rolechip" id="whorole"></span><button id="langbtn" class="notranslate" onclick="toggleLang()" title="Switch display language (EN/VI)">VI</button><button onclick="logout()">Sign out</button></div>
   </div>
 
   <!-- ===== DASHBOARD ===== -->
@@ -196,14 +196,14 @@ pre.json{font-family:'IBM Plex Mono',monospace;font-size:11px;background:#F6F7F5
     <div id="llmbanner"></div>
     <div class="tiles" id="tiles"></div>
     <div id="postaudit"></div>
-    <h3>Hàng đợi hồ sơ</h3>
+    <h3>Application queue</h3>
     <div class="tblwrap"><table id="dashtable"></table></div>
-    <div class="note" style="margin-top:18px"><b>Cách hệ thống làm việc:</b> với mỗi tiêu chí, RAG tìm đoạn liên quan → AI lượt 1 chỉ <b>trích dữ kiện</b> trung tính → AI lượt 2 <b>phán quyết trên dữ kiện</b> (không thấy văn gốc, nên văn phong không thể ảnh hưởng) → code cắt <b>câu trích dẫn nguyên văn</b> từ hồ sơ. Mọi kết luận AI là NHÁP; cán bộ xác nhận từng dòng, ký, rồi mới có thư kết quả.</div>
+    <div class="note" style="margin-top:18px"><b>How the system works:</b> for each criterion, RAG retrieves the relevant passages → AI pass 1 only <b>extracts facts</b> neutrally → AI pass 2 <b>judges on the facts</b> (it never sees the original text, so writing style cannot influence it) → code cuts the <b>verbatim quotation</b> from the application. Every AI conclusion is a DRAFT; the officer confirms each line and signs before any outcome letter exists.</div>
   </div>
 
   <!-- ===== CASE LIST ===== -->
   <div class="view" id="v-cases">
-    <div class="row"><input type="text" id="casefilter" placeholder="Lọc theo mã, tên, tổ chức…" style="min-width:280px" oninput="renderCaseList()"><select id="statusfilter" onchange="renderCaseList()"><option value="">Mọi trạng thái</option></select><span class="grow"></span><button class="btn ghost" onclick="go('ingest')">+ Tải hồ sơ mới</button></div>
+    <div class="row"><input type="text" id="casefilter" placeholder="Filter by ID, name, organisation…" style="min-width:280px" oninput="renderCaseList()"><select id="statusfilter" onchange="renderCaseList()"><option value="">Any status</option></select><span class="grow"></span><button class="btn ghost" onclick="go('ingest')">+ Upload application</button></div>
     <div class="tblwrap"><table id="casetable"></table></div>
   </div>
 
@@ -218,7 +218,7 @@ pre.json{font-family:'IBM Plex Mono',monospace;font-size:11px;background:#F6F7F5
     <div class="caselay">
       <div id="matrix"></div>
       <div class="docpane card" style="padding:12px">
-        <div class="row" style="margin:0 0 8px"><b style="font-size:13px">Văn bản hồ sơ gốc</b><span class="grow"></span><span class="conf" id="docinfo"></span></div>
+        <div class="row" style="margin:0 0 8px"><b style="font-size:13px">Original application text</b><span class="grow"></span><span class="conf" id="docinfo"></span></div>
         <div class="doc" id="doc"></div>
       </div>
     </div>
@@ -228,8 +228,8 @@ pre.json{font-family:'IBM Plex Mono',monospace;font-size:11px;background:#F6F7F5
 
   <!-- ===== RULES ===== -->
   <div class="view" id="v-rules">
-    <div class="note">Mỗi tiêu chí giữ <b>nguyên văn tiếng Anh</b> từ solicitation NSF 22-586 CAREER. Trích dẫn phía hồ sơ được sinh theo cơ chế <b>citation-by-retrieval</b>: model chỉ chọn đoạn và cụm từ khóa, câu trích do code cắt nguyên văn.</div>
-    <div class="row"><label><b>Đợt/quỹ tài trợ (bộ tiêu chí):</b></label><select id="rulesetsel" onchange="renderRuleset()"></select><span id="rulesetinfo" class="conf"></span><span class="grow"></span><button class="btn sm ghost" onclick="genEvalSet()">Sinh bộ test có nhãn (AI)</button></div>
+    <div class="note">Each criterion keeps the <b>verbatim English wording</b> from the NSF 22-586 CAREER solicitation. Application-side quotations follow the <b>citation-by-retrieval</b> mechanism: the model only picks the passage and key phrase; code cuts the quotation verbatim.</div>
+    <div class="row"><label><b>Funding round / fund (criteria set):</b></label><select id="rulesetsel" onchange="renderRuleset()"></select><span id="rulesetinfo" class="conf"></span><span class="grow"></span><button class="btn sm ghost" onclick="genEvalSet()">Generate labelled test set (AI)</button></div>
     <div id="measstatus"></div>
     <div id="covline"></div>
     <div id="rulelist"></div>
@@ -237,45 +237,45 @@ pre.json{font-family:'IBM Plex Mono',monospace;font-size:11px;background:#F6F7F5
 
   <!-- ===== BIAS LAB ===== -->
   <div class="view" id="v-bias">
-    <div class="note">Hai hồ sơ trong một cặp chứa <b>dữ kiện giống hệt nhau</b>, chỉ khác văn phong tiếng Anh (bản trau chuốt vs bản của người không bản ngữ). Hệ thống công bằng phải cho <b>kết luận giống nhau trên mọi tiêu chí</b>. Có thể chọn bất kỳ 2 hồ sơ nào để so sánh.</div>
-    <div class="row"><label>A:</label><select id="biasA"></select><label>B:</label><select id="biasB"></select><button class="btn" id="biasbtn" onclick="runBias()">Đánh giá &amp; so sánh</button></div>
+    <div class="note">The two applications in a pair contain <b>identical facts</b>, differing only in English style (polished vs non-native). A fair system must give <b>the same verdict on every criterion</b>. Any two applications can be compared.</div>
+    <div class="row"><label>A:</label><select id="biasA"></select><label>B:</label><select id="biasB"></select><button class="btn" id="biasbtn" onclick="runBias()">Assess &amp; compare</button></div>
     <div id="biasout"></div>
   </div>
 
   <!-- ===== AUDIT ===== -->
   <div class="view" id="v-audit">
-    <div class="row"><select id="auditcase" onchange="renderAudit()"><option value="">Tất cả hồ sơ</option></select><button class="btn ghost sm" onclick="renderAudit()">Tải lại</button><span class="grow"></span><span id="chainstate"></span></div>
-    <div class="info">Nhật ký là <b>chuỗi băm SHA-256</b>: mỗi sự kiện chứa hash của sự kiện trước. Sửa hoặc xoá một dòng ở giữa sẽ làm chuỗi đứt và bị phát hiện khi kiểm tra — căn cứ giải trình khi có thanh tra hoặc khiếu nại.</div>
+    <div class="row"><select id="auditcase" onchange="renderAudit()"><option value="">All applications</option></select><button class="btn ghost sm" onclick="renderAudit()">Reload</button><span class="grow"></span><span id="chainstate"></span></div>
+    <div class="info">The log is a <b>SHA-256 hash chain</b>: each event carries the hash of the previous one. Editing or deleting a line in the middle breaks the chain and is detected on verification — the basis for accountability under inspection or appeal.</div>
     <div class="audit" id="auditlog"></div>
   </div>
 
   <!-- ===== INGEST ===== -->
   <div class="view" id="v-ingest">
     <div class="card">
-      <h3 style="margin-top:0">Tải hồ sơ mới vào hàng đợi</h3>
-      <div class="row"><input type="text" id="upApplicant" placeholder="Tên người nộp"><input type="text" id="upOrg" placeholder="Tổ chức"><input type="text" id="upDir" placeholder="Directorate (CISE/BIO/…)" style="width:170px"><select id="upRuleset" title="Đợt/quỹ tài trợ — bộ tiêu chí áp dụng"></select></div>
-      <div class="row"><input type="file" id="upFile" accept=".txt,.docx,.pdf"><span class="conf">.txt / .docx / .pdf — hoặc dán văn bản bên dưới</span></div>
-      <textarea id="upText" placeholder="Dán văn bản hồ sơ (tiếng Anh) vào đây…" style="min-height:160px;font-family:'IBM Plex Mono',monospace;font-size:12px"></textarea>
-      <div class="row"><button class="btn green" onclick="uploadCase()">Tạo hồ sơ</button><span id="upmsg"></span></div>
+      <h3 style="margin-top:0">Upload a new application to the queue</h3>
+      <div class="row"><input type="text" id="upApplicant" placeholder="Applicant name"><input type="text" id="upOrg" placeholder="Organisation"><input type="text" id="upDir" placeholder="Directorate (CISE/BIO/…)" style="width:170px"><select id="upRuleset" title="Funding round / fund — criteria set applied"></select></div>
+      <div class="row"><input type="file" id="upFile" accept=".txt,.docx,.pdf"><span class="conf">.txt / .docx / .pdf — or paste the text below</span></div>
+      <textarea id="upText" placeholder="Paste the application text (English) here…" style="min-height:160px;font-family:'IBM Plex Mono',monospace;font-size:12px"></textarea>
+      <div class="row"><button class="btn green" onclick="uploadCase()">Create application</button><span id="upmsg"></span></div>
     </div>
     <div class="card" style="margin-top:16px">
-      <h3 style="margin-top:0">Tra cứu danh sách cấm / ABN</h3>
-      <div class="note" style="margin-top:0">Nguồn: ASIC Banned &amp; Disqualified (7.212 cá nhân) · DFAT Consolidated List (cấm vận, cá nhân + tổ chức) · ABR/ABN (~20,5 triệu doanh nghiệp Úc, cần lập chỉ mục). Tra tay ở đây; mỗi hồ sơ cũng được sàng lọc tự động trong màn Hồ sơ.</div>
-      <div class="row"><input type="text" id="lkName" placeholder="Tên cá nhân hoặc tổ chức…" style="min-width:320px" onkeydown="if(event.key==='Enter')runLookup()"><button class="btn" onclick="runLookup()">Tra cứu</button><span id="lkmsg"></span></div>
+      <h3 style="margin-top:0">Sanctions / ABN lookup</h3>
+      <div class="note" style="margin-top:0">Sources: ASIC Banned &amp; Disqualified (7,212 individuals) · DFAT Consolidated List (sanctions, individuals + entities) · ABR/ABN (~20.5 million Australian businesses, index required). Manual lookup here; every application is also screened automatically on the Application screen.</div>
+      <div class="row"><input type="text" id="lkName" placeholder="Person or organisation name…" style="min-width:320px" onkeydown="if(event.key==='Enter')runLookup()"><button class="btn" onclick="runLookup()">Look up</button><span id="lkmsg"></span></div>
       <div id="lkout"></div>
     </div>
     <div class="card" style="margin-top:16px">
-      <h3 style="margin-top:0">Mẫu thư kết quả — dịch ngược từ bộ quy tắc</h3>
-      <div class="note" style="margin-top:0">Đơn vị không có mẫu thư sẵn? Dán <b>bộ quy tắc/quy định về thư kết quả</b> (phải có mục gì, thời hạn khiếu nại, giọng văn…) — AI dịch ngược thành mẫu thư đạt chuẩn. <b>Bản nháp chỉ có hiệu lực sau khi cán bộ rà, sửa và bấm Lưu</b> (ghi nhật ký). Trạng thái: <span id="tplstate">…</span></div>
-      <textarea id="tplRules" placeholder="Dán bộ quy tắc về thư từ chối/phản hồi của đơn vị…" style="min-height:110px;font-family:'IBM Plex Mono',monospace;font-size:12px"></textarea>
-      <div class="row"><button class="btn" id="tplGenBtn" onclick="genTemplate()">Sinh mẫu thư (AI)</button><span id="tplmsg"></span></div>
+      <h3 style="margin-top:0">Outcome-letter template — reverse-engineered from the office rules</h3>
+      <div class="note" style="margin-top:0">No letter template yet? Paste the <b>rules/regulations on outcome letters</b> (required sections, appeal deadlines, tone…) — the AI reverse-engineers a compliant template. <b>The draft takes effect only after an officer reviews, edits and clicks Save</b> (logged). Status: <span id="tplstate">…</span></div>
+      <textarea id="tplRules" placeholder="Paste the office rules on rejection / outcome letters…" style="min-height:110px;font-family:'IBM Plex Mono',monospace;font-size:12px"></textarea>
+      <div class="row"><button class="btn" id="tplGenBtn" onclick="genTemplate()">Generate template (AI)</button><span id="tplmsg"></span></div>
       <div id="tplout"></div>
     </div>
     <div class="card" style="margin-top:16px">
-      <h3 style="margin-top:0">Trích tiêu chí từ hướng dẫn mới (xem trước)</h3>
-      <div class="warn" style="margin-top:0">Bước này giúp khởi tạo bộ tiêu chí cho một chương trình tài trợ khác. AI chỉ được <b>chép nguyên văn</b> câu điều kiện; câu nào không khớp nguyên văn sẽ bị gắn cờ. Kết quả là bản xem trước — cán bộ rà soát rồi mới đưa vào hệ thống.</div>
-      <textarea id="glText" placeholder="Dán văn bản hướng dẫn / solicitation…" style="min-height:140px;font-family:'IBM Plex Mono',monospace;font-size:12px"></textarea>
-      <div class="row"><button class="btn" onclick="extractRules()">Trích tiêu chí</button><span id="glmsg"></span></div>
+      <h3 style="margin-top:0">Extract criteria from a new guideline (preview)</h3>
+      <div class="warn" style="margin-top:0">This step bootstraps a criteria set for another grant programme. The AI may only <b>copy verbatim</b> the eligibility sentences; any sentence that does not match verbatim is flagged. The result is a preview — an officer reviews it before it enters the system.</div>
+      <textarea id="glText" placeholder="Paste the guideline / solicitation text…" style="min-height:140px;font-family:'IBM Plex Mono',monospace;font-size:12px"></textarea>
+      <div class="row"><button class="btn" onclick="extractRules()">Extract criteria</button><span id="glmsg"></span></div>
       <div id="glout"></div>
     </div>
   </div>
@@ -287,26 +287,25 @@ pre.json{font-family:'IBM Plex Mono',monospace;font-size:11px;background:#F6F7F5
 <div class="toast" id="toast"></div>
 
 <script>
-/* ================= i18n: lớp hiển thị tiếng Anh (tiếng Việt là bản gốc) =================
-   Từ điển lấy từ /api/i18n/en — cùng một nguồn với lớp dịch JSON phía máy chủ. Dịch text node, placeholder/title
-   và hộp thoại confirm/prompt/alert. KHÔNG dịch vùng nguyên văn: văn bản hồ sơ (.doc), câu tiêu chí (.rquote/.qt),
-   dữ kiện AI trích (.facts), thư (.letter), ô nhập (textarea/input), JSON nhật ký (pre), lý do cán bộ tự ghi (.notranslate). */
-const LANG=(document.cookie.match(/(?:^|;\s*)gl_lang=(vi|en)/)||[])[1]||'vi';
+/* ================= i18n: optional UI locale (English is the source language) =================
+   The dictionary comes from /api/i18n/<lang> — the same source the server uses for JSON responses. Translates text
+   nodes, placeholder/title attributes and confirm/prompt/alert dialogs. NEVER translates verbatim regions: application
+   text (.doc), rule quotes (.rquote/.qt), AI-extracted facts (.facts), letters (.letter), inputs (textarea/input),
+   audit JSON (pre), reasons typed by officers (.notranslate). */
+const LANG=(document.cookie.match(/(?:^|;\s*)gl_lang=(en|vi)/)||[])[1]||'en';
 let I18N=null,I18N_PATS=[],I18N_PATS_LAST=[],I18N_PHRASE=null;
-const VI_RE=/[àáảãạăằắẳẵặâầấẩẫậđèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵ]/i;
 const I18N_SKIP='script,style,textarea,input,pre,.doc,.rquote,.qt,.letter,.facts,.notranslate,#whoname';
 function setLang(l){document.cookie=`gl_lang=${l}; path=/; max-age=31536000; SameSite=Lax`;location.reload();}
-function toggleLang(){setLang(LANG==='en'?'vi':'en');}
+function toggleLang(){setLang(LANG==='vi'?'en':'vi');}
 function t(s){
   if(!I18N||typeof s!=='string'||!s)return s;
   const m=s.match(/^(\s*)([\s\S]*?)(\s*)$/);const core=m[2];if(!core)return s;
   if(core.includes('\n'))return m[1]+core.split('\n').map(t).join('\n')+m[3];
   let out=I18N.exact[core];
   if(out===undefined){
-    if(!VI_RE.test(core))return s;
     out=core;for(const [re,rep] of I18N_PATS)out=out.replace(re,rep);
-    if(VI_RE.test(out))out=out.replace(I18N_PHRASE,k=>I18N.exact[k]??k);
-    if(VI_RE.test(out))for(const [re,rep] of I18N_PATS_LAST)out=out.replace(re,rep);
+    if(I18N_PHRASE)out=out.replace(I18N_PHRASE,k=>I18N.exact[k]??k);
+    for(const [re,rep] of I18N_PATS_LAST)out=out.replace(re,rep);
   }
   return m[1]+out+m[3];
 }
@@ -314,21 +313,21 @@ function trNode(n){
   if(n.nodeType===3){const p=n.parentElement;if(!p||p.closest(I18N_SKIP))return;const v=n.data;if(n.__gl===v)return;const o=t(v);if(o!==v)n.data=o;n.__gl=n.data;return;}
   if(n.nodeType!==1)return;
   for(const a of ['placeholder','title']){if(n.hasAttribute(a)){const v=n.getAttribute(a),o=t(v);if(o!==v)n.setAttribute(a,o);}}
-  if(n.matches('script,style,pre,.doc,.letter'))return;   // vùng chỉ có nguyên văn: không cần đi xuống
+  if(n.matches('script,style,pre,.doc,.letter'))return;   // verbatim-only regions: no need to descend
   for(const c of Array.from(n.childNodes))trNode(c);
 }
 async function loadI18n(){
   const b=document.getElementById('langbtn'),a=document.getElementById('langlink');
-  if(b)b.textContent=LANG==='en'?'VI':'EN';if(a)a.textContent=LANG==='en'?'Tiếng Việt':'English';
-  if(LANG!=='en')return;
+  if(b)b.textContent=LANG==='vi'?'EN':'VI';if(a)a.textContent=LANG==='vi'?'English':'Tiếng Việt';
+  if(LANG==='en')return;
   try{
-    I18N=await (await fetch('/api/i18n/en')).json();
+    I18N=await (await fetch('/api/i18n/'+LANG)).json();
     I18N_PATS=I18N.patterns.map(([p,r])=>[new RegExp(p,'g'),r]);I18N_PATS_LAST=(I18N.patterns_last||[]).map(([p,r])=>[new RegExp(p,'g'),r]);
     const keys=Object.keys(I18N.exact).filter(k=>k.length>=(I18N.min_phrase||6)).sort((x,y)=>y.length-x.length);
-    I18N_PHRASE=new RegExp('(?<![\\p{L}\\p{N}_])(?:'+keys.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')(?![\\p{L}\\p{N}_])','gu');
+    I18N_PHRASE=keys.length?new RegExp('(?<![\\p{L}\\p{N}_])(?:'+keys.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')(?![\\p{L}\\p{N}_])','gu'):null;
     const _c=window.confirm.bind(window),_p=window.prompt.bind(window),_a=window.alert.bind(window);
     window.confirm=m=>_c(t(String(m)));window.prompt=(m,d)=>_p(t(String(m)),d);window.alert=m=>_a(t(String(m)));
-    document.documentElement.lang='en';document.title=t(document.title);
+    document.documentElement.lang=LANG;document.title=t(document.title);
     trNode(document.documentElement);
     new MutationObserver(ms=>{for(const r of ms){if(r.type==='characterData')trNode(r.target);else for(const n of r.addedNodes)trNode(n);}})
       .observe(document.documentElement,{childList:true,subtree:true,characterData:true});
@@ -338,106 +337,106 @@ async function loadI18n(){
 <script>
 /* ================= state & helpers ================= */
 let META=null,RULES=[],RULESETS=[],CASES=[],CUR=null;   // CUR = {case, verdicts, rules, ruleset, ai_masked}
-const GLBL={"code-guarded":"có lưới đỡ code","needs-manual-guard":"CẦN GUARD TAY — code không diễn đạt nổi","llm-only":"chỉ LLM + cán bộ"};
+const GLBL={"code-guarded":"code safety net","needs-manual-guard":"NEEDS HAND GUARD — code cannot express it","llm-only":"LLM + officer only"};
 const GCLS={"code-guarded":"c-met","needs-manual-guard":"c-not_met","llm-only":"c-unclear"};
 async function renderRuleset(){
   const rs=RULESETS.find(r=>r.id===$('rulesetsel').value)||RULESETS[0];if(!rs)return;
   const draft=(rs.status||'approved')!=='approved';
   $('rulesetinfo').innerHTML=(draft
-    ?`<span class="chip c-unclear">NHÁP — chưa gán được cho hồ sơ</span> <button class="btn sm green" onclick="approveRuleset('${rs.id}')">Phê chuẩn (quản lý)</button>`
-    :`<span class="chip c-met">ĐÃ PHÊ CHUẨN${rs.approved_by?' · '+esc(rs.approved_by):''}</span>`)
-    +` <span class="conf">· hồ sơ KHÓA bộ + version tại lần đánh giá đầu</span>`;
+    ?`<span class="chip c-unclear">DRAFT — cannot be assigned to cases yet</span> <button class="btn sm green" onclick="approveRuleset('${rs.id}')">Approve (manager)</button>`
+    :`<span class="chip c-met">APPROVED${rs.approved_by?' · '+esc(rs.approved_by):''}</span>`)
+    +` <span class="conf">· cases LOCK the set + version at first assessment</span>`;
   renderMeasurementStatus();
   let cov={rows:[]};
   try{cov=await api('/rulesets/'+rs.id+'/coverage');}catch(e){}
   const bycov=Object.fromEntries(cov.rows.map(x=>[x.rule,x]));
   let ts={exists:false};try{ts=await api('/rulesets/'+rs.id+'/testset');}catch(e){}
   const tsLine=ts.exists
-    ?(ts.approved?`<span class="chip c-met">Bộ test: nhãn ĐÃ PHÊ CHUẨN bởi ${esc(ts.approved_by||'')}</span>`
-                 :`<span class="chip c-not_met">Bộ test: nhãn CHƯA PHÊ CHUẨN — mọi số đo là TẠM TÍNH</span> <button class="btn sm green" onclick="approveTestset('${rs.id}')">Phê chuẩn nhãn</button>`)
-    :`<span class="conf">Chưa có bộ test cho quỹ này — chưa có số đo nào cho nó.</span>`;
+    ?(ts.approved?`<span class="chip c-met">Test set: labels APPROVED by ${esc(ts.approved_by||'')}</span>`
+                 :`<span class="chip c-not_met">Test set: labels NOT APPROVED — all measurements PROVISIONAL</span> <button class="btn sm green" onclick="approveTestset('${rs.id}')">Approve labels</button>`)
+    :`<span class="conf">No test set for this fund yet — no measurement exists for it.</span>`;
   $('covline').innerHTML=cov.n_rules?`<div class="${cov.n_needs_manual?'err':(cov.n_llm_only?'warn':'note')}">
-    <b>Độ phủ guard: ${cov.n_guarded}/${cov.n_rules} tiêu chí có lưới đỡ code.</b>
-    ${cov.n_needs_manual?`<br><b style="color:var(--red)">${cov.n_needs_manual} tiêu chí CẦN GUARD TAY</b> — code nhận ra có logic định lượng nhưng không diễn đạt nổi (logic dẫn xuất, nhánh thay thế, ngưỡng điều kiện). Đây là chỗ false-pass dễ lọt nhất.`:''}
-    ${cov.n_llm_only?`<br>${cov.n_llm_only} tiêu chí định tính — dựa LLM + cán bộ.`:''}
-    ${(cov.partial_rules||[]).length?`<br><span class="conf">Có guard tay nhưng vẫn còn khoảng trống cần rà: ${cov.partial_rules.join(', ')}</span>`:''}
-    <br><span class="conf">Số "false-pass = 0" chỉ đúng với quỹ đã đo bằng bộ test đã phê chuẩn nhãn — không suy rộng cho quỹ khác.</span>
+    <b>Guard coverage: ${cov.n_guarded}/${cov.n_rules} criteria have a code safety net.</b>
+    ${cov.n_needs_manual?`<br><b style="color:var(--red)">${cov.n_needs_manual} criteria NEED A HAND GUARD</b> — code detects quantitative logic it cannot express (derived values, alternative branches, conditional thresholds). This is where a false pass slips through most easily.`:''}
+    ${cov.n_llm_only?`<br>${cov.n_llm_only} qualitative criteria — rely on LLM + officer.`:''}
+    ${(cov.partial_rules||[]).length?`<br><span class="conf">Hand guard present but gaps remain to review: ${cov.partial_rules.join(', ')}</span>`:''}
+    <br><span class="conf">A "false-pass = 0" figure holds only for a fund measured with an approved-label test set — it does not generalise to other funds.</span>
     <div style="margin-top:6px">${tsLine}</div></div>`:'';
   $('rulelist').innerHTML=rs.rules.map(r=>{
     const c=bycov[r.id]||{};const g=c.guard||'llm-only';
-    const chip=`<span class="chip ${GCLS[g]}">${GLBL[g]}</span>`+(c.hand?'<span class="conf"> +tay</span>':'');
+    const chip=`<span class="chip ${GCLS[g]}">${GLBL[g]}</span>`+(c.hand?'<span class="conf"> +hand</span>':'');
     const gaps=(c.gaps||[]).map(x=>`<div class="conf" style="color:var(--red)">⚠ ${esc(x.label)}: ${esc(x.reason.slice(0,150))}</div>`).join('');
-    return `<div class="rulecard"><span class="rid">${r.id}</span><span class="rtype">${r.type}</span> ${chip}${(c.auto_constraints||[]).length?`<span class="conf"> ràng buộc tự dịch: ${esc(c.auto_constraints.join(' · ').slice(0,90))}</span>`:''}<div style="font-weight:600;margin:6px 0 2px">${esc(r.title_vi)}</div><div class="rquote">"${esc(r.quote)}"</div>${gaps}</div>`;
+    return `<div class="rulecard"><span class="rid">${r.id}</span><span class="rtype">${r.type}</span> ${chip}${(c.auto_constraints||[]).length?`<span class="conf"> auto-compiled constraints: ${esc(c.auto_constraints.join(' · ').slice(0,90))}</span>`:''}<div style="font-weight:600;margin:6px 0 2px">${esc(r.title)}</div><div class="rquote">"${esc(r.quote)}"</div>${gaps}</div>`;
   }).join('');
 }
-/* Bảng TRẠNG THÁI ĐO từng quỹ — chống hiểu nhầm "đo 1 quỹ = chứng minh cả hệ thống".
-   Quỹ chưa đi hết chuỗi sinh→rà→phê chuẩn→eval thì hiện CHƯA ĐO, không mượn số quỹ khác. */
+/* MEASUREMENT STATUS per fund — prevents the misreading "measuring 1 fund = proving the whole system".
+   A fund that has not completed generate→review→approve→eval shows NOT MEASURED and never borrows another fund's figure. */
 async function renderMeasurementStatus(){
   let d=null;try{d=await api('/measurement-status');}catch(e){return;}
   const rows=d.rulesets.map(r=>{
     const g=r.guard_coverage;
     const cls=r.measured?'c-met':(r.testset?'c-unclear':'c-not_met');
-    const lab=r.measured?'ĐÃ ĐO':(r.testset?'ĐANG DỞ':'CHƯA ĐO');
+    const lab=r.measured?'MEASURED':(r.testset?'IN PROGRESS':'NOT MEASURED');
     return `<tr><td><b>${esc(r.name)}</b><div class="conf">${esc(r.ruleset)} · v${esc(String(r.version||''))}</div></td>
       <td><span class="chip ${cls}">${lab}</span></td>
-      <td>${g.code_guarded}/${g.n_rules} có lưới đỡ code${g.needs_manual?` · <b style="color:var(--red)">${g.needs_manual} cần guard tay</b>`:''}</td>
+      <td>${g.code_guarded}/${g.n_rules} code safety net${g.needs_manual?` · <b style="color:var(--red)">${g.needs_manual} need a hand guard</b>`:''}</td>
       <td>${esc(r.claim)}<div class="conf">${esc(r.stage)}</div></td></tr>`;}).join('');
   $('measstatus').innerHTML=`<div class="${d.n_measured<d.n_rulesets?'warn':'note'}">
-    <b>Trạng thái đo theo từng quỹ — ${esc(d.headline)}</b>
-    <div class="tblwrap" style="margin-top:6px"><table><tr><th>Quỹ</th><th>Đo</th><th>Lưới đỡ code</th><th>Số công bố được</th></tr>${rows}</table></div>
+    <b>Measurement status per fund — ${esc(d.headline)}</b>
+    <div class="tblwrap" style="margin-top:6px"><table><tr><th>Fund</th><th>Measured</th><th>Code guards</th><th>Reportable figure</th></tr>${rows}</table></div>
     <div class="conf" style="margin-top:6px">${esc(d.warning)}</div></div>`;
 }
 async function approveRuleset(rid,ack,reason){
-  if(!isManager()){toast('Chỉ tài khoản QUẢN LÝ mới phê chuẩn được bộ tiêu chí',true);return;}
+  if(!isManager()){toast('Only a MANAGER account can approve a criteria set',true);return;}
   try{const d=await api(`/rulesets/${rid}/approve`,{...officer(),acknowledge_low_coverage:!!ack,reason:reason||''});
-    toast(`Đã phê chuẩn ${rid} — độ phủ guard ${d.coverage.n_guarded}/${d.coverage.n_rules}`);
+    toast(`Approved ${rid} — guard coverage ${d.coverage.n_guarded}/${d.coverage.n_rules}`);
     RULESETS=(await api('/rulesets')).rulesets;renderRuleset();
   }catch(e){
-    if(e.status===428){if(confirm(e.message+'\n\nVẫn phê chuẩn?')){const r=prompt('Lý do chấp nhận độ phủ guard thấp (bắt buộc):');if(r)return approveRuleset(rid,true,r);}return;}
+    if(e.status===428){if(confirm(e.message+'\n\nApprove anyway?')){const r=prompt('Reason for accepting low guard coverage (required):');if(r)return approveRuleset(rid,true,r);}return;}
     toast(e.message,true);
   }
 }
 async function approveTestset(rid){
-  if(!isManager()){toast('Chỉ tài khoản QUẢN LÝ mới phê chuẩn được nhãn bộ test',true);return;}
-  if(!confirm(`Xác nhận: bạn ĐÃ RÀ văn bản và nhãn của bộ test "${rid}"?\n\nSau khi phê chuẩn, số đo trên bộ này không còn gắn nhãn "tạm tính".`))return;
-  try{const d=await api(`/rulesets/${rid}/testset/approve`,officer());toast(`Đã phê chuẩn nhãn (${d.n_cases} case)`);renderRuleset();}
+  if(!isManager()){toast('Only a MANAGER account can approve test-set labels',true);return;}
+  if(!confirm(`Confirm: you HAVE REVIEWED the text and labels of test set "${rid}"?\n\nAfter approval, measurements on this set are no longer labelled "provisional".`))return;
+  try{const d=await api(`/rulesets/${rid}/testset/approve`,officer());toast(`Labels approved (${d.n_cases} cases)`);renderRuleset();}
   catch(e){toast(e.message,true);}
 }
 async function genEvalSet(){
   const rs=$('rulesetsel').value;
-  if(!confirm(`AI sẽ sinh bộ test có nhãn cho bộ "${rs}" (1 case sạch + 3 case vi phạm; model local ~1-2 phút/case). Nhãn ở trạng thái CHỜ PHÊ CHUẨN. Chạy?`))return;
-  toast('Đang sinh bộ test — có thể mất vài phút, đừng đóng tab…');
+  if(!confirm(`The AI will generate a labelled test set for "${rs}" (1 clean case + 3 violation cases; local model ~1-2 min/case). Labels will be PENDING APPROVAL. Run?`))return;
+  toast('Generating the test set — this may take a few minutes, keep the tab open…');
   try{const d=await api(`/rulesets/${rs}/casegen`,{...officer(),n:3});
-    alert(`Đã sinh ${d.cases.length} case (bỏ ${d.skipped.length}).\n`+d.cases.map(c=>`${c.id}${c.target?` — vi phạm ${c.target}${c.guard_agree?' (guard xác nhận ✓)':''}${c.status==='needs_review'?' ⚑ VERIFIER GẮN CỜ — cần rà':''}`:' — sạch (đối chứng)'}`).join('\n')+`\n\nLưu: data/labels/generated-${rs}.json (approved=false).\nRà văn bản → xử lý hết cờ (--confirm / --dispute) → phê chuẩn → đo: python -m backend.casegen ${rs} --eval`);
+    alert(`Generated ${d.cases.length} cases (skipped ${d.skipped.length}).\n`+d.cases.map(c=>`${c.id}${c.target?` — violates ${c.target}${c.guard_agree?' (guard confirmed ✓)':''}${c.status==='needs_review'?' ⚑ FLAGGED BY VERIFIER — needs review':''}`:' — clean (control)'}`).join('\n')+`\n\nSaved: data/labels/generated-${rs}.json (approved=false).\nReview the texts → clear all flags (--confirm / --dispute) → approve → measure: python -m backend.casegen ${rs} --eval`);
   }catch(e){toast(e.message,true);}
 }
-const VLBL={met:"ĐẠT",not_met:"KHÔNG ĐẠT",unclear:"CHƯA RÕ",not_addressed:"KHÔNG ĐỀ CẬP"};
-const CLBL={high:"tin cậy cao",medium:"tin cậy vừa",low:"tin cậy THẤP"};
+const VLBL={met:"MET",not_met:"NOT MET",unclear:"UNCLEAR",not_addressed:"NOT ADDRESSED"};
+const CLBL={high:"high confidence",medium:"medium confidence",low:"LOW confidence"};
 const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const $=id=>document.getElementById(id);
-/* Danh tính lấy từ PHIÊN phía máy chủ. officer()/role gửi kèm chỉ để tương thích — máy chủ GHI ĐÈ bằng phiên. */
+/* Identity comes from the server-side SESSION. officer()/role are sent only for compatibility — the server OVERWRITES them from the session. */
 let USER=null,OFFICER='';
-const ROLE_VI={officer:'cán bộ thẩm định',manager:'quản lý',auditor:'thanh tra'};
+const ROLE_LABELS={officer:'reviewing officer',manager:'manager',auditor:'auditor'};
 function officer(){return {officer:OFFICER,role:USER?USER.role:'officer'};}
 function isManager(){return !!USER&&USER.role==='manager';}
 function canAudit(){return !!USER&&(USER.role==='manager'||USER.role==='auditor');}
 function askOfficer(){if(!USER)showLogin();}
 function setUser(u){USER=u;OFFICER=u?u.name:'';$('whoname').textContent=OFFICER||'—';
-  const r=$('whorole');r.textContent=u?ROLE_VI[u.role]||u.role:'';r.className='rolechip'+(u&&u.role==='manager'?' manager':'');}
+  const r=$('whorole');r.textContent=u?ROLE_LABELS[u.role]||u.role:'';r.className='rolechip'+(u&&u.role==='manager'?' manager':'');}
 function showLogin(msg){$('login').hidden=false;$('lg-err').textContent=msg||'';setTimeout(()=>$('lg-user').focus(),50);}
 async function doLogin(ev){ev.preventDefault();$('lg-err').textContent='';
   try{const res=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:$('lg-user').value,password:$('lg-pass').value})});
-    const d=await res.json().catch(()=>({}));if(!res.ok){$('lg-err').textContent=d.detail||'Đăng nhập thất bại';return false;}
+    const d=await res.json().catch(()=>({}));if(!res.ok){$('lg-err').textContent=d.detail||'Sign-in failed';return false;}
     $('lg-pass').value='';$('login').hidden=true;setUser(d.user);await init();}
-  catch(e){$('lg-err').textContent='Không kết nối được máy chủ';}
+  catch(e){$('lg-err').textContent='Cannot reach the server';}
   return false;}
-async function logout(){try{await fetch('/api/auth/logout',{method:'POST'});}catch(e){}setUser(null);showLogin('Đã đăng xuất.');}
+async function logout(){try{await fetch('/api/auth/logout',{method:'POST'});}catch(e){}setUser(null);showLogin('Signed out.');}
 function toast(msg,bad){const t=$('toast');t.textContent=msg;t.className='toast on'+(bad?' bad':'');clearTimeout(t._h);t._h=setTimeout(()=>t.className='toast',bad?5000:2600);}
 async function api(path,body,method){
   const opt=body!==undefined?{method:method||'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{};
   const res=await fetch('/api'+path,opt);
   let data={};try{data=await res.json();}catch(e){}
-  if(res.status===401&&data.need_login){setUser(null);showLogin('Phiên đã hết hạn — đăng nhập lại.');}
+  if(res.status===401&&data.need_login){setUser(null);showLogin('Session expired — sign in again.');}
   if(!res.ok){const e=new Error(data.detail||res.statusText);e.status=res.status;e.data=data;throw e;}
   return data;
 }
@@ -445,7 +444,7 @@ function fmtT(iso){return iso?iso.replace('T',' '):'—';}
 function since(iso){if(!iso)return '';const s=(Date.now()-new Date(iso))/1000;return s<60?`${s|0}s`:s<3600?`${(s/60)|0}m`:`${(s/3600)|0}h`;}
 
 /* ================= navigation ================= */
-const TITLES={dash:'Tổng quan',cases:'Hàng đợi hồ sơ',case:'Hồ sơ',rules:'Bộ tiêu chí NSF 22-586 CAREER',bias:'Bias Lab — kiểm tra thiên lệch văn phong',audit:'Nhật ký kiểm toán',ingest:'Nạp dữ liệu'};
+const TITLES={dash:'Overview',cases:'Application queue',case:'Application',rules:'Criteria sets',bias:'Bias Lab — writing-style bias check',audit:'Audit log',ingest:'Data intake'};
 function go(v,arg){
   document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('on',b.dataset.v===v||(v==='case'&&b.dataset.v==='cases')));
   document.querySelectorAll('.view').forEach(x=>x.classList.remove('on'));
@@ -458,23 +457,23 @@ document.addEventListener('keydown',e=>{if(e.target.matches('input,textarea,sele
 /* ================= init ================= */
 async function init(){
   if(!USER){try{const me=await (await fetch('/api/auth/me')).json();
-      if(me.auth_enabled===false){setUser({name:'(xác thực đang TẮT)',role:'manager'});}
+      if(me.auth_enabled===false){setUser({name:'(authentication OFF)',role:'manager'});}
       else if(me.user){setUser(me.user);}else{showLogin();return;}
-    }catch(e){showLogin('Không kết nối được máy chủ');return;}}
+    }catch(e){showLogin('Cannot reach the server');return;}}
   try{
     META=await api('/meta');RULES=META.rules;
     const h=META.llm_health,ok=h.ok;
-    $('asidefoot').innerHTML=`Lõi AI: <b style="color:#fff">${esc(META.llm.model)}</b><br>RAG: ${esc(META.embed_backend)} · ${META.llm.local?'chạy local, dữ liệu không rời máy':META.llm.backend}<div class="pill"><span class="dot ${ok?'':'bad'}"></span>${ok?'model sẵn sàng':'model chưa sẵn sàng'}</div>`;
-    const authOff=META.auth_enabled===false?`<div class="err"><b>XÁC THỰC ĐANG TẮT</b> (GRANTLENS_AUTH=off) — chỉ dùng cho kiểm thử tự động. Tên cán bộ không được xác minh.</div>`:'';
-    $('llmbanner').innerHTML=authOff+(META.llm.is_mock?`<div class="warn"><b>Đang ở chế độ MOCK</b> — không gọi model, kết quả AI là giả lập để kiểm thử luồng nghiệp vụ. Chạy thật: <span class="mono">ollama pull qwen3:8b</span> rồi khởi động server không có <span class="mono">GRANTLENS_LLM=mock</span>.</div>`:(!ok?`<div class="err"><b>Model chưa sẵn sàng:</b> ${esc(h.msg)}</div>`:''));
+    $('asidefoot').innerHTML=`AI core: <b style="color:#fff">${esc(META.llm.model)}</b><br>RAG: ${esc(META.embed_backend)} · ${META.llm.local?'runs locally, data never leaves the machine':META.llm.backend}<div class="pill"><span class="dot ${ok?'':'bad'}"></span>${ok?'model ready':'model not ready'}</div>`;
+    const authOff=META.auth_enabled===false?`<div class="err"><b>AUTHENTICATION IS OFF</b> (GRANTLENS_AUTH=off) — automated testing only. Officer names are not verified.</div>`:'';
+    $('llmbanner').innerHTML=authOff+(META.llm.is_mock?`<div class="warn"><b>MOCK mode</b> — no model is called; AI results are simulated to test the workflow. Real run: <span class="mono">ollama pull qwen3:8b</span> then start the server without <span class="mono">GRANTLENS_LLM=mock</span>.</div>`:(!ok?`<div class="err"><b>Model not ready:</b> ${esc(h.msg)}</div>`:''));
     RULESETS=(await api('/rulesets')).rulesets;
-    const rsOpts=RULESETS.map(r=>`<option value="${r.id}">${esc(r.name)} v${esc(r.version)}${r.region?' · '+esc(r.region):''} (${r.rules.length} tiêu chí)</option>`).join('');
+    const rsOpts=RULESETS.map(r=>`<option value="${r.id}">${esc(r.name)} v${esc(r.version)}${r.region?' · '+esc(r.region):''} (${r.rules.length} criteria)</option>`).join('');
     $('rulesetsel').innerHTML=rsOpts;$('upRuleset').innerHTML=rsOpts;renderRuleset();
-    $('statusfilter').innerHTML='<option value="">Mọi trạng thái</option>'+META.states.map(s=>`<option value="${s}">${META.state_vi[s]}</option>`).join('');
+    $('statusfilter').innerHTML='<option value="">Any status</option>'+META.states.map(s=>`<option value="${s}">${META.state_labels[s]}</option>`).join('');
     await loadCases();renderDash();
-  }catch(e){$('asidefoot').innerHTML='<b style="color:#E38A7C">Không kết nối được backend</b><br>uvicorn backend.app:app --port 8000';}
+  }catch(e){$('asidefoot').innerHTML='<b style="color:#E38A7C">Cannot reach the backend</b><br>uvicorn backend.app:app --port 8000';}
 }
-async function loadCases(){CASES=(await api('/cases')).cases;renderCaseList();$('auditcase').innerHTML='<option value="">Tất cả hồ sơ</option>'+CASES.map(c=>`<option value="${c.id}">${c.id} — ${esc(c.applicant)}</option>`).join('');return CASES;}
+async function loadCases(){CASES=(await api('/cases')).cases;renderCaseList();$('auditcase').innerHTML='<option value="">All applications</option>'+CASES.map(c=>`<option value="${c.id}">${c.id} — ${esc(c.applicant)}</option>`).join('');return CASES;}
 
 /* ================= dashboard ================= */
 async function renderDash(){
@@ -482,51 +481,51 @@ async function renderDash(){
   const bs=s.by_status||{};
   const pend=(bs.assessed||0)+(bs.in_review||0);
   $('tiles').innerHTML=`
-    <div class="tile"><div class="v">${s.cases_total}</div><div class="l">hồ sơ trong hệ thống</div></div>
-    <div class="tile ${pend?'':'ok'}"><div class="v">${pend}</div><div class="l">đang chờ cán bộ thẩm định</div></div>
-    <div class="tile ok"><div class="v">${(bs.signed||0)+(bs.letter_drafted||0)+(bs.letter_approved||0)}</div><div class="l">đã ký duyệt</div></div>
-    <div class="tile"><div class="v">${(s.override_rate*100).toFixed(0)}%</div><div class="l">tỉ lệ cán bộ sửa kết luận AI (${s.confirmed_verdicts} xác nhận)</div></div>
-    <div class="tile ${s.citation_ok_rate===1||s.citation_ok_rate==null?'ok':'bad'}"><div class="v">${s.citation_ok_rate==null?'—':(s.citation_ok_rate*100).toFixed(0)+'%'}</div><div class="l">trích dẫn khớp nguyên văn</div></div>
-    <div class="tile"><div class="v">${s.spot_checks.n?`${s.spot_checks.agree}/${s.spot_checks.n}`:'—'}</div><div class="l">spot-check mù trùng AI</div></div>
-    <div class="tile ${s.audit.ok?'ok':'bad'}"><div class="v">${s.audit.ok?'✓':'✗'}</div><div class="l">chuỗi nhật ký toàn vẹn (${s.audit.total} sự kiện)</div></div>
-    <div class="tile"><div class="v">${s.feedback?s.feedback.total:0}</div><div class="l">mẫu feedback thu từ cán bộ (kho tinh chỉnh model)</div></div>
-    <div class="tile ${s.unguarded_met_confirmations?'bad':'ok'}"><div class="v">${s.unguarded_met_confirmations||0}</div><div class="l">lần xác nhận ĐẠT ở tiêu chí không có lưới đỡ code (đều kèm bằng chứng tự kiểm chứng)</div></div>
-    <div class="tile ${s.post_audit&&s.post_audit.disagree?'bad':''}"><div class="v">${s.post_audit?`${s.post_audit.audited}/${s.post_audit.eligible}`:'—'}</div><div class="l">đã hậu kiểm lấy mẫu${s.post_audit&&s.post_audit.disagree?` · <b>${s.post_audit.disagree} không đồng ý</b>`:''}</div></div>`;
+    <div class="tile"><div class="v">${s.cases_total}</div><div class="l">applications in the system</div></div>
+    <div class="tile ${pend?'':'ok'}"><div class="v">${pend}</div><div class="l">awaiting officer review</div></div>
+    <div class="tile ok"><div class="v">${(bs.signed||0)+(bs.letter_drafted||0)+(bs.letter_approved||0)}</div><div class="l">signed off</div></div>
+    <div class="tile"><div class="v">${(s.override_rate*100).toFixed(0)}%</div><div class="l">officer override rate of AI verdicts (${s.confirmed_verdicts} confirmations)</div></div>
+    <div class="tile ${s.citation_ok_rate===1||s.citation_ok_rate==null?'ok':'bad'}"><div class="v">${s.citation_ok_rate==null?'—':(s.citation_ok_rate*100).toFixed(0)+'%'}</div><div class="l">verbatim-matching quotations</div></div>
+    <div class="tile"><div class="v">${s.spot_checks.n?`${s.spot_checks.agree}/${s.spot_checks.n}`:'—'}</div><div class="l">blind spot-checks agreeing with AI</div></div>
+    <div class="tile ${s.audit.ok?'ok':'bad'}"><div class="v">${s.audit.ok?'✓':'✗'}</div><div class="l">audit chain intact (${s.audit.total} events)</div></div>
+    <div class="tile"><div class="v">${s.feedback?s.feedback.total:0}</div><div class="l">feedback samples from officers (fine-tuning store)</div></div>
+    <div class="tile ${s.unguarded_met_confirmations?'bad':'ok'}"><div class="v">${s.unguarded_met_confirmations||0}</div><div class="l">MET confirmations on criteria without a code safety net (each with self-checked evidence)</div></div>
+    <div class="tile ${s.post_audit&&s.post_audit.disagree?'bad':''}"><div class="v">${s.post_audit?`${s.post_audit.audited}/${s.post_audit.eligible}`:'—'}</div><div class="l">post-audited by sampling${s.post_audit&&s.post_audit.disagree?` · <b>${s.post_audit.disagree} disagreed</b>`:''}</div></div>`;
   renderPostAudit();
   const q=CASES.filter(c=>c.status!=='letter_approved').sort((a,b)=>META.states.indexOf(b.status)-META.states.indexOf(a.status)).slice(0,8);
-  $('dashtable').innerHTML=`<tr><th>Mã</th><th>Người nộp</th><th>Tổ chức</th><th>Trạng thái</th><th>AI: không đạt / cần chú ý</th><th>Xác nhận</th><th></th></tr>`+
-    q.map(c=>`<tr class="click" onclick="go('case','${c.id}')"><td class="mono">${c.id}</td><td><b>${esc(c.applicant)}</b></td><td>${esc(c.org)}</td><td><span class="st st-${c.status}">${META.state_vi[c.status]}</span></td><td>${c.n_rules?`<span class="chip c-not_met">${c.ai_not_met}</span> <span class="chip c-unclear">${c.ai_attention}</span>`:'<span class="conf">chưa đánh giá</span>'}</td><td class="mono">${c.n_rules?c.n_confirmed+'/'+c.n_rules:'—'}</td><td><button class="btn sm ghost">Mở</button></td></tr>`).join('');
+  $('dashtable').innerHTML=`<tr><th>ID</th><th>Applicant</th><th>Organisation</th><th>Status</th><th>AI: not met / attention</th><th>Confirmed</th><th></th></tr>`+
+    q.map(c=>`<tr class="click" onclick="go('case','${c.id}')"><td class="mono">${c.id}</td><td><b>${esc(c.applicant)}</b></td><td>${esc(c.org)}</td><td><span class="st st-${c.status}">${META.state_labels[c.status]}</span></td><td>${c.n_rules?`<span class="chip c-not_met">${c.ai_not_met}</span> <span class="chip c-unclear">${c.ai_attention}</span>`:'<span class="conf">not assessed</span>'}</td><td class="mono">${c.n_rules?c.n_confirmed+'/'+c.n_rules:'—'}</td><td><button class="btn sm ghost">Open</button></td></tr>`).join('');
 }
-/* HẬU KIỂM LẤY MẪU — quản lý/thanh tra rà ngẫu nhiên các lần cán bộ xác nhận ĐẠT ở tiêu chí không có lưới đỡ code.
-   Máy chỉ kiểm được đoạn chứng thực CÓ THẬT trong hồ sơ; đoạn đó có ĐÚNG tiêu chí không thì phải người thứ hai xem. */
+/* POST-AUDIT SAMPLING — a manager/auditor randomly reviews officer MET confirmations on criteria without a code safety net.
+   Code can only check that the attested passage REALLY EXISTS in the application; whether it is RELEVANT to the criterion needs a second person. */
 let PA_ITEMS=[];
 function renderPostAudit(){
   if(!canAudit()){$('postaudit').innerHTML='';return;}
-  $('postaudit').innerHTML=`<h3>Hậu kiểm lấy mẫu</h3><div class="note">Rút ngẫu nhiên các lần cán bộ xác nhận <b>ĐẠT</b> ở tiêu chí không có lưới đỡ mã nguồn (hồ sơ đã ký, không phải do bạn xác nhận). Việc rút mẫu cũng được ghi nhật ký.
-    <div class="row" style="margin-top:8px"><button class="btn sm green" onclick="drawPostAudit()">Rút 5 mẫu</button><span class="conf" id="pa-info"></span></div><div id="pa-list"></div></div>`;
+  $('postaudit').innerHTML=`<h3>Post-audit sampling</h3><div class="note">Randomly samples officer <b>MET</b> confirmations on criteria without a code safety net (signed cases, not confirmed by you). Sampling itself is logged.
+    <div class="row" style="margin-top:8px"><button class="btn sm green" onclick="drawPostAudit()">Draw 5 samples</button><span class="conf" id="pa-info"></span></div><div id="pa-list"></div></div>`;
 }
 async function drawPostAudit(){
   try{const d=await api('/post-audit/sample?n=5');PA_ITEMS=d.items;
-    $('pa-info').textContent=d.items.length?`${d.items.length} mẫu / ${d.pool} lần chờ hậu kiểm`:'Không còn lần xác nhận nào chờ hậu kiểm.';
-    $('pa-list').innerHTML=d.items.map((it,i)=>`<div class="rulecard" id="pa-${i}"><span class="rid">${esc(it.rule_id)}</span> <span class="chip c-unclear">${esc(GLBL[it.guard_level]||it.guard_level||'')}</span> <span class="conf">${esc(it.case_id)} · ${esc(it.applicant||'')} · xác nhận bởi <b>${esc(it.confirmed_by||'')}</b> lúc ${fmtT(it.confirmed_at)}</span>
+    $('pa-info').textContent=d.items.length?`${d.items.length} sampled / ${d.pool} awaiting post-audit`:'No confirmations awaiting post-audit.';
+    $('pa-list').innerHTML=d.items.map((it,i)=>`<div class="rulecard" id="pa-${i}"><span class="rid">${esc(it.rule_id)}</span> <span class="chip c-unclear">${esc(GLBL[it.guard_level]||it.guard_level||'')}</span> <span class="conf">${esc(it.case_id)} · ${esc(it.applicant||'')} · confirmed by <b>${esc(it.confirmed_by||'')}</b> at ${fmtT(it.confirmed_at)}</span>
       <div style="font-weight:600;margin:6px 0 2px">${esc(it.rule_title||'')}</div><div class="rquote">"${esc(it.rule_quote||'')}"</div>
-      <div style="margin-top:6px"><b>Chứng thực của cán bộ:</b> ${it.attestation?`<span class="notranslate">${esc(it.attestation)}</span>`:'(không ghi)'}</div>
-      ${it.ai_quote?`<div class="conf">Câu AI trích: "${esc(it.ai_quote)}"</div>`:''}
-      <div class="row" style="margin-top:8px"><input id="pa-note-${i}" placeholder="Ghi chú (bắt buộc nếu không đồng ý)" style="flex:1;min-width:200px;padding:6px 8px;border:1px solid var(--line);border-radius:6px">
-        <button class="btn sm green" onclick="savePostAudit(${i},'agree')">Đồng ý</button><button class="btn sm ghost" onclick="savePostAudit(${i},'disagree')">Không đồng ý</button><button class="btn sm ghost" onclick="go('case','${esc(it.case_id)}')">Mở hồ sơ</button></div></div>`).join('');
+      <div style="margin-top:6px"><b>Officer's attestation:</b> ${it.attestation?`<span class="notranslate">${esc(it.attestation)}</span>`:'(none recorded)'}</div>
+      ${it.ai_quote?`<div class="conf">AI quotation: "${esc(it.ai_quote)}"</div>`:''}
+      <div class="row" style="margin-top:8px"><input id="pa-note-${i}" placeholder="Note (required if you disagree)" style="flex:1;min-width:200px;padding:6px 8px;border:1px solid var(--line);border-radius:6px">
+        <button class="btn sm green" onclick="savePostAudit(${i},'agree')">Agree</button><button class="btn sm ghost" onclick="savePostAudit(${i},'disagree')">Disagree</button><button class="btn sm ghost" onclick="go('case','${esc(it.case_id)}')">Open case</button></div></div>`).join('');
   }catch(e){toast(e.message,true);}
 }
 async function savePostAudit(i,outcome){
   const it=PA_ITEMS[i];
   try{await api('/post-audit',{...officer(),case_id:it.case_id,rule_id:it.rule_id,outcome,note:$('pa-note-'+i).value});
-    $('pa-'+i).innerHTML=`<span class="chip ${outcome==='agree'?'c-met':'c-not_met'}">${outcome==='agree'?'ĐÃ HẬU KIỂM — đồng ý':'ĐÃ HẬU KIỂM — KHÔNG đồng ý, đề nghị mở lại hồ sơ'}</span> <span class="conf">${esc(it.case_id)} · ${esc(it.rule_id)}</span>`;
+    $('pa-'+i).innerHTML=`<span class="chip ${outcome==='agree'?'c-met':'c-not_met'}">${outcome==='agree'?'POST-AUDITED — agreed':'POST-AUDITED — DISAGREED, recommend reopening the case'}</span> <span class="conf">${esc(it.case_id)} · ${esc(it.rule_id)}</span>`;
   }catch(e){toast(e.message,true);}
 }
 function renderCaseList(){
   const f=($('casefilter').value||'').toLowerCase(),sf=$('statusfilter').value;
   const rows=CASES.filter(c=>(!sf||c.status===sf)&&(!f||(c.id+' '+c.applicant+' '+c.org+' '+c.scenario).toLowerCase().includes(f)));
-  $('casetable').innerHTML=`<tr><th>Mã</th><th>Người nộp</th><th>Tổ chức</th><th>Bộ tiêu chí</th><th>Kịch bản</th><th>Trạng thái · SLA</th><th>Cán bộ</th><th>Cập nhật</th></tr>`+
-    rows.map(c=>`<tr class="click" onclick="go('case','${c.id}')"><td class="mono">${c.id}${c.pair?` <span class="conf">⇄ ${c.pair}</span>`:''}${c.supplement_round?` <span class="conf">bổ sung #${c.supplement_round}</span>`:''}</td><td><b>${esc(c.applicant)}</b></td><td>${esc(c.org)}</td><td class="mono">${esc(c.ruleset_id||'')}${c.ruleset_version?' v'+esc(c.ruleset_version):''}</td><td style="color:var(--muted)">${esc(c.scenario)}</td><td><span class="st st-${c.status}">${META.state_vi[c.status]}</span> ${slaChip(c)}</td><td>${esc(c.officer||'—')}</td><td class="conf">${fmtT(c.updated_at)}</td></tr>`).join('')||'<tr><td colspan="8">Không có hồ sơ</td></tr>';
+  $('casetable').innerHTML=`<tr><th>ID</th><th>Applicant</th><th>Organisation</th><th>Criteria set</th><th>Scenario</th><th>Status · SLA</th><th>Officer</th><th>Updated</th></tr>`+
+    rows.map(c=>`<tr class="click" onclick="go('case','${c.id}')"><td class="mono">${c.id}${c.pair?` <span class="conf">⇄ ${c.pair}</span>`:''}${c.supplement_round?` <span class="conf">supplement #${c.supplement_round}</span>`:''}</td><td><b>${esc(c.applicant)}</b></td><td>${esc(c.org)}</td><td class="mono">${esc(c.ruleset_id||'')}${c.ruleset_version?' v'+esc(c.ruleset_version):''}</td><td style="color:var(--muted)">${esc(c.scenario)}</td><td><span class="st st-${c.status}">${META.state_labels[c.status]}</span> ${slaChip(c)}</td><td>${esc(c.officer||'—')}</td><td class="conf">${fmtT(c.updated_at)}</td></tr>`).join('')||'<tr><td colspan="8">No applications</td></tr>';
 }
 
 /* ================= case detail ================= */
@@ -541,52 +540,52 @@ function slaChip(c){
   let ts=c.status==='awaiting_supplement'?(c.supplement&&c.supplement.requested_at):c[SLA_TS[c.status]]||c.updated_at;
   if(!ts)return '';
   const days=Math.floor((Date.now()-new Date(ts))/86400e3);
-  return days>lim?`<span class="chip c-not_met">SLA quá hạn ${days-lim} ngày (${days}/${lim}d)</span>`:`<span class="conf">SLA ${days}/${lim} ngày</span>`;
+  return days>lim?`<span class="chip c-not_met">SLA overdue by ${days-lim} days (${days}/${lim}d)</span>`:`<span class="conf">SLA ${days}/${lim} days</span>`;
 }
 function renderCase(){
   const c=CUR.case,st=c.status,rs=CUR.ruleset||{};
   $('pagetitle').textContent=`${c.id} — ${c.applicant}`;
   const supp=c.supplement;
-  $('casehead').innerHTML=`<div class="card" style="margin-bottom:12px"><div class="row" style="margin:0"><span class="st st-${st}" style="font-size:12px">${META.state_vi[st]}</span>${slaChip(c)}<span class="grow"></span>${c.officer?`<span class="conf">Cán bộ: <b>${esc(c.officer)}</b></span>`:''}${c.countersigned_by?`<span class="chip c-met">Quản lý đã ký cấp 2: ${esc(c.countersigned_by)}</span>`:''}</div>
-    <div class="kv" style="margin-top:10px"><b>Bộ tiêu chí</b><span>${esc(rs.name||'')} <span class="mono">v${esc(rs.version||'')}</span> ${rs.locked?'<span class="chip c-met">ĐÃ KHÓA cho hồ sơ này</span>':`<span class="conf">chưa khóa — sẽ khóa khi đánh giá</span>${META.states.indexOf(st)<META.states.indexOf('signed')&&(META.rulesets||[]).length>1?` · <a href="#" onclick="changeRuleset();return false">đổi bộ</a>`:''}`}</span><b>Tổ chức</b><span>${esc(c.org||'—')}</span><b>Directorate</b><span class="mono">${esc(c.directorate||'—')}</span><b>Kịch bản</b><span>${esc(c.scenario||'—')}</span>${c.supplement_round?`<b>Vòng bổ sung</b><span>#${c.supplement_round}${supp&&st==='awaiting_supplement'?` — hạn <b>${esc(supp.deadline)}</b>`:''}</span>`:''}${c.llm_model?`<b>Đánh giá bởi</b><span class="mono">${esc(c.llm_model)} · ${fmtT(c.assessed_at)}</span>`:''}${c.pair?`<b>Cặp bias</b><span>${c.pair} — <a href="#" onclick="go('bias');$('biasA').value='${c.id}';$('biasB').value='${c.pair}';return false">so sánh trong Bias Lab</a></span>`:''}</div>
-    ${st==='awaiting_supplement'&&supp?`<div class="warn" style="margin:10px 0 0"><b>Đang chờ người nộp bổ sung (vòng #${supp.round}, hạn ${esc(supp.deadline)}):</b> ${esc(supp.items)}<br><span class="conf">Nhận được tài liệu → bấm "+ Đính kèm tài liệu" ở khung Đối chiếu chéo; hệ thống tự đánh giá lại từ đầu.</span></div>`:''}</div>`;
+  $('casehead').innerHTML=`<div class="card" style="margin-bottom:12px"><div class="row" style="margin:0"><span class="st st-${st}" style="font-size:12px">${META.state_labels[st]}</span>${slaChip(c)}<span class="grow"></span>${c.officer?`<span class="conf">Officer: <b>${esc(c.officer)}</b></span>`:''}${c.countersigned_by?`<span class="chip c-met">Manager countersigned: ${esc(c.countersigned_by)}</span>`:''}</div>
+    <div class="kv" style="margin-top:10px"><b>Criteria set</b><span>${esc(rs.name||'')} <span class="mono">v${esc(rs.version||'')}</span> ${rs.locked?'<span class="chip c-met">LOCKED for this case</span>':`<span class="conf">not locked — locks at first assessment</span>${META.states.indexOf(st)<META.states.indexOf('signed')&&(META.rulesets||[]).length>1?` · <a href="#" onclick="changeRuleset();return false">change set</a>`:''}`}</span><b>Organisation</b><span>${esc(c.org||'—')}</span><b>Directorate</b><span class="mono">${esc(c.directorate||'—')}</span><b>Scenario</b><span>${esc(c.scenario||'—')}</span>${c.supplement_round?`<b>Supplement round</b><span>#${c.supplement_round}${supp&&st==='awaiting_supplement'?` — due <b>${esc(supp.deadline)}</b>`:''}</span>`:''}${c.llm_model?`<b>Assessed by</b><span class="mono">${esc(c.llm_model)} · ${fmtT(c.assessed_at)}</span>`:''}${c.pair?`<b>Bias pair</b><span>${c.pair} — <a href="#" onclick="go('bias');$('biasA').value='${c.id}';$('biasB').value='${c.pair}';return false">compare in Bias Lab</a></span>`:''}</div>
+    ${st==='awaiting_supplement'&&supp?`<div class="warn" style="margin:10px 0 0"><b>Awaiting applicant supplement (round #${supp.round}, due ${esc(supp.deadline)}):</b> ${esc(supp.items)}<br><span class="conf">When documents arrive → click "+ Attach document" in the Cross-check panel; the system re-assesses from scratch.</span></div>`:''}</div>`;
   const idx=META.states.indexOf(st);
-  $('stepper').innerHTML=`<div class="stepper">${META.states.map((s,i)=>`<div class="step ${i<idx?'done':i===idx?'cur':''}"><span class="n">${i<idx?'✓':i+1}</span>${META.state_vi[s]}</div>`).join('')}</div>`;
+  $('stepper').innerHTML=`<div class="stepper">${META.states.map((s,i)=>`<div class="step ${i<idx?'done':i===idx?'cur':''}"><span class="n">${i<idx?'✓':i+1}</span>${META.state_labels[s]}</div>`).join('')}</div>`;
   // action bar
   let a='';
-  if(st==='new')a=`<button class="btn" onclick="runAssessment()">▶ Chạy đánh giá AI (${esc(META.llm.model)})</button>`;
-  if(st==='assessed')a=`<button class="btn green" onclick="startReview()">Bắt đầu thẩm định (spot-check mù trước)</button> <button class="btn ghost" onclick="runAssessment()">Đánh giá lại</button> <button class="btn ghost" onclick="askSupplement()">Yêu cầu bổ sung hồ sơ</button>`;
-  if(st==='in_review')a=`<button class="btn ghost" onclick="askSupplement()">Yêu cầu bổ sung hồ sơ</button> <button class="btn ghost" onclick="runAssessment()">Đánh giá lại (xoá xác nhận)</button>`;
-  if(st==='awaiting_supplement')a=`<button class="btn ghost" onclick="runAssessment()">Đánh giá lại với hồ sơ hiện có</button>`;
-  if(idx>=META.states.indexOf('signed'))a=`<button class="btn ghost" onclick="reopenCase()">Mở lại hồ sơ (có lý do)</button>`;
+  if(st==='new')a=`<button class="btn" onclick="runAssessment()">▶ Run AI assessment (${esc(META.llm.model)})</button>`;
+  if(st==='assessed')a=`<button class="btn green" onclick="startReview()">Start review (blind spot-check first)</button> <button class="btn ghost" onclick="runAssessment()">Re-assess</button> <button class="btn ghost" onclick="askSupplement()">Request supplement</button>`;
+  if(st==='in_review')a=`<button class="btn ghost" onclick="askSupplement()">Request supplement</button> <button class="btn ghost" onclick="runAssessment()">Re-assess (clears confirmations)</button>`;
+  if(st==='awaiting_supplement')a=`<button class="btn ghost" onclick="runAssessment()">Re-assess with current documents</button>`;
+  if(idx>=META.states.indexOf('signed'))a=`<button class="btn ghost" onclick="reopenCase()">Reopen case (with reason)</button>`;
   $('actionbar').innerHTML=`<div class="row">${a}</div>`;
   $('runstatus').innerHTML='';
   renderDoc();renderCrosscheck();renderScreening();renderMatrix();renderSignoff();renderLetter();
   if(CUR.ai_masked)showSpotModal();else $('spotmodal').classList.remove('on');
 }
-/* ---------- crosscheck (chống gian lận) ---------- */
-const CCRISK={consistent:['c-met','NHẤT QUÁN'],mismatch:['c-unclear','CÓ ĐIỂM KHÔNG KHỚP'],mismatch_high:['c-not_met','KHÔNG KHỚP NGHIÊM TRỌNG — nghi vấn gian lận']};
+/* ---------- crosscheck (anti-cheating) ---------- */
+const CCRISK={consistent:['c-met','CONSISTENT'],mismatch:['c-unclear','DISCREPANCIES FOUND'],mismatch_high:['c-not_met','SERIOUS MISMATCH — suspected fraud']};
 function renderCrosscheck(){
   const c=CUR.case,box=$('ccbox'),cc=c.crosscheck;
   const canAttach=META.states.indexOf(c.status)<META.states.indexOf('signed');
-  const attachBtn=canAttach?`<button class="btn sm ghost" onclick="showAttach()">+ Đính kèm tài liệu</button>`:'';
-  if(!cc){box.innerHTML=`<div class="card" style="margin-bottom:12px"><div class="row" style="margin:0"><b style="font-size:13px">Đối chiếu chéo tài liệu (anti-cheating)</b><span class="conf">so số tiền / ngày / số trang giữa đơn khai và tài liệu đính kèm</span><span class="grow"></span>${attachBtn}<button class="btn sm" onclick="runCC()">Chạy đối chiếu</button></div><div id="attachform"></div></div>`;return;}
+  const attachBtn=canAttach?`<button class="btn sm ghost" onclick="showAttach()">+ Attach document</button>`:'';
+  if(!cc){box.innerHTML=`<div class="card" style="margin-bottom:12px"><div class="row" style="margin:0"><b style="font-size:13px">Document cross-check (anti-cheating)</b><span class="conf">compares amounts / dates / page counts between the main form and attachments</span><span class="grow"></span>${attachBtn}<button class="btn sm" onclick="runCC()">Run cross-check</button></div><div id="attachform"></div></div>`;return;}
   const [cls,lbl]=CCRISK[cc.risk]||CCRISK.consistent;
   let rows='';
   for(const f of cc.findings){
-    rows+=`<tr><td><b>${esc(f.label_vi||f.category)}</b><br><span class="conf">${f.severity==='high'?'nghiêm trọng':'trung bình'}</span></td><td>${(f.values||[]).map(v=>`<div style="margin-bottom:4px"><span class="chip ${f.severity==='high'?'c-not_met':'c-unclear'}">${typeof v.value==='number'?(v.value>=10000?v.value.toLocaleString():v.value):esc(v.value)}</span> <b>${esc(v.source)}</b><br><span class="conf">"…${esc(v.context)}…"</span></div>`).join('')}</td></tr>`;
+    rows+=`<tr><td><b>${esc(f.label||f.category)}</b><br><span class="conf">${f.severity==='high'?'serious':'medium'}</span></td><td>${(f.values||[]).map(v=>`<div style="margin-bottom:4px"><span class="chip ${f.severity==='high'?'c-not_met':'c-unclear'}">${typeof v.value==='number'?(v.value>=10000?v.value.toLocaleString():v.value):esc(v.value)}</span> <b>${esc(v.source)}</b><br><span class="conf">"…${esc(v.context)}…"</span></div>`).join('')}</td></tr>`;
   }
   box.innerHTML=`<div class="card" style="margin-bottom:12px">
-    <div class="row" style="margin:0"><b style="font-size:13px">Đối chiếu chéo tài liệu (anti-cheating)</b><span class="chip ${cls}">${lbl}</span><span class="grow"></span><span class="conf">${cc.n_docs} tài liệu: ${cc.docs.map(esc).join(' · ')}</span>${attachBtn}<button class="btn sm ghost" onclick="runCC()">Chạy lại</button></div>
-    ${rows?`<div class="tblwrap" style="margin-top:10px"><table><tr><th>Đại lượng lệch nhau</th><th>Giá trị theo từng tài liệu (kèm trích ngữ cảnh)</th></tr>${rows}</table></div><div class="conf" style="margin-top:6px">Do mã nguồn so trực tiếp các con số đã bóc — không phải AI đoán. Mâu thuẫn là bằng chứng để cán bộ yêu cầu giải trình, hệ thống không tự kết luận gian lận.</div>`:`<div class="conf" style="margin-top:6px">Đã so ${Object.entries(cc.checked||{}).map(([k,n])=>`${n} giá trị ${k}`).join(', ')||'các đại lượng chuẩn'} — không có mâu thuẫn.</div>`}
+    <div class="row" style="margin:0"><b style="font-size:13px">Document cross-check (anti-cheating)</b><span class="chip ${cls}">${lbl}</span><span class="grow"></span><span class="conf">${cc.n_docs} documents: ${cc.docs.map(esc).join(' · ')}</span>${attachBtn}<button class="btn sm ghost" onclick="runCC()">Re-run</button></div>
+    ${rows?`<div class="tblwrap" style="margin-top:10px"><table><tr><th>Conflicting quantity</th><th>Value per document (with context)</th></tr>${rows}</table></div><div class="conf" style="margin-top:6px">Code compares the extracted figures directly — the AI does not guess. A discrepancy is evidence for the officer to request an explanation; the system never concludes fraud on its own.</div>`:`<div class="conf" style="margin-top:6px">Compared ${Object.entries(cc.checked||{}).map(([k,n])=>`${n} ${k} values`).join(', ')||'the standard quantities'} — no discrepancies.</div>`}
     <div id="attachform"></div></div>`;
 }
-async function runCC(){try{await api(`/cases/${CUR.case.id}/crosscheck`,officer());await openCase(CUR.case.id);toast('Đã đối chiếu chéo xong');}catch(e){toast(e.message,true);}}
+async function runCC(){try{await api(`/cases/${CUR.case.id}/crosscheck`,officer());await openCase(CUR.case.id);toast('Cross-check complete');}catch(e){toast(e.message,true);}}
 function showAttach(){
   $('attachform').innerHTML=`<div class="decide" style="margin-top:10px" onclick="event.stopPropagation()">
-    <div class="row" style="margin:0 0 6px"><input type="text" id="atName" placeholder="Tên tài liệu (vd: Báo cáo tài chính)" style="min-width:240px"><input type="file" id="atFile" accept=".txt,.docx,.pdf"></div>
-    <textarea id="atText" placeholder="…hoặc dán nội dung tài liệu vào đây" style="min-height:80px;font-family:'IBM Plex Mono',monospace;font-size:12px"></textarea>
-    <div class="row" style="margin:6px 0 0"><button class="btn sm green" onclick="doAttach()">Đính kèm (AI sẽ phải đánh giá lại)</button><span class="conf">tự chạy đối chiếu chéo ngay sau khi đính kèm</span></div></div>`;
+    <div class="row" style="margin:0 0 6px"><input type="text" id="atName" placeholder="Document name (e.g. Financial statements)" style="min-width:240px"><input type="file" id="atFile" accept=".txt,.docx,.pdf"></div>
+    <textarea id="atText" placeholder="…or paste the document text here" style="min-height:80px;font-family:'IBM Plex Mono',monospace;font-size:12px"></textarea>
+    <div class="row" style="margin:6px 0 0"><button class="btn sm green" onclick="doAttach()">Attach (AI must re-assess)</button><span class="conf">cross-check runs automatically after attaching</span></div></div>`;
 }
 async function doAttach(){
   const f=$('atFile').files[0],fd=new FormData();
@@ -594,47 +593,47 @@ async function doAttach(){
   if(f)fd.append('file',f);else fd.append('text',$('atText').value);
   try{const r=await fetch(`/api/cases/${CUR.case.id}/attach`,{method:'POST',body:fd});const d=await r.json();
     if(!r.ok)throw new Error(d.detail);
-    toast(`Đã đính kèm — phát hiện ${d.crosscheck.findings.length} điểm không khớp`,d.crosscheck.findings.length>0);
+    toast(`Attached — ${d.crosscheck.findings.length} discrepancies found`,d.crosscheck.findings.length>0);
     await openCase(CUR.case.id);
   }catch(e){toast(e.message,true);}
 }
 
 /* ---------- screening ---------- */
-const RISK={clear:['c-met','SẠCH — không có hit'],note_expired:['c-not_addressed','Chỉ có hit đã hết hiệu lực'],review:['c-unclear','CÓ HIT — cần cán bộ xem'],review_strong:['c-not_met','HIT KHỚP MẠNH — cần cán bộ xem']};
+const RISK={clear:['c-met','CLEAR — no hits'],note_expired:['c-not_addressed','Only expired hits'],review:['c-unclear','HITS — officer must review'],review_strong:['c-not_met','STRONG HIT — officer must review']};
 function hitRows(hits){
-  return hits.map(h=>`<tr><td>${esc(h.source)}</td><td><b>${esc(h.matched_name)}</b>${h.n_aliases>1?` <span class="conf">+${h.n_aliases-1} alias</span>`:''}</td><td class="mono">${(h.score*100).toFixed(0)}%</td><td>${esc(h.detail||'')}${h.period?` · ${esc(h.period)}`:''}</td><td>${h.active?(h.strength==='strong'?'<span class="chip c-not_met">khớp mạnh</span>':'<span class="chip c-unclear">nghi ngờ</span>'):'<span class="chip c-not_addressed">hết hiệu lực</span>'}</td></tr>`).join('');
+  return hits.map(h=>`<tr><td>${esc(h.source)}</td><td><b>${esc(h.matched_name)}</b>${h.n_aliases>1?` <span class="conf">+${h.n_aliases-1} alias</span>`:''}</td><td class="mono">${(h.score*100).toFixed(0)}%</td><td>${esc(h.detail||'')}${h.period?` · ${esc(h.period)}`:''}</td><td>${h.active?(h.strength==='strong'?'<span class="chip c-not_met">strong match</span>':'<span class="chip c-unclear">possible match</span>'):'<span class="chip c-not_addressed">expired</span>'}</td></tr>`).join('');
 }
 function renderScreening(){
   const c=CUR.case,box=$('screenbox');
-  if(!c.screening){box.innerHTML=`<div class="card" style="margin-bottom:12px"><div class="row" style="margin:0"><b style="font-size:13px">Sàng lọc danh sách cấm</b><span class="conf">ASIC · DFAT · ABN — đối chiếu tên người nộp và tổ chức</span><span class="grow"></span><button class="btn sm" onclick="runScreen()">Chạy sàng lọc</button></div></div>`;return;}
+  if(!c.screening){box.innerHTML=`<div class="card" style="margin-bottom:12px"><div class="row" style="margin:0"><b style="font-size:13px">Sanctions screening</b><span class="conf">ASIC · DFAT · ABN — matches applicant and organisation names</span><span class="grow"></span><button class="btn sm" onclick="runScreen()">Run screening</button></div></div>`;return;}
   const s=c.screening,[cls,lbl]=RISK[s.risk]||RISK.clear;
   const hits=[...s.applicant.asic,...s.applicant.dfat,...s.org.dfat];
   const abn=s.org.abn||{};
   let abnLine;
-  if(!abn.indexed&&!abn.n)abnLine='chưa lập chỉ mục (python -m backend.abn_index)';
-  else if(abn.building)abnLine=`đang lập chỉ mục… (${(abn.n||0).toLocaleString()} bản ghi)`;
-  else if(!s.query.org)abnLine='hồ sơ không có tên tổ chức';
-  else if(abn.hits&&abn.hits.length)abnLine=abn.hits.map(h=>`<b>${esc(h.name)}</b> — ABN ${h.abn} · ${h.status==='ACT'?'<span class="chip c-met">đang hoạt động</span>':'<span class="chip c-not_met">đã huỷ ('+esc(h.status)+')</span>'} · ${esc(h.state)} ${esc(h.postcode)} · khớp ${(h.score*100).toFixed(0)}%`).join('<br>');
-  else abnLine='<span class="chip c-unclear">không tìm thấy trong sổ ABN</span> — tổ chức không phải của Úc, hoặc tên chưa khớp';
+  if(!abn.indexed&&!abn.n)abnLine='index not built (python -m backend.abn_index)';
+  else if(abn.building)abnLine=`building index… (${(abn.n||0).toLocaleString()} records)`;
+  else if(!s.query.org)abnLine='no organisation name on the application';
+  else if(abn.hits&&abn.hits.length)abnLine=abn.hits.map(h=>`<b>${esc(h.name)}</b> — ABN ${h.abn} · ${h.status==='ACT'?'<span class="chip c-met">active</span>':'<span class="chip c-not_met">cancelled ('+esc(h.status)+')</span>'} · ${esc(h.state)} ${esc(h.postcode)} · match ${(h.score*100).toFixed(0)}%`).join('<br>');
+  else abnLine='<span class="chip c-unclear">not found in the ABN register</span> — organisation is not Australian, or the name does not match';
   box.innerHTML=`<div class="card" style="margin-bottom:12px">
-    <div class="row" style="margin:0"><b style="font-size:13px">Sàng lọc danh sách cấm</b><span class="chip ${cls}">${lbl}</span><span class="grow"></span><span class="conf">${fmtT(s.at)} · nguồn: ASIC ${s.sources.asic.toLocaleString()} · DFAT ${s.sources.dfat.toLocaleString()} · ABN ${(s.sources.abn.n||0).toLocaleString()}</span><button class="btn sm ghost" onclick="runScreen()">Chạy lại</button></div>
-    ${hits.length?`<div class="tblwrap" style="margin-top:10px"><table><tr><th>Nguồn</th><th>Tên khớp</th><th>Điểm</th><th>Chi tiết</th><th>Trạng thái</th></tr>${hitRows(hits)}</table></div><div class="conf" style="margin-top:6px">Hit chỉ là bằng chứng để cán bộ xem — hệ thống không tự loại hồ sơ. Trùng tên người khác (false positive) là bình thường với khớp mờ.</div>`:''}
-    <div style="font-size:12.5px;margin-top:8px"><b>Xác minh ABN</b> (${esc(s.query.org||'—')}): ${abnLine}</div></div>`;
+    <div class="row" style="margin:0"><b style="font-size:13px">Sanctions screening</b><span class="chip ${cls}">${lbl}</span><span class="grow"></span><span class="conf">${fmtT(s.at)} · sources: ASIC ${s.sources.asic.toLocaleString()} · DFAT ${s.sources.dfat.toLocaleString()} · ABN ${(s.sources.abn.n||0).toLocaleString()}</span><button class="btn sm ghost" onclick="runScreen()">Re-run</button></div>
+    ${hits.length?`<div class="tblwrap" style="margin-top:10px"><table><tr><th>Source</th><th>Matched name</th><th>Score</th><th>Details</th><th>Status</th></tr>${hitRows(hits)}</table></div><div class="conf" style="margin-top:6px">A hit is evidence for the officer to review — the system never rejects an application by itself. Same-name collisions (false positives) are normal with fuzzy matching.</div>`:''}
+    <div style="font-size:12.5px;margin-top:8px"><b>ABN verification</b> (${esc(s.query.org||'—')}): ${abnLine}</div></div>`;
 }
-async function runScreen(){try{await api(`/cases/${CUR.case.id}/screen`,officer());await openCase(CUR.case.id);toast('Đã sàng lọc xong');}catch(e){toast(e.message,true);}}
+async function runScreen(){try{await api(`/cases/${CUR.case.id}/screen`,officer());await openCase(CUR.case.id);toast('Screening complete');}catch(e){toast(e.message,true);}}
 async function runLookup(){
-  const name=$('lkName').value.trim(),msg=$('lkmsg');if(name.length<4){toast('Nhập ít nhất 4 ký tự',true);return;}
+  const name=$('lkName').value.trim(),msg=$('lkmsg');if(name.length<4){toast('Enter at least 4 characters',true);return;}
   msg.innerHTML='<span class="spin"></span>';
   try{const d=await api('/screening/lookup',{name});
     const hits=[...d.asic,...d.dfat];msg.innerHTML='';
-    $('lkout').innerHTML=`${hits.length?`<div class="tblwrap" style="margin-top:8px"><table><tr><th>Nguồn</th><th>Tên khớp</th><th>Điểm</th><th>Chi tiết</th><th>Trạng thái</th></tr>${hitRows(hits)}</table></div>`:'<div class="note">Không có hit trong ASIC / DFAT.</div>'}
-      <div style="font-size:12.5px;margin-top:8px"><b>ABN:</b> ${d.abn.hits&&d.abn.hits.length?d.abn.hits.map(h=>`${esc(h.name)} — ABN ${h.abn} (${esc(h.status)}, ${esc(h.state)})`).join(' · '):(d.abn.n?'không thấy':'chỉ mục chưa lập'+(d.abn.building?' xong':''))}</div>`;
+    $('lkout').innerHTML=`${hits.length?`<div class="tblwrap" style="margin-top:8px"><table><tr><th>Source</th><th>Matched name</th><th>Score</th><th>Details</th><th>Status</th></tr>${hitRows(hits)}</table></div>`:'<div class="note">No hits in ASIC / DFAT.</div>'}
+      <div style="font-size:12.5px;margin-top:8px"><b>ABN:</b> ${d.abn.hits&&d.abn.hits.length?d.abn.hits.map(h=>`${esc(h.name)} — ABN ${h.abn} (${esc(h.status)}, ${esc(h.state)})`).join(' · '):(d.abn.n?'not found':(d.abn.building?'index still building':'index not built'))}</div>`;
   }catch(e){msg.innerHTML='';toast(e.message,true);}
 }
 
 function renderDoc(hl){
   const text=CUR.case.text||'';
-  $('docinfo').textContent=`${text.split(/\s+/).length} từ`;
+  $('docinfo').textContent=`${text.split(/\s+/).length} words`;
   if(!hl){$('doc').innerHTML=esc(text);return;}
   const q=hl.replace(/\s\.\.\.$/,'');const i=norm(text).indexOf(norm(q));
   if(i<0){$('doc').innerHTML=esc(text);return;}
@@ -650,34 +649,34 @@ const norm=s=>s.replace(/\s+/g,' ').toLowerCase();
 
 function renderMatrix(){
   const vs=CUR.verdicts,c=CUR.case;
-  if(!vs.length){$('matrix').innerHTML=`<div class="card"><div class="note" style="margin:0">Hồ sơ chưa được AI đánh giá. Bấm <b>Chạy đánh giá AI</b> — mỗi tiêu chí đi qua RAG → trích dữ kiện → phán quyết trên dữ kiện → trích dẫn nguyên văn.</div></div>`;return;}
+  if(!vs.length){$('matrix').innerHTML=`<div class="card"><div class="note" style="margin:0">This application has not been assessed by the AI yet. Click <b>Run AI assessment</b> — each criterion goes through RAG → fact extraction → judgement on facts → verbatim citation.</div></div>`;return;}
   const done=vs.filter(v=>v.confirmed_at).length,n=vs.length,masked=CUR.ai_masked,rev=c.status==='in_review';
   const sum=k=>vs.filter(v=>v.ai_verdict===k).length;
-  let h=`<div class="card" style="margin-bottom:10px;padding:12px 16px"><div class="row" style="margin:0"><b style="font-size:13px">Ma trận tiêu chí × kết luận</b><span class="grow"></span>${masked?'<span class="chip c-masked">AI ĐANG BỊ CHE — làm spot-check trước</span>':`<span class="chip c-met">${sum('met')} đạt</span> <span class="chip c-not_met">${sum('not_met')} không đạt</span> <span class="chip c-unclear">${sum('unclear')} chưa rõ</span> <span class="chip c-not_addressed">${sum('not_addressed')} không đề cập</span>`}</div>
-    ${rev?`<div class="progress"><div style="width:${done/n*100}%"></div></div><div class="conf">${done}/${n} tiêu chí đã được cán bộ xác nhận · không có nút "duyệt tất cả" · sửa AI hoặc AI chưa rõ ⇒ phải ghi lý do</div>`:''}</div>`;
+  let h=`<div class="card" style="margin-bottom:10px;padding:12px 16px"><div class="row" style="margin:0"><b style="font-size:13px">Criteria × verdict matrix</b><span class="grow"></span>${masked?'<span class="chip c-masked">AI HIDDEN — complete the spot-check first</span>':`<span class="chip c-met">${sum('met')} met</span> <span class="chip c-not_met">${sum('not_met')} not met</span> <span class="chip c-unclear">${sum('unclear')} unclear</span> <span class="chip c-not_addressed">${sum('not_addressed')} not addressed</span>`}</div>
+    ${rev?`<div class="progress"><div style="width:${done/n*100}%"></div></div><div class="conf">${done}/${n} criteria confirmed by the officer · no "approve all" button · overriding the AI or an unclear AI verdict ⇒ reason required</div>`:''}</div>`;
   h+=vs.map(v=>{
     const r=caseRules().find(x=>x.id===v.rule_id)||{};
-    const guarded=/\[(CHẶN|NGHI) FALSE-PASS\]/.test(v.note||'');
+    const guarded=/\[(FALSE-PASS BLOCKED|SUSPECTED FALSE PASS)\]/.test(v.note||'');
     const fv=v.final_verdict||v.ai_verdict, conf=v.confirmed_at;
     const attn=!masked&&v.needs_attention&&!conf;
-    const head=`<div class="vhead" onclick="toggleRow('${v.rule_id}')"><span class="rid">${v.rule_id}</span><span class="vtitle">${esc(r.title_vi)}</span>
-      ${masked?'<span class="chip c-masked">?</span>':`<span class="chip c-${v.ai_verdict}">AI: ${VLBL[v.ai_verdict]}</span>${guarded?'<span class="chip c-not_met">⛔ guard chặn false-pass</span>':''}${v.guard_level==='needs-manual-guard'?'<span class="chip c-not_met" title="Mã nguồn không diễn đạt nổi logic tiêu chí này — kết luận ĐẠT chỉ dựa vào AI">⚠ KHÔNG CÓ LƯỚI ĐỠ CODE</span>':''}<span class="conf ${v.ai_confidence}">${CLBL[v.ai_confidence]||''}</span>`}
+    const head=`<div class="vhead" onclick="toggleRow('${v.rule_id}')"><span class="rid">${v.rule_id}</span><span class="vtitle">${esc(r.title)}</span>
+      ${masked?'<span class="chip c-masked">?</span>':`<span class="chip c-${v.ai_verdict}">AI: ${VLBL[v.ai_verdict]}</span>${guarded?'<span class="chip c-not_met">⛔ guard blocked a false pass</span>':''}${v.guard_level==='needs-manual-guard'?'<span class="chip c-not_met" title="Code cannot express the logic of this criterion — a MET verdict here rests on the AI alone">⚠ NO CODE SAFETY NET</span>':''}<span class="conf ${v.ai_confidence}">${CLBL[v.ai_confidence]||''}</span>`}
       ${conf?`<span class="chip c-${v.final_verdict}">✓ ${VLBL[v.final_verdict]}</span>`:''}
-      ${!masked&&v.cite_ok===0?'<span class="conf low">⚠ trích dẫn không khớp</span>':''}</div>`;
+      ${!masked&&v.cite_ok===0?'<span class="conf low">⚠ quotation mismatch</span>':''}</div>`;
     if(masked)return `<div class="vrow">${head}</div>`;
-    const facts=(v.facts||[]).map((f,i)=>`<li class="${i+1===(v.supporting_fact||0)?'sup':''}" onclick="event.stopPropagation();renderDoc(${JSON.stringify(f.key_phrase)})" style="cursor:pointer" title="Bấm để tìm trong hồ sơ">${esc(f.fact)}<span class="fk">chunk ${f.chunk_id}</span></li>`).join('');
+    const facts=(v.facts||[]).map((f,i)=>`<li class="${i+1===(v.supporting_fact||0)?'sup':''}" onclick="event.stopPropagation();renderDoc(${JSON.stringify(f.key_phrase)})" style="cursor:pointer" title="Click to locate in the application">${esc(f.fact)}<span class="fk">chunk ${f.chunk_id}</span></li>`).join('');
     const body=`<div class="vbody">
-      <div class="conf" style="margin-bottom:4px">LƯỢT 1 — DỮ KIỆN AI TRÍCH (đã bỏ văn phong; bấm để tìm trong hồ sơ):</div>
-      ${facts?`<ul class="facts">${facts}</ul>`:'<div class="conf">Không có dữ kiện liên quan.</div>'}
-      <div class="conf" style="margin:8px 0 4px">LƯỢT 2 — PHÁN QUYẾT TRÊN DỮ KIỆN + TRÍCH DẪN HAI CHIỀU DO CODE CẮT:</div>
+      <div class="conf" style="margin-bottom:4px">PASS 1 — FACTS EXTRACTED BY AI (style removed; click to locate in the application):</div>
+      ${facts?`<ul class="facts">${facts}</ul>`:'<div class="conf">No relevant facts.</div>'}
+      <div class="conf" style="margin:8px 0 4px">PASS 2 — JUDGEMENT ON FACTS + TWO-SIDED QUOTATIONS CUT BY CODE:</div>
       <div class="exhibit">
-        <div class="exq"><div class="lbl"><span>Hướng dẫn · ${v.rule_id}</span><span style="color:var(--green)">✓ nguyên văn</span></div><div class="qt">"${esc(v.rq)}"</div></div>
+        <div class="exq"><div class="lbl"><span>Guideline · ${v.rule_id}</span><span style="color:var(--green)">✓ verbatim</span></div><div class="qt">"${esc(v.rq)}"</div></div>
         <div class="seal"><span class="s-${v.ai_verdict}">${VLBL[v.ai_verdict]}</span></div>
-        <div class="exq ${v.aq?'click':''}" onclick="event.stopPropagation();${v.aq?`renderDoc(${JSON.stringify(v.aq)})`:''}"><div class="lbl"><span>Hồ sơ · chunk ${v.chunk_id}</span><span style="color:${v.cite_ok?'var(--green)':'var(--red)'}">${v.aq?(v.cite_ok?'✓ khớp nguyên văn':'✗ KHÔNG KHỚP'):'— không có'}</span></div><div class="qt">${v.aq?'"'+esc(v.aq)+'"':'<i style="color:var(--muted)">Hồ sơ không đề cập tiêu chí này.</i>'}</div></div>
+        <div class="exq ${v.aq?'click':''}" onclick="event.stopPropagation();${v.aq?`renderDoc(${JSON.stringify(v.aq)})`:''}"><div class="lbl"><span>Application · chunk ${v.chunk_id}</span><span style="color:${v.cite_ok?'var(--green)':'var(--red)'}">${v.aq?(v.cite_ok?'✓ verbatim match':'✗ NO MATCH'):'— none'}</span></div><div class="qt">${v.aq?'"'+esc(v.aq)+'"':'<i style="color:var(--muted)">The application does not address this criterion.</i>'}</div></div>
       </div>
       <div class="ainote"><b>AI:</b> ${esc(v.note)}</div>
       <div class="ragline">retrieval: ${(v.retrieval||[]).map(x=>`chunk ${x.chunk}=${x.score}`).join(' · ')} · confidence=${v.ai_confidence}</div>
-      ${rev?decideBlock(v):conf?`<div class="decide"><b>Kết luận cuối:</b> <span class="chip c-${v.final_verdict}">${VLBL[v.final_verdict]}</span> — ${esc(v.confirmed_by)} · ${fmtT(v.confirmed_at)}${v.officer_reason?`<div style="margin-top:4px">Lý do: <span class="notranslate">${esc(v.officer_reason)}</span></div>`:''}</div>`:''}
+      ${rev?decideBlock(v):conf?`<div class="decide"><b>Final verdict:</b> <span class="chip c-${v.final_verdict}">${VLBL[v.final_verdict]}</span> — ${esc(v.confirmed_by)} · ${fmtT(v.confirmed_at)}${v.officer_reason?`<div style="margin-top:4px">Reason: <span class="notranslate">${esc(v.officer_reason)}</span></div>`:''}</div>`:''}
     </div>`;
     return `<div class="vrow ${attn?'attn':''} ${conf?'confirmed':''}" id="row-${v.rule_id}">${head}${body}</div>`;
   }).join('');
@@ -685,24 +684,24 @@ function renderMatrix(){
 }
 function decideBlock(v){
   const needH=v.ai_verdict==='unclear'||v.ai_verdict==='not_addressed';
-  if(v.confirmed_at)return `<div class="decide"><div class="row" style="margin:0"><b>Đã xác nhận:</b> <span class="chip c-${v.final_verdict}">${VLBL[v.final_verdict]}</span> <span class="conf">${esc(v.confirmed_by)} · ${fmtT(v.confirmed_at)}</span><span class="grow"></span><button class="btn sm ghost" onclick="event.stopPropagation();unconfirm('${v.rule_id}')">Bỏ xác nhận</button></div>${v.officer_reason?`<div style="font-size:13px;margin-top:4px">Lý do: <span class="notranslate">${esc(v.officer_reason)}</span></div>`:''}</div>`;
+  if(v.confirmed_at)return `<div class="decide"><div class="row" style="margin:0"><b>Confirmed:</b> <span class="chip c-${v.final_verdict}">${VLBL[v.final_verdict]}</span> <span class="conf">${esc(v.confirmed_by)} · ${fmtT(v.confirmed_at)}</span><span class="grow"></span><button class="btn sm ghost" onclick="event.stopPropagation();unconfirm('${v.rule_id}')">Unconfirm</button></div>${v.officer_reason?`<div style="font-size:13px;margin-top:4px">Reason: <span class="notranslate">${esc(v.officer_reason)}</span></div>`:''}</div>`;
   const fv=v.final_verdict||(needH?'':v.ai_verdict);
   const noNet=v.guard_level==='needs-manual-guard';
   const onlyLLM=v.guard_level==='llm-only';
   return `<div class="decide" onclick="event.stopPropagation()">
-    ${needH?`<div class="warn" style="margin:0 0 8px"><b>Bắt buộc con người quyết:</b> AI trả về "${VLBL[v.ai_verdict]}". Chọn kết luận cuối và ghi lý do (với CHƯA RÕ: ghi rõ cần bổ sung gì để đưa vào thư).</div>`:''}
-    ${noNet?`<div class="err" style="margin:0 0 8px"><b>⚠ Tiêu chí này KHÔNG có lưới đỡ mã nguồn.</b> Logic của nó (dẫn xuất / nhánh thay thế / ngưỡng theo điều kiện) mã nguồn không kiểm được, nên kết luận ĐẠT ở đây <b>chỉ dựa vào AI</b>. Chọn ĐẠT thì bạn phải <b>tự dán đoạn nguyên văn từ hồ sơ</b> (≥ ${META.attestation_min_chars||25} ký tự, gồm ≥ ${META.attestation_min_quote_words||5} từ liên tiếp có thật) — mã nguồn đối chiếu lại, viết cho đủ chữ sẽ không qua.</div>`:''}
-    ${onlyLLM?`<div class="warn" style="margin:0 0 8px"><b>Tiêu chí định tính — mã nguồn không có số liệu nào để kiểm.</b> Chọn ĐẠT phải kèm bằng chứng: dán đoạn nguyên văn từ hồ sơ (≥ ${META.attestation_min_chars_llm||15} ký tự) hoặc bấm nút dưới đây để xác nhận đúng câu AI đã trích.${v.aq?`<div class="row" style="margin:6px 0 0"><button class="btn sm ghost" onclick="ackAiQuote('${v.rule_id}')">✓ Tôi đã đọc và xác nhận câu trích của AI</button><span class="conf">"${esc((v.aq||'').slice(0,70))}…"</span></div>`:''}</div>`:''}
-    <div class="row" style="margin:0"><label>Kết luận cuối của cán bộ:</label>
-      <select id="fv-${v.rule_id}"><option value="" ${fv?'':'selected'} disabled>— chọn —</option>${['met','not_met','unclear'].map(o=>`<option value="${o}" ${fv===o?'selected':''}>${VLBL[o]}${o===v.ai_verdict?' (như AI)':''}</option>`).join('')}</select></div>
-    <textarea id="reason-${v.rule_id}" placeholder="${noNet?'BẮT BUỘC nếu chọn ĐẠT — ghi bằng chứng bạn đã tự đối chiếu (trích số liệu/câu văn trong hồ sơ)':'Lý do — bắt buộc khi sửa kết luận AI, khi AI CHƯA RÕ / KHÔNG ĐỀ CẬP, hoặc khi chọn CHƯA RÕ'}"></textarea>
-    <div class="row" style="margin:8px 0 0"><button class="btn sm green" onclick="confirmRule('${v.rule_id}')">Xác nhận tiêu chí này</button><span class="conf">ghi tên ${esc(OFFICER)} + thời điểm vào nhật ký</span></div></div>`;
+    ${needH?`<div class="warn" style="margin:0 0 8px"><b>Human decision required:</b> The AI returned "${VLBL[v.ai_verdict]}". Choose the final verdict and give a reason (for UNCLEAR: state what must be supplemented, for the letter).</div>`:''}
+    ${noNet?`<div class="err" style="margin:0 0 8px"><b>⚠ This criterion has NO code safety net.</b> Its logic (derived values / alternative branches / conditional thresholds) cannot be checked by code, so a MET verdict here <b>rests on the AI alone</b>. If you choose MET you must <b>paste a verbatim passage from the application yourself</b> (≥ ${META.attestation_min_chars||25} characters, including ≥ ${META.attestation_min_quote_words||5} consecutive real words) — code checks it against the text; padding to length will not pass.</div>`:''}
+    ${onlyLLM?`<div class="warn" style="margin:0 0 8px"><b>Qualitative criterion — code has no figures to check.</b> Choosing MET requires evidence: paste a verbatim passage from the application (≥ ${META.attestation_min_chars_llm||15} characters) or click the button below to confirm the AI's quotation.${v.aq?`<div class="row" style="margin:6px 0 0"><button class="btn sm ghost" onclick="ackAiQuote('${v.rule_id}')">✓ I have read and confirm the AI's quotation</button><span class="conf">"${esc((v.aq||'').slice(0,70))}…"</span></div>`:''}</div>`:''}
+    <div class="row" style="margin:0"><label>Officer's final verdict:</label>
+      <select id="fv-${v.rule_id}"><option value="" ${fv?'':'selected'} disabled>— choose —</option>${['met','not_met','unclear'].map(o=>`<option value="${o}" ${fv===o?'selected':''}>${VLBL[o]}${o===v.ai_verdict?' (as AI)':''}</option>`).join('')}</select></div>
+    <textarea id="reason-${v.rule_id}" placeholder="${noNet?'REQUIRED if you choose MET — record the evidence you checked yourself (quote figures/sentences from the application)':'Reason — required when overriding the AI, when the AI says UNCLEAR / NOT ADDRESSED, or when choosing UNCLEAR'}"></textarea>
+    <div class="row" style="margin:8px 0 0"><button class="btn sm green" onclick="confirmRule('${v.rule_id}')">Confirm this criterion</button><span class="conf">logs ${esc(OFFICER)} + timestamp</span></div></div>`;
 }
 function toggleRow(id){const r=$('row-'+id);if(!r)return;r.classList.toggle('open');if(r.classList.contains('open')){const v=CUR.verdicts.find(x=>x.rule_id===id);if(v&&v.aq)renderDoc(v.aq);}}
 async function confirmRule(id,ack){
   const verdict=$('fv-'+id).value,reason=$('reason-'+id).value.trim();
-  if(!verdict){toast('Chọn kết luận cuối trước',true);return;}
-  try{await api(`/cases/${CUR.case.id}/confirm`,{...officer(),rule_id:id,verdict,reason,evidence_ack:!!ack});toast(`Đã xác nhận ${id}`);await openCase(CUR.case.id);}
+  if(!verdict){toast('Choose the final verdict first',true);return;}
+  try{await api(`/cases/${CUR.case.id}/confirm`,{...officer(),rule_id:id,verdict,reason,evidence_ack:!!ack});toast(`Confirmed ${id}`);await openCase(CUR.case.id);}
   catch(e){toast(e.message,true);const r=$('row-'+id);if(r&&!r.classList.contains('open'))r.classList.add('open');}
 }
 async function ackAiQuote(id){
@@ -713,9 +712,9 @@ async function unconfirm(id){try{await api(`/cases/${CUR.case.id}/unconfirm`,{..
 
 /* ---------- AI assessment (streaming) ---------- */
 async function runAssessment(){
-  if(CUR.verdicts.length&&CUR.case.status==='in_review'&&!confirm('Đánh giá lại sẽ xoá mọi xác nhận hiện có của cán bộ. Tiếp tục?'))return;
+  if(CUR.verdicts.length&&CUR.case.status==='in_review'&&!confirm('Re-assessing will erase all existing officer confirmations. Continue?'))return;
   const st=$('runstatus');
-  st.innerHTML=`<div class="card"><div><span class="spin"></span><b>${esc(META.llm.model)}</b> đang đánh giá ${caseRules().length} tiêu chí (bộ ${esc((CUR.ruleset||{}).name||'')}) — mỗi tiêu chí 2 lượt gọi + guard chặn false-pass${META.llm.local?', model chạy local nên có thể mất vài phút':''}…</div><div class="progress"><div id="pbar"></div></div><div class="conf" id="pline"></div><div id="plive" style="margin-top:8px"></div></div>`;
+  st.innerHTML=`<div class="card"><div><span class="spin"></span><b>${esc(META.llm.model)}</b> is assessing ${caseRules().length} criteria (set ${esc((CUR.ruleset||{}).name||'')}) — 2 model calls per criterion + false-pass guard${META.llm.local?', local model, this may take a few minutes':''}…</div><div class="progress"><div id="pbar"></div></div><div class="conf" id="pline"></div><div id="plive" style="margin-top:8px"></div></div>`;
   $('actionbar').innerHTML='';$('matrix').innerHTML='';
   try{
     const res=await fetch(`/api/cases/${CUR.case.id}/assess`,{method:'POST'});
@@ -731,8 +730,8 @@ async function runAssessment(){
         if(ev.type==='done'){$('pbar').style.width='100%';}
       }
     }
-    toast('AI đã trả toàn bộ kết luận NHÁP');await openCase(CUR.case.id);
-  }catch(e){st.innerHTML=`<div class="err">Lỗi: ${esc(e.message)}</div>`;$('actionbar').innerHTML=`<div class="row"><button class="btn" onclick="runAssessment()">Thử lại</button></div>`;}
+    toast('AI returned all DRAFT verdicts');await openCase(CUR.case.id);
+  }catch(e){st.innerHTML=`<div class="err">Error: ${esc(e.message)}</div>`;$('actionbar').innerHTML=`<div class="row"><button class="btn" onclick="runAssessment()">Retry</button></div>`;}
 }
 
 /* ---------- review: spot-check, sign, reopen ---------- */
@@ -741,26 +740,26 @@ async function startReview(ack,reason){
   try{CUR=await api(`/cases/${CUR.case.id}/start-review`,{...officer(),acknowledge_coi:!!ack,coi_reason:reason||''});renderCase();}
   catch(e){
     if(e.status===428&&e.data&&e.data.need_coi_ack){
-      if(!confirm('CẢNH BÁO XUNG ĐỘT LỢI ÍCH\n\n'+e.data.coi.reasons.join('\n')+'\n\nBạn vẫn muốn nhận thẩm định hồ sơ này? (sẽ phải ghi lý do, có ghi nhật ký)'))return;
-      const r=prompt('Lý do tiếp tục dù có cảnh báo COI (bắt buộc, ≥ 8 ký tự):');
+      if(!confirm('CONFLICT OF INTEREST WARNING\n\n'+e.data.coi.reasons.join('\n')+'\n\nDo you still want to take this case? (a reason is required and logged)'))return;
+      const r=prompt('Reason for proceeding despite the COI warning (required, ≥ 8 characters):');
       if(r)return startReview(true,r);
     }else toast(e.message,true);
   }
 }
 function showSpotModal(){
   const c=CUR.case,r=caseRules().find(x=>x.id===c.spot_rule)||{};
-  $('spotbox').innerHTML=`<div class="blindtag">Spot-check mù · chống rubber-stamping</div>
-    <h2 style="margin-bottom:6px">Bạn kết luận tiêu chí này thế nào?</h2>
-    <p style="color:var(--muted);font-size:13.5px">Hệ thống chọn ngẫu nhiên <b>${r.id}</b> và <b>che toàn bộ đề xuất của AI</b> cho tới khi bạn tự trả lời. Kết quả được ghi nhật ký để đo mức độ độc lập của cán bộ so với AI.</p>
-    <div class="rulecard"><span class="rid">${r.id}</span><span class="rtype">${r.type}</span><div style="font-weight:600;margin:6px 0 2px">${esc(r.title_vi)}</div><div class="rquote">"${esc(r.quote)}"</div></div>
-    <div class="conf" style="margin:10px 0 4px">HỒ SƠ (đọc và tự đối chiếu):</div>
+  $('spotbox').innerHTML=`<div class="blindtag">Blind spot-check · anti rubber-stamping</div>
+    <h2 style="margin-bottom:6px">What is your verdict on this criterion?</h2>
+    <p style="color:var(--muted);font-size:13.5px">The system randomly picked <b>${r.id}</b> and <b>hid every AI suggestion</b> until you answer yourself. The result is logged to measure officer independence from the AI.</p>
+    <div class="rulecard"><span class="rid">${r.id}</span><span class="rtype">${r.type}</span><div style="font-weight:600;margin:6px 0 2px">${esc(r.title)}</div><div class="rquote">"${esc(r.quote)}"</div></div>
+    <div class="conf" style="margin:10px 0 4px">APPLICATION (read and check for yourself):</div>
     <div class="doc" style="max-height:260px">${esc(c.text)}</div>
     <div class="vopts">${['met','not_met','unclear','not_addressed'].map(o=>`<button onclick="submitSpot('${o}')"><span class="chip c-${o}">${VLBL[o]}</span></button>`).join('')}</div>`;
   $('spotmodal').classList.add('on');
 }
 async function submitSpot(v){
   try{const d=await api(`/cases/${CUR.case.id}/spot-check`,{...officer(),verdict:v});
-    toast(d.result.agree?`Spot-check ${d.result.rule}: bạn và AI cùng kết luận ${VLBL[v]}`:`Spot-check ${d.result.rule}: bạn = ${VLBL[v]}, AI = ${VLBL[d.result.ai]} — hãy xem kỹ tiêu chí này`, !d.result.agree);
+    toast(d.result.agree?`Spot-check ${d.result.rule}: you and the AI both concluded ${VLBL[v]}`:`Spot-check ${d.result.rule}: you = ${VLBL[v]}, AI = ${VLBL[d.result.ai]} — review this criterion carefully`, !d.result.agree);
     CUR={case:d.case,verdicts:d.verdicts,ai_masked:d.ai_masked};renderCase();
     if(!d.result.agree){$('row-'+d.result.rule)?.classList.add('open');}
   }catch(e){toast(e.message,true);}
@@ -769,51 +768,51 @@ function renderSignoff(){
   const c=CUR.case,vs=CUR.verdicts;
   if(c.status!=='in_review'||CUR.ai_masked){$('signoffbox').innerHTML='';return;}
   const done=vs.filter(v=>v.confirmed_at).length,n=vs.length,ov=vs.filter(v=>v.confirmed_at&&v.final_verdict!==v.ai_verdict).length;
-  $('signoffbox').innerHTML=`<div class="card" style="margin-top:14px"><h3 style="margin-top:0">Ký duyệt kết quả thẩm định</h3>
-    <div class="kv"><b>Cán bộ</b><span>${esc(c.officer)}</span><b>Bắt đầu</b><span class="mono">${fmtT(c.review_started_at)} (${since(c.review_started_at)} trước)</span><b>Đã xác nhận</b><span>${done}/${n} — sửa so với AI: ${ov}</span><b>Spot-check</b><span>${c.spot_rule}: cán bộ ${VLBL[c.spot_answer]||'?'} / AI ${VLBL[c.spot_ai]||'?'} ${c.spot_answer===c.spot_ai?'<span class="chip c-met">trùng</span>':'<span class="chip c-unclear">khác</span>'}</span></div>
-    <div class="row" style="margin-bottom:0"><button class="btn green" ${done<n?'disabled':''} onclick="signOff(false)">Ký duyệt với tư cách ${esc(c.officer)} (${done}/${n})</button><span class="conf">Server kiểm tra 100% xác nhận và tốc độ thẩm định (≥ ${META.min_seconds_per_rule}s/tiêu chí) trước khi chấp nhận chữ ký.</span></div></div>`;
+  $('signoffbox').innerHTML=`<div class="card" style="margin-top:14px"><h3 style="margin-top:0">Sign off the review</h3>
+    <div class="kv"><b>Officer</b><span>${esc(c.officer)}</span><b>Started</b><span class="mono">${fmtT(c.review_started_at)} (${since(c.review_started_at)} ago)</span><b>Confirmed</b><span>${done}/${n} — overrides vs AI: ${ov}</span><b>Spot-check</b><span>${c.spot_rule}: officer ${VLBL[c.spot_answer]||'?'} / AI ${VLBL[c.spot_ai]||'?'} ${c.spot_answer===c.spot_ai?'<span class="chip c-met">match</span>':'<span class="chip c-unclear">differs</span>'}</span></div>
+    <div class="row" style="margin-bottom:0"><button class="btn green" ${done<n?'disabled':''} onclick="signOff(false)">Sign off as ${esc(c.officer)} (${done}/${n})</button><span class="conf">The server checks 100% confirmation and review speed (≥ ${META.min_seconds_per_rule}s/criterion) before accepting the signature.</span></div></div>`;
 }
 async function signOff(ack){
-  try{await api(`/cases/${CUR.case.id}/sign`,{...officer(),acknowledge_fast:ack});toast('Đã ký duyệt');await openCase(CUR.case.id);}
-  catch(e){if(e.status===428){if(confirm(e.message+'\n\nVẫn ký duyệt?'))return signOff(true);await openCase(CUR.case.id);}else toast(e.message,true);}
+  try{await api(`/cases/${CUR.case.id}/sign`,{...officer(),acknowledge_fast:ack});toast('Signed off');await openCase(CUR.case.id);}
+  catch(e){if(e.status===428){if(confirm(e.message+'\n\nSign anyway?'))return signOff(true);await openCase(CUR.case.id);}else toast(e.message,true);}
 }
-async function reopenCase(){const r=prompt('Lý do mở lại hồ sơ đã ký (bắt buộc, ghi nhật ký):');if(!r)return;try{await api(`/cases/${CUR.case.id}/reopen`,{...officer(),reason:r});await openCase(CUR.case.id);}catch(e){toast(e.message,true);}}
+async function reopenCase(){const r=prompt('Reason for reopening a signed case (required, logged):');if(!r)return;try{await api(`/cases/${CUR.case.id}/reopen`,{...officer(),reason:r});await openCase(CUR.case.id);}catch(e){toast(e.message,true);}}
 async function askSupplement(){
   const pre=CUR.verdicts.filter(v=>['unclear','not_addressed'].includes(v.ai_verdict)).map(v=>v.rule_id+': '+(v.note||'').slice(0,60)).join('; ');
-  const items=prompt('Danh mục cần người nộp bổ sung (gửi kèm thư/email cho họ):',pre||'');if(!items)return;
-  const days=prompt('Hạn nộp bổ sung (số ngày):','15');if(days===null)return;
-  try{await api(`/cases/${CUR.case.id}/request-supplement`,{...officer(),items,days:parseInt(days)||15});toast('Đã chuyển sang Chờ bổ sung hồ sơ');await openCase(CUR.case.id);await loadCases();}
+  const items=prompt('Items the applicant must supply (sent to them by letter/email):',pre||'');if(!items)return;
+  const days=prompt('Supplement deadline (days):','15');if(days===null)return;
+  try{await api(`/cases/${CUR.case.id}/request-supplement`,{...officer(),items,days:parseInt(days)||15});toast('Moved to Awaiting supplement');await openCase(CUR.case.id);await loadCases();}
   catch(e){toast(e.message,true);}
 }
 async function changeRuleset(){
   const list=(META.rulesets||[]).map(r=>`${r.id} — ${r.name} v${r.version}`).join('\n');
-  const rid=prompt('Gán bộ tiêu chí (nhập id):\n'+list, (CUR.ruleset||{}).id||'');if(!rid)return;
-  try{await api(`/cases/${CUR.case.id}/ruleset`,{...officer(),ruleset_id:rid.trim()});toast('Đã gán bộ tiêu chí — cần đánh giá lại');await openCase(CUR.case.id);}
+  const rid=prompt('Assign criteria set (enter id):\n'+list, (CUR.ruleset||{}).id||'');if(!rid)return;
+  try{await api(`/cases/${CUR.case.id}/ruleset`,{...officer(),ruleset_id:rid.trim()});toast('Criteria set assigned — re-assessment required');await openCase(CUR.case.id);}
   catch(e){toast(e.message,true);}
 }
 async function doCountersign(){
-  if(!isManager()){toast('Ký cấp 2 cần đăng nhập bằng tài khoản QUẢN LÝ (khác người thẩm định)',true);return;}
-  try{await api(`/cases/${CUR.case.id}/countersign`,officer());toast('Quản lý đã ký cấp 2 — được phép phát hành thư');await openCase(CUR.case.id);}
+  if(!isManager()){toast('Countersigning requires a MANAGER account (not the reviewing officer)',true);return;}
+  try{await api(`/cases/${CUR.case.id}/countersign`,officer());toast('Manager countersigned — the letter may be issued');await openCase(CUR.case.id);}
   catch(e){toast(e.message,true);}
 }
 
 /* ---------- letter ---------- */
 function renderLetter(){
   const c=CUR.case,idx=META.states.indexOf(c.status);
-  if(idx<META.states.indexOf('signed')){$('letterbox').innerHTML=CUR.verdicts.length&&!CUR.ai_masked?`<div class="warn" style="margin-top:14px">Thư kết quả chỉ được soạn <b>sau khi</b> cán bộ ký duyệt 100% tiêu chí — server từ chối mọi đường tắt.</div>`:'';return;}
+  if(idx<META.states.indexOf('signed')){$('letterbox').innerHTML=CUR.verdicts.length&&!CUR.ai_masked?`<div class="warn" style="margin-top:14px">The outcome letter can only be drafted <b>after</b> the officer signs off 100% of the criteria — the server refuses every shortcut.</div>`:'';return;}
   const fails=CUR.verdicts.filter(v=>v.final_verdict!=='met');
-  let h=`<div class="card" style="margin-top:14px"><h3 style="margin-top:0">Thư kết quả cho người nộp hồ sơ</h3><div class="conf">Soạn từ ${CUR.verdicts.length} kết luận cuối đã ký bởi ${esc(c.officer)} · ${fails.length} tiêu chí không đạt / cần bổ sung · tiếng Anh B1, có mục bổ sung và khiếu nại</div>`;
+  let h=`<div class="card" style="margin-top:14px"><h3 style="margin-top:0">Outcome letter to the applicant</h3><div class="conf">Drafted from ${CUR.verdicts.length} final verdicts signed by ${esc(c.officer)} · ${fails.length} criteria not met / to supplement · B1 English, with supplement and appeal sections</div>`;
   if(c.status==='signed'&&CUR.needs_countersign){
-    h+=`<div class="warn"><b>Cần chữ ký cấp 2:</b> hồ sơ có ${fails.length} tiêu chí không đạt/chưa rõ — theo quy trình, một <b>quản lý</b> (khác cán bộ thẩm định, qua kiểm COI) phải ký xác nhận trước khi phát hành thư.</div>
-    <div class="row">${isManager()&&OFFICER!==c.officer?`<button class="btn green" onclick="doCountersign()">Ký xác nhận cấp quản lý (${esc(OFFICER)})</button>`:`<span class="chip c-unclear">Chờ QUẢN LÝ đăng nhập để ký cấp 2</span>`}<span class="conf">máy chủ kiểm: tài khoản có vai trò quản lý · khác người thẩm định · không xung đột lợi ích</span></div>`;
+    h+=`<div class="warn"><b>Countersignature required:</b> this case has ${fails.length} criteria not met/unclear — by procedure, a <b>manager</b> (other than the reviewing officer, COI-checked) must countersign before the letter is issued.</div>
+    <div class="row">${isManager()&&OFFICER!==c.officer?`<button class="btn green" onclick="doCountersign()">Countersign as manager (${esc(OFFICER)})</button>`:`<span class="chip c-unclear">Waiting for a MANAGER to sign in and countersign</span>`}<span class="conf">server checks: manager role · not the reviewing officer · no conflict of interest</span></div>`;
   }
-  else if(c.status==='signed')h+=`<div class="row"><button class="btn" id="genletter" onclick="genLetter()">Soạn thư (${esc(META.llm.model)})</button>${META.letter_template?'<span class="chip c-met">theo mẫu thư của đơn vị (data/letter-template.txt)</span>':'<span class="conf">chưa có mẫu đơn vị — dùng khung mặc định</span>'}</div>`;
-  if(c.status==='letter_drafted')h+=`<div class="draftmark">NHÁP — CHƯA GỬI</div><textarea class="letter-edit" id="lettertext">${esc(c.letter)}</textarea><div class="row"><button class="btn green" onclick="approveLetter()">Phê duyệt nội dung thư (${esc(OFFICER)})</button><button class="btn ghost" onclick="genLetter()">Soạn lại</button><span class="conf">Có thể sửa tay trước khi phê duyệt — nhật ký ghi "có chỉnh sửa".</span></div>`;
-  if(c.status==='letter_approved')h+=`<div class="draftmark appmark">ĐÃ PHÊ DUYỆT — ${esc(c.officer)} · ${fmtT(c.letter_approved_at)}</div><div class="letter">${esc(c.letter)}</div><div class="row"><button class="btn ghost" onclick="window.print()">In / lưu PDF</button></div>`;
+  else if(c.status==='signed')h+=`<div class="row"><button class="btn" id="genletter" onclick="genLetter()">Draft letter (${esc(META.llm.model)})</button>${META.letter_template?'<span class="chip c-met">using the office template (data/letter-template.txt)</span>':'<span class="conf">no office template — default skeleton</span>'}</div>`;
+  if(c.status==='letter_drafted')h+=`<div class="draftmark">DRAFT — NOT SENT</div><textarea class="letter-edit" id="lettertext">${esc(c.letter)}</textarea><div class="row"><button class="btn green" onclick="approveLetter()">Approve letter content (${esc(OFFICER)})</button><button class="btn ghost" onclick="genLetter()">Redraft</button><span class="conf">You may edit by hand before approving — the log records "edited".</span></div>`;
+  if(c.status==='letter_approved')h+=`<div class="draftmark appmark">APPROVED — ${esc(c.officer)} · ${fmtT(c.letter_approved_at)}</div><div class="letter">${esc(c.letter)}</div><div class="row"><button class="btn ghost" onclick="window.print()">Print / save PDF</button></div>`;
   $('letterbox').innerHTML=h+'</div>';
 }
-async function genLetter(){const b=$('genletter');if(b){b.disabled=true;b.innerHTML='<span class="spin"></span>Đang soạn…';}try{await api(`/cases/${CUR.case.id}/letter`,officer());await openCase(CUR.case.id);}catch(e){toast(e.message,true);await openCase(CUR.case.id);}}
-async function approveLetter(){try{await api(`/cases/${CUR.case.id}/letter/approve`,{...officer(),text:$('lettertext').value});toast('Thư đã được phê duyệt');await openCase(CUR.case.id);}catch(e){toast(e.message,true);}}
+async function genLetter(){const b=$('genletter');if(b){b.disabled=true;b.innerHTML='<span class="spin"></span>Drafting…';}try{await api(`/cases/${CUR.case.id}/letter`,officer());await openCase(CUR.case.id);}catch(e){toast(e.message,true);await openCase(CUR.case.id);}}
+async function approveLetter(){try{await api(`/cases/${CUR.case.id}/letter/approve`,{...officer(),text:$('lettertext').value});toast('Letter approved');await openCase(CUR.case.id);}catch(e){toast(e.message,true);}}
 
 /* ================= bias lab ================= */
 function fillBiasSelects(){
@@ -827,15 +826,15 @@ async function assessQuiet(id,label){
     for(const l of ls){if(!l.trim())continue;const ev=JSON.parse(l);if(ev.type==='progress')label.textContent=`${id}: ${ev.rule} (${ev.i+1}/${ev.n})`;if(ev.type==='error')throw new Error(ev.detail);}}
 }
 async function runBias(){
-  const a=$('biasA').value,b=$('biasB').value,out=$('biasout');if(a===b){toast('Chọn 2 hồ sơ khác nhau',true);return;}
-  $('biasbtn').disabled=true;out.innerHTML=`<div class="card"><span class="spin"></span>Đang đánh giá… <span class="conf" id="biaslbl"></span></div>`;
+  const a=$('biasA').value,b=$('biasB').value,out=$('biasout');if(a===b){toast('Choose two different applications',true);return;}
+  $('biasbtn').disabled=true;out.innerHTML=`<div class="card"><span class="spin"></span>Assessing… <span class="conf" id="biaslbl"></span></div>`;
   try{
     for(const id of [a,b]){const c=CASES.find(x=>x.id===id);if(!c.n_rules){await assessQuiet(id,$('biaslbl'));}}
     const d=await api('/bias/compare',{a,b});
     const pct=d.match/d.total;
-    out.innerHTML=`<div class="tiles"><div class="tile ${pct===1?'ok':'bad'}"><div class="v">${d.match}/${d.total}</div><div class="l">tiêu chí cho kết luận giống nhau</div></div><div class="tile ${pct===1?'ok':'bad'}"><div class="v">${(pct*100).toFixed(0)}%</div><div class="l">bias score (kỳ vọng 100% với cặp cùng dữ kiện)</div></div></div>
-      <div class="tblwrap"><table><tr><th>Tiêu chí</th><th>${a}</th><th>${b}</th><th>Kết quả</th></tr>${d.rows.map(r=>`<tr><td><span class="rid">${r.rule}</span> ${esc(r.title)}</td><td><span class="chip c-${r.a}">${VLBL[r.a]}</span> <span class="conf">${r.a_conf}</span></td><td><span class="chip c-${r.b}">${VLBL[r.b]}</span> <span class="conf">${r.b_conf}</span></td><td>${r.match?'<span class="chip c-met">trùng</span>':'<span class="chip c-not_met">KHÁC — cần xem</span>'}</td></tr>`).join('')}</table></div>
-      <div class="note">${pct===1?'Hai bản cho kết luận giống nhau trên mọi tiêu chí: phán quyết dựa trên dữ kiện, không bị văn phong chi phối.':'Có tiêu chí khác nhau — mở từng hồ sơ để xem dữ kiện AI trích ở lượt 1 khác nhau thế nào (đây là failure case cần ghi nhận).'}</div>`;
+    out.innerHTML=`<div class="tiles"><div class="tile ${pct===1?'ok':'bad'}"><div class="v">${d.match}/${d.total}</div><div class="l">criteria with the same verdict</div></div><div class="tile ${pct===1?'ok':'bad'}"><div class="v">${(pct*100).toFixed(0)}%</div><div class="l">bias score (expected 100% for a same-facts pair)</div></div></div>
+      <div class="tblwrap"><table><tr><th>Criterion</th><th>${a}</th><th>${b}</th><th>Result</th></tr>${d.rows.map(r=>`<tr><td><span class="rid">${r.rule}</span> ${esc(r.title)}</td><td><span class="chip c-${r.a}">${VLBL[r.a]}</span> <span class="conf">${r.a_conf}</span></td><td><span class="chip c-${r.b}">${VLBL[r.b]}</span> <span class="conf">${r.b_conf}</span></td><td>${r.match?'<span class="chip c-met">match</span>':'<span class="chip c-not_met">DIFFERS — review</span>'}</td></tr>`).join('')}</table></div>
+      <div class="note">${pct===1?'Both versions get the same verdict on every criterion: the judgement rests on facts, not on writing style.':'Some criteria differ — open each application to see how the pass-1 facts differ (this is a failure case to record).'}</div>`;
     await loadCases();
   }catch(e){out.innerHTML=`<div class="err">${esc(e.message)}</div>`;}
   $('biasbtn').disabled=false;
@@ -845,8 +844,8 @@ async function runBias(){
 async function renderAudit(){
   const cid=$('auditcase').value;
   try{const d=await api('/audit'+(cid?`?case_id=${cid}`:''));
-    $('chainstate').innerHTML=d.chain.ok?`<span class="chip c-met">✓ chuỗi toàn vẹn · ${d.chain.total} sự kiện · head ${d.chain.head.slice(0,12)}…</span>`:`<span class="chip c-not_met">✗ CHUỖI BỊ ĐỨT tại sự kiện #${d.chain.broken_at_seq} — dữ liệu đã bị sửa</span>`;
-    $('auditlog').innerHTML=d.events.map(e=>`<div class="ev ${e.role==='system'?'sys':''} ${/CẢNH BÁO|LỖI|MỞ LẠI/.test(e.action)?'warnrow':''}"><span>${e.ts.replace('T',' ')}</span><span><b>${esc(e.actor)}</b>${e.case_id?`<br><span class="conf">${e.case_id}</span>`:''}</span><span>${esc(e.action)}${e.detail?`<details><summary>chi tiết</summary><pre class="json">${esc(JSON.stringify(e.detail,null,1))}</pre></details>`:''}</span><span class="h">#${e.seq} · ${e.hash.slice(0,16)}… ← ${e.prev_hash.slice(0,16)}…</span></div>`).join('')||'<div class="ev">— Chưa có sự kiện —</div>';
+    $('chainstate').innerHTML=d.chain.ok?`<span class="chip c-met">✓ chain intact · ${d.chain.total} events · head ${d.chain.head.slice(0,12)}…</span>`:`<span class="chip c-not_met">✗ CHAIN BROKEN at event #${d.chain.broken_at_seq} — data was modified</span>`;
+    $('auditlog').innerHTML=d.events.map(e=>`<div class="ev ${e.role==='system'?'sys':''} ${/WARNING|ERROR|REOPENED|BLOCK/.test(e.action)?'warnrow':''}"><span>${e.ts.replace('T',' ')}</span><span><b>${esc(e.actor)}</b>${e.case_id?`<br><span class="conf">${e.case_id}</span>`:''}</span><span>${esc(e.action)}${e.detail?`<details><summary>details</summary><pre class="json">${esc(JSON.stringify(e.detail,null,1))}</pre></details>`:''}</span><span class="h">#${e.seq} · ${e.hash.slice(0,16)}… ← ${e.prev_hash.slice(0,16)}…</span></div>`).join('')||'<div class="ev">— No events yet —</div>';
   }catch(e){$('auditlog').innerHTML=`<div class="ev">${esc(e.message)}</div>`;}
 }
 
@@ -859,29 +858,29 @@ async function uploadCase(){
     else c=await api('/cases',{applicant:$('upApplicant').value,org:$('upOrg').value,directorate:$('upDir').value,text:$('upText').value,officer:OFFICER,ruleset_id:$('upRuleset').value||''});
     const ing=c.ingest;
     let extra='';
-    if(ing&&(ing.n_tables||ing.scanned_pages.length))extra=` · ${ing.n_tables} bảng giữ cấu trúc${ing.scanned_pages.length?` · ${ing.scanned_pages.length} trang scan CẦN OCR`:''}`;
-    msg.innerHTML=`<span class="chip c-met">Đã tạo ${c.id}${extra}</span>`;toast(`Đã tạo hồ sơ ${c.id}${extra}`);await loadCases();go('case',c.id);
+    if(ing&&(ing.n_tables||ing.scanned_pages.length))extra=` · ${ing.n_tables} tables kept structured${ing.scanned_pages.length?` · ${ing.scanned_pages.length} scanned pages NEED OCR`:''}`;
+    msg.innerHTML=`<span class="chip c-met">Created ${c.id}${extra}</span>`;toast(`Created application ${c.id}${extra}`);await loadCases();go('case',c.id);
   }catch(e){msg.innerHTML=`<span class="chip c-not_met">${esc(e.message)}</span>`;}
 }
-async function refreshTplState(){try{const d=await api('/letter-template');$('tplstate').innerHTML=d.active?'<span class="chip c-met">ĐANG DÙNG MẪU ĐƠN VỊ</span>':'<span class="chip c-not_addressed">chưa có mẫu — dùng khung mặc định</span>';}catch(e){}}
+async function refreshTplState(){try{const d=await api('/letter-template');$('tplstate').innerHTML=d.active?'<span class="chip c-met">USING OFFICE TEMPLATE</span>':'<span class="chip c-not_addressed">no template — default skeleton</span>';}catch(e){}}
 async function genTemplate(){
-  const btn=$('tplGenBtn'),msg=$('tplmsg');btn.disabled=true;msg.innerHTML='<span class="spin"></span>AI đang dịch ngược quy tắc…';
+  const btn=$('tplGenBtn'),msg=$('tplmsg');btn.disabled=true;msg.innerHTML='<span class="spin"></span>AI is reverse-engineering the rules…';
   try{const d=await api('/letter-template/generate',{rules_text:$('tplRules').value});
-    msg.innerHTML='<span class="chip c-unclear">BẢN NHÁP — rà rồi Lưu</span>';
+    msg.innerHTML='<span class="chip c-unclear">DRAFT — review then Save</span>';
     $('tplout').innerHTML=`<textarea id="tplDraft" class="letter-edit" style="min-height:300px;font-family:'IBM Plex Mono',monospace;font-size:12px">${esc(d.template)}</textarea>
-      <div class="row"><button class="btn green" onclick="saveTemplate()">Lưu làm mẫu chính thức (${esc(OFFICER)})</button><span class="conf">${esc(d.note)}</span></div>`;
+      <div class="row"><button class="btn green" onclick="saveTemplate()">Save as official template (${esc(OFFICER)})</button><span class="conf">${esc(d.note)}</span></div>`;
   }catch(e){msg.innerHTML=`<span class="chip c-not_met">${esc(e.message)}</span>`;}
   btn.disabled=false;
 }
 async function saveTemplate(){
-  try{await api('/letter-template',{...officer(),template:$('tplDraft').value});toast('Đã lưu mẫu thư đơn vị — thư kết quả từ giờ theo mẫu này');META.letter_template=true;refreshTplState();}
+  try{await api('/letter-template',{...officer(),template:$('tplDraft').value});toast('Office template saved — outcome letters now follow it');META.letter_template=true;refreshTplState();}
   catch(e){toast(e.message,true);}
 }
 async function extractRules(){
   const msg=$('glmsg');msg.innerHTML='<span class="spin"></span>';
   try{const d=await api('/rules/extract',{text:$('glText').value});
-    msg.innerHTML=`<span class="chip c-met">${d.rules.length} tiêu chí ứng viên</span>`;
-    $('glout').innerHTML=`<div class="tblwrap" style="margin-top:10px"><table><tr><th>ID</th><th>Loại</th><th>Tiêu đề</th><th>Nguyên văn</th><th>Kiểm tra</th></tr>${d.rules.map(r=>`<tr><td class="mono">${esc(r.id)}</td><td class="mono">${esc(r.type)}</td><td>${esc(r.title_vi)}</td><td class="mono" style="font-size:12px">"${esc(r.quote)}"</td><td>${r.verbatim_ok?'<span class="chip c-met">nguyên văn</span>':'<span class="chip c-not_met">KHÔNG khớp — bỏ</span>'}</td></tr>`).join('')}</table></div><div class="conf" style="margin-top:6px">${esc(d.note)}</div>`;
+    msg.innerHTML=`<span class="chip c-met">${d.rules.length} candidate criteria</span>`;
+    $('glout').innerHTML=`<div class="tblwrap" style="margin-top:10px"><table><tr><th>ID</th><th>Type</th><th>Title</th><th>Verbatim</th><th>Check</th></tr>${d.rules.map(r=>`<tr><td class="mono">${esc(r.id)}</td><td class="mono">${esc(r.type)}</td><td>${esc(r.title)}</td><td class="mono" style="font-size:12px">"${esc(r.quote)}"</td><td>${r.verbatim_ok?'<span class="chip c-met">verbatim</span>':'<span class="chip c-not_met">NO match — dropped</span>'}</td></tr>`).join('')}</table></div><div class="conf" style="margin-top:6px">${esc(d.note)}</div>`;
   }catch(e){msg.innerHTML=`<span class="chip c-not_met">${esc(e.message)}</span>`;}
 }
 

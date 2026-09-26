@@ -6,6 +6,6 @@ numpy>=1.26
 python-multipart>=0.0.9
 pypdf>=4.0
 pdfplumber>=0.11
-# --- Tùy chọn: RAG semantic thay TF-IDF (đặt EMBED_BACKEND=bge) ---
+# --- Optional: semantic RAG instead of TF-IDF (set EMBED_BACKEND=bge) ---
 # sentence-transformers>=3.0
 # faiss-cpu>=1.8

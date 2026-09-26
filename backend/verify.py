@@ -1,7 +1,7 @@
-"""verify.py — trích dẫn "by construction".
-Model 8B KHÔNG được tự sinh quote (dễ sửa chữ). Model chỉ chọn chunk + key_phrase ngắn;
-code tìm CÂU nguyên văn trong chunk khớp key_phrase nhất và dùng câu đó làm trích dẫn.
-Lớp 2: string-match lại quote với văn bản gốc — luôn phải pass; nếu fail là bug, gắn cờ.
+"""verify.py — quotations "by construction".
+An 8B model must NOT generate quotations itself (it easily alters words). The model only picks a chunk and a short
+key_phrase; code finds the VERBATIM sentence in that chunk that best matches the key_phrase and uses it as the quotation.
+Layer 2: string-match the quotation against the original text again — it must always pass; a failure is a bug and is flagged.
 """
 from difflib import SequenceMatcher
 from .rag import split_sentences
@@ -12,7 +12,7 @@ def _norm(s: str) -> str:
 
 
 def extract_quote(chunk_text: str, key_phrase: str, max_words: int = 40) -> str:
-    """Trả về 1 câu NGUYÊN VĂN trong chunk khớp key_phrase nhất (fuzzy)."""
+    """Return the ONE verbatim sentence of the chunk that best matches key_phrase (fuzzy)."""
     sentences = split_sentences(chunk_text)
     if not sentences:
         return chunk_text[:200]
@@ -24,7 +24,7 @@ def extract_quote(chunk_text: str, key_phrase: str, max_words: int = 40) -> str:
         for s in sentences:
             sn = _norm(s)
             score = SequenceMatcher(None, kp, sn).ratio()
-            if kp in sn:               # chứa trọn key phrase -> ưu tiên tuyệt đối
+            if kp in sn:               # contains the whole key phrase -> absolute priority
                 score += 1.0
             if score > best_score:
                 best, best_score = s, score
@@ -40,12 +40,12 @@ def quote_in_source(quote: str, source: str) -> bool:
 
 
 def attestation_evidence(attestation: str, source: str, min_words: int = 5):
-    """Kiểm CƠ HỌC (không dùng LLM) xem lời chứng thực của cán bộ có TRÍCH THẬT từ hồ sơ không.
+    """MECHANICAL check (no LLM) that an officer's attestation really QUOTES the application.
 
-    Trả về đoạn trích nguyên văn dài nhất (≥ min_words từ liên tiếp) mà cán bộ đã dán vào lời
-    chứng thực và thực sự tồn tại trong hồ sơ; None nếu không có. Đây là lớp chống "gõ đủ chữ
-    cho qua cổng": muốn xác nhận ĐẠT thì phải dán được bằng chứng có thật, mắt phải chạm hồ sơ.
-    Không phán đoán ngữ nghĩa nên không có false positive kiểu LLM.
+    Returns the longest verbatim passage (≥ min_words consecutive words) that the officer pasted into the attestation
+    and that actually exists in the application; None if there is none. This is the layer against "type enough
+    characters to get through the gate": to confirm MET you must paste real evidence, so your eyes must touch the
+    application. No semantic judgement is involved, so there are no LLM-style false positives.
     """
     src = _norm(source)
     words = _norm(attestation).split()
@@ -53,7 +53,7 @@ def attestation_evidence(attestation: str, source: str, min_words: int = 5):
         return None
     best = None
     for i in range(len(words) - min_words + 1):
-        for j in range(len(words), i + min_words - 1, -1):   # thử đoạn dài trước
+        for j in range(len(words), i + min_words - 1, -1):   # try the longest span first
             seg = " ".join(words[i:j])
             if len(seg.split()) <= len(best.split() if best else []):
                 break

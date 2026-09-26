@@ -20,14 +20,14 @@ Budget: The total requested budget, including indirect costs, is $480,000 over t
 
 Departmental Letter: A single 2-page letter from Prof. Alice Wong, Chair of the Department of Economics, is included in Supplementary Documents.
 
-=== TÀI LIỆU: Báo cáo tài chính đính kèm (financial-report.pdf) ===
+=== DOCUMENT: Attached financial report (financial-report.pdf) ===
 
 HARROWGATE UNIVERSITY — SPONSORED PROJECTS OFFICE
 FIVE-YEAR BUDGET REPORT FOR PROPOSAL CAREER-2026-SLOANE
 
 Prepared for the Directorate for Social, Behavioral and Economic Sciences.
 
-[BẢNG 1]
+[TABLE 1]
 | Year | Personnel | Equipment | Travel | Indirect | Total |
 | 1 | $148,000 | $52,000 | $18,000 | $86,000 | $304,000 |
 | 2 | $150,000 | $12,000 | $18,000 | $88,000 | $268,000 |
@@ -35,11 +35,11 @@ Prepared for the Directorate for Social, Behavioral and Economic Sciences.
 | 4 | $158,000 | $8,000 | $20,000 | $92,000 | $278,000 |
 | 5 | $162,000 | $92,000 | $22,000 | $120,000 | $396,000 |
 | Grand Total | $772,000 | $174,000 | $98,000 | $476,000 | $1,520,000 |
-[/BẢNG 1]
+[/TABLE 1]
 
 The total budget including indirect costs for the five-year duration is $1,520,000 as detailed above. Annual revenue of the associated university lab is $500,000.
 
-=== TÀI LIỆU: Lý lịch khoa học đính kèm (cv.pdf) ===
+=== DOCUMENT: Attached CV (cv.pdf) ===
 
 CURRICULUM VITAE — VICTOR SLOANE
 

@@ -7,23 +7,23 @@
   "label_scope": "target",
   "labels_generated_at": "2026-09-14T15:32:54",
   "labels_approved_at": "2026-09-14T15:35:00",
-  "evaluated_at": "2026-09-19T12:16:09",
+  "evaluated_at": "2026-09-26T18:08:14",
   "provisional": false,
   "labels_approved": true,
-  "approved_by": "Rà kỹ thuật (nhà cung cấp) — chưa thay cán bộ đơn vị",
+  "approved_by": "Technical review (vendor) — not a substitute for the office's officers",
   "primary_metric": "target",
   "target": {
     "correct": 1,
     "total": 2,
     "false_pass": 0,
     "routed_to_officer": 1,
-    "note": "THƯỚC ĐO CHÍNH — vi phạm cài sẵn có bị bắt không"
+    "note": "PRIMARY METRIC — is the planted violation caught"
   },
   "control": {
     "correct": 2,
     "total": 2,
     "false_alarm": 0,
-    "note": "rule mục tiêu chấm trên hồ sơ sạch — báo động giả"
+    "note": "target rules assessed on the clean application — false alarms"
   },
   "secondary": null,
   "excluded_weak_labels": 0,
@@ -39,7 +39,7 @@
       "kind": "target",
       "pred": "unclear",
       "truth": "not_met",
-      "note": "[NGHI FALSE-PASS] Hồ sơ nêu tổ chức thuộc diện income tax exempt — bị loại trừ (code khớp mẫu chữ) |"
+      "note": "[SUSPECTED FALSE PASS] Application states the organisation is income tax exempt — excluded (code pat"
     }
   ]
 }

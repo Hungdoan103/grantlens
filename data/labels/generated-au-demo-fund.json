@@ -11,10 +11,10 @@
   ],
   "generated_at": "2026-09-14T16:02:27",
   "approved": true,
-  "approved_by": "Rà kỹ thuật (nhà cung cấp) — chưa thay cán bộ đơn vị",
+  "approved_by": "Technical review (vendor) — not a substitute for the office's officers",
   "approved_at": "2026-09-14T16:03:17",
   "n_needs_review": 0,
-  "note": "Vi phạm do mã nguồn chốt trước (câu dữ kiện được guard/verifier xác nhận, văn bản phải chứa nguyên văn); chặn lộ đáp án bằng mã nguồn; verifier dùng model tách khỏi hệ bị đo. CHƯA PHÊ CHUẨN — số đo từ bộ này là TẠM (provisional). Rà văn bản, xử lý hết cờ rồi --approve.",
+  "note": "Violations fixed by code first (the fact sentence is confirmed by guard/verifier and the text must contain it verbatim); answer leaks blocked by code; the verifier uses a model separate from the system under test. NOT APPROVED — measurements from this set are PROVISIONAL. Review the texts, resolve every flag, then --approve.",
   "cases": [
     {
       "id": "GEN-au-demo-fund-00-clean",
@@ -45,7 +45,7 @@
         "A02"
       ],
       "control_confirmed_by_reviewer": {
-        "A02": "Người rà đọc văn bản: 'project budget of $275,000 for the grant period' ≥ $200,000 — thoả rõ A02; verifier gemma dao động yes/no. Câu lặp bọc [[...]] là rác định dạng, không gắn tiêu chí nào"
+        "A02": "Reviewer read the text: 'project budget of $275,000 for the grant period' ≥ $200,000 — clearly satisfies A02; the gemma verifier's yes/no is unstable. The duplicated sentence wrapped in [[...]] is formatting noise, not a content problem."
       }
     },
     {
@@ -76,7 +76,7 @@
         ]
       },
       "status": "approved",
-      "target_confirmed_by_reviewer": "Vi phạm rõ bằng số: ngân sách $199,999 < $200,000 (guard mã nguồn xác nhận). Câu 'remaining within the specified financial parameters' khẳng định NGƯỢC dữ kiện — là bẫy gây nhiễu làm case khó hơn, không lộ đáp án"
+      "target_confirmed_by_reviewer": "Clear numeric violation: budget $199,999 < $200,000 (confirmed by the code guard). The sentence 'remaining within the specified financial parameters' asserts the OPPOSITE of the fact — a fair trap for a real application; label kept."
     }
   ],
   "skipped": []

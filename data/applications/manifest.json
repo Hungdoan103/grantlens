@@ -6,7 +6,7 @@
       "applicant": "Elena Vasquez",
       "org": "Riverside State University",
       "directorate": "CISE",
-      "scenario": "Hồ sơ đạt rõ",
+      "scenario": "Clearly eligible",
       "tags": [
         "pass"
       ]
@@ -17,7 +17,7 @@
       "applicant": "Tuan Pham",
       "org": "Lakeshore Technical University",
       "directorate": "CISE",
-      "scenario": "Trượt rõ (4 tiêu chí) — tiếng Anh đơn giản",
+      "scenario": "Clearly ineligible (4 criteria) — plain English",
       "tags": [
         "fail",
         "plain-english"
@@ -29,7 +29,7 @@
       "applicant": "Sarah Okonkwo",
       "org": "Coastal Institute for Ocean Research",
       "directorate": "BIO",
-      "scenario": "Chưa rõ — cần người xử lý",
+      "scenario": "Unclear — needs a human",
       "tags": [
         "unclear"
       ]
@@ -40,7 +40,7 @@
       "applicant": "Amara Diallo",
       "org": "Northgate University",
       "directorate": "MPS",
-      "scenario": "Bias test #1 — bản trau chuốt",
+      "scenario": "Bias test #1 — polished version",
       "tags": [
         "bias-pair",
         "polished"
@@ -53,7 +53,7 @@
       "applicant": "Amara Diallo",
       "org": "Northgate University",
       "directorate": "MPS",
-      "scenario": "Bias test #1 — bản tiếng Anh đơn giản",
+      "scenario": "Bias test #1 — plain-English version",
       "tags": [
         "bias-pair",
         "plain-english"
@@ -66,7 +66,7 @@
       "applicant": "Marcus Bell",
       "org": "Pinecrest Community College",
       "directorate": "MPS",
-      "scenario": "Trượt — vượt giới hạn 3 lần dự thi",
+      "scenario": "Ineligible — exceeds the 3-submission limit",
       "tags": [
         "fail",
         "community-college"
@@ -78,7 +78,7 @@
       "applicant": "Lukas Brandt",
       "org": "Technische Universität Freiburg",
       "directorate": "CISE",
-      "scenario": "Trượt — tổ chức nước ngoài",
+      "scenario": "Ineligible — foreign organisation",
       "tags": [
         "fail"
       ]
@@ -89,7 +89,7 @@
       "applicant": "Priya Raman",
       "org": "Bayview University",
       "directorate": "BIO",
-      "scenario": "Trượt — ngân sách BIO < $500k, thư 3 trang",
+      "scenario": "Ineligible — BIO budget < $500k, 3-page letter",
       "tags": [
         "fail",
         "threshold"
@@ -101,7 +101,7 @@
       "applicant": "Kenji Watanabe",
       "org": "Mountain Ridge University",
       "directorate": "ENG",
-      "scenario": "Trượt — thuyết minh 18 trang, có cost sharing",
+      "scenario": "Ineligible — 18-page description, cost sharing present",
       "tags": [
         "fail"
       ]
@@ -112,7 +112,7 @@
       "applicant": "Olivia Grant",
       "org": "Harborview State University",
       "directorate": "SBE",
-      "scenario": "Trượt — đã nhận CAREER; lĩnh vực chưa rõ",
+      "scenario": "Ineligible — already received CAREER; field unclear",
       "tags": [
         "fail",
         "unclear"
@@ -124,7 +124,7 @@
       "applicant": "Ahmed Hassan",
       "org": "Prairie Valley University",
       "directorate": "MPS",
-      "scenario": "Thiếu thông tin — 4 mục không đề cập",
+      "scenario": "Missing information — 4 items not addressed",
       "tags": [
         "incomplete"
       ]
@@ -135,7 +135,7 @@
       "applicant": "Nguyen Thi Lan",
       "org": "Cascade Institute of Technology",
       "directorate": "CISE",
-      "scenario": "Bias test #2 — bản trau chuốt",
+      "scenario": "Bias test #2 — polished version",
       "tags": [
         "bias-pair",
         "polished",
@@ -149,7 +149,7 @@
       "applicant": "Nguyen Thi Lan",
       "org": "Cascade Institute of Technology",
       "directorate": "CISE",
-      "scenario": "Bias test #2 — bản tiếng Anh đơn giản (Việt)",
+      "scenario": "Bias test #2 — plain-English version (Vietnamese writer)",
       "tags": [
         "bias-pair",
         "plain-english",
@@ -163,7 +163,7 @@
       "applicant": "Samuel Osei",
       "org": "Great Plains Museum of Natural Science",
       "directorate": "GEO",
-      "scenario": "Đạt — bảo tàng phi lợi nhuận, vị trí tương đương tenure-track",
+      "scenario": "Eligible — non-profit museum, tenure-track-equivalent position",
       "tags": [
         "pass",
         "edge"
@@ -175,7 +175,7 @@
       "applicant": "Rosa Martinez",
       "org": "Desert Sun Community College",
       "directorate": "EDU",
-      "scenario": "Đạt — tiếng Anh đơn giản, ngân sách đúng mức tối thiểu",
+      "scenario": "Eligible — plain English, budget exactly at the minimum",
       "tags": [
         "pass",
         "plain-english",
@@ -188,7 +188,7 @@
       "applicant": "Victor Sloane",
       "org": "Harrowgate University",
       "directorate": "SBE",
-      "scenario": "Test gian lận — số liệu không khớp giữa các tài liệu",
+      "scenario": "Fraud test — figures disagree across documents",
       "tags": [
         "fraud",
         "crosscheck"
@@ -201,7 +201,7 @@
       "org": "Barossa Ridge Wines Pty Ltd",
       "directorate": "Wine Australia",
       "ruleset": "au-wine-tourism-r8",
-      "scenario": "Bẫy quỹ Úc — khai có cellar door nhưng báo cáo tài chính lộ wholesale-only",
+      "scenario": "AU fund trap — claims a cellar door but the financials reveal wholesale-only",
       "tags": [
         "au",
         "fraud",
@@ -215,7 +215,7 @@
       "org": "Mallee Plains Holdings Pty Ltd",
       "directorate": "NSW RAA",
       "ruleset": "au-onfarm-water",
-      "scenario": "Bẫy quỹ Úc #2 — trồng trọt thuần túy xin quỹ chăn nuôi, vượt trần tài sản + trần rebate",
+      "scenario": "AU fund trap #2 — cropping-only farm applying to a grazing fund, over the asset cap + rebate cap",
       "tags": [
         "au",
         "fund-trap"

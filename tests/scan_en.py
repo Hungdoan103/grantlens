@@ -1,13 +1,14 @@
-"""Quét giao diện ở chế độ EN bằng Playwright: đi qua mọi màn, mở mọi hồ sơ theo trạng thái, bung mọi dòng tiêu chí,
-liệt kê text node / placeholder / title còn dính dấu tiếng Việt (ngoài vùng nguyên văn). Mục tiêu: 0 dòng.
-  python scan_en.py [url]      (server chạy sẵn, GRANTLENS_LLM=mock)"""
+"""Scan the UI (default English) with Playwright: visit every screen, open one case per status, expand every criterion row,
+and list text nodes / placeholders / titles that still contain Vietnamese (outside verbatim regions). Target: 0 lines.
+  python tests/scan_en.py [url]      (server already running with GRANTLENS_LLM=mock; needs data/demo-accounts.txt)"""
 import asyncio, re, sys, pathlib, json
 from playwright.async_api import async_playwright
 
-SP = pathlib.Path(__file__).parent
+import tempfile
+SP = pathlib.Path(tempfile.gettempdir())   # screenshots go to the temp directory, never into the repo
 URL = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8022/"
 acc = {}
-for line in (pathlib.Path(r"E:/AI/project_earn_money/FILE_CHUA_NEN/grantlens-qwen/data/demo-accounts.txt")).read_text(encoding="utf-8").splitlines():
+for line in (pathlib.Path(__file__).resolve().parent.parent / "data" / "demo-accounts.txt").read_text(encoding="utf-8").splitlines():
     m = re.match(r"(officer|manager|auditor)\s+(\S+)\s+(\S+)", line)
     if m:
         acc[m.group(2)] = m.group(3)
@@ -40,7 +41,6 @@ async def main():
         b = await p.chromium.launch()
         ctx = await b.new_context(viewport={"width": 1400, "height": 900})
         host = re.sub(r"^https?://", "", URL).split("/")[0].split(":")[0]
-        await ctx.add_cookies([{"name": "gl_lang", "value": "en", "domain": host, "path": "/"}])
         pg = await ctx.new_page()
         pg.on("pageerror", lambda e: errs.append(str(e)))
         dialogs = []
@@ -55,12 +55,12 @@ async def main():
         for v in ["cases", "rules", "bias", "audit", "ingest"]:
             await pg.keyboard.press({"cases": "2", "rules": "3", "bias": "4", "audit": "5", "ingest": "6"}[v]); await pg.wait_for_timeout(1800)
             await grab(pg, v)
-        # rules: từng bộ
+        # rules: each criteria set
         await pg.keyboard.press("3"); await pg.wait_for_timeout(500)
         ids = await pg.evaluate("Array.from(document.querySelectorAll('#rulesetsel option')).map(o=>o.value)")
         for rid in ids:
             await pg.select_option("#rulesetsel", rid); await pg.wait_for_timeout(1500); await grab(pg, "rules/" + rid)
-        # cases: một hồ sơ mỗi trạng thái
+        # cases: one application per status
         cases = await pg.evaluate("fetch('/api/cases').then(r=>r.json()).then(d=>d.cases)")
         seen = {}
         for c in cases:
@@ -80,11 +80,11 @@ async def main():
         await pg.keyboard.press("1"); await pg.wait_for_timeout(1000)
         await pg.screenshot(path=str(SP / "ui-en-dash.png"))
         await b.close()
-    print("\n=== còn dính tiếng Việt:", len(found), "dòng ===")
+    print("\n=== Vietnamese left:", len(found), "lines ===")
     for k in sorted(found):
         print(f"[{'/'.join(sorted(found[k]))[:60]}] {k}")
-    print("\nhộp thoại:", dialogs)
-    print("lỗi JS:", errs or "không")
+    print("\ndialogs:", dialogs)
+    print("JS errors:", errs or "none")
 
 
 asyncio.run(main())

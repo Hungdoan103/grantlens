@@ -1,21 +1,21 @@
-"""workflow.py — máy trạng thái ca hồ sơ + các quy tắc nghiệp vụ "trust twist".
+"""workflow.py — case state machine + the "trust twist" business rules.
 
-Trạng thái:
+States:
   new -> assessed -> in_review -> signed -> letter_drafted -> letter_approved
               ^          |  ^                  |
-              |          v  +---- reopen ------+   (phải ghi lý do)
-              +-- awaiting_supplement              (yêu cầu bổ sung, nhiều vòng, có hạn SLA)
+              |          v  +---- reopen ------+   (a reason is mandatory)
+              +-- awaiting_supplement              (supplement requested, several rounds, SLA deadline)
 
-Quy tắc bắt buộc kiểm tra Ở SERVER (không tin frontend):
-  1. Multi-GO + versioning: mỗi hồ sơ KHÓA bộ tiêu chí (id + version + nội dung) tại lần đánh giá
-     đầu — đổi rule giữa chừng không ảnh hưởng hồ sơ đang xử lý; snapshot lưu trong case.
-  2. Spot-check mù; xác nhận từng dòng; sửa AI / AI chưa rõ -> bắt buộc lý do.
-  3. Ký duyệt: 100% tiêu chí + ngưỡng thời gian tối thiểu (GRANTLENS_MIN_SECONDS_PER_RULE, mặc định 15s/tiêu chí).
-  4. KÝ CẤP 2: hồ sơ có tiêu chí KHÔNG ĐẠT / CHƯA RÕ chỉ được phát hành thư sau khi một CÁN BỘ QUẢN LÝ
-     (role=manager trong sổ cán bộ, khác người thẩm định, qua kiểm COI) ký xác nhận.
-  5. Vòng bổ sung hồ sơ: cán bộ yêu cầu bổ sung (danh mục + hạn) -> chờ tài liệu -> đính kèm -> đánh giá lại;
-     số vòng được đếm và ghi nhật ký.
-  6. False-pass guard (backend/guards.py) chạy trong pipeline đánh giá — xem core.assess_rule.
+Rules enforced ON THE SERVER (the frontend is never trusted):
+  1. Multi-GO + versioning: every case LOCKS its criteria set (id + version + content) at the first assessment —
+     changing rules mid-way does not affect cases in progress; the snapshot is stored in the case.
+  2. Blind spot-check; line-by-line confirmation; overriding the AI / AI unclear -> reason mandatory.
+  3. Sign-off: 100% of criteria confirmed + minimum time threshold (GRANTLENS_MIN_SECONDS_PER_RULE, default 15s/criterion).
+  4. COUNTERSIGNATURE: a case with NOT MET / UNCLEAR criteria may only issue a letter after a MANAGER
+     (role=manager in the officer register, different from the reviewing officer, COI-checked) countersigns.
+  5. Supplement rounds: the officer requests a supplement (items + deadline) -> wait for documents -> attach -> re-assess;
+     the number of rounds is counted and logged.
+  6. False-pass guard (backend/guards.py) runs inside the assessment pipeline — see core.assess_rule.
 """
 import json, os, random
 from datetime import date, timedelta
@@ -23,16 +23,16 @@ from . import store, core, rag, coi, feedback, crosscheck
 from . import verify as verify_mod
 
 STATES = ["new", "assessed", "in_review", "awaiting_supplement", "signed", "letter_drafted", "letter_approved"]
-STATE_VI = {"new": "Mới", "assessed": "AI đã đánh giá (nháp)", "in_review": "Đang thẩm định",
-            "awaiting_supplement": "Chờ bổ sung hồ sơ", "signed": "Đã ký duyệt",
-            "letter_drafted": "Thư nháp", "letter_approved": "Thư đã phê duyệt"}
+STATE_LABELS = {"new": "New", "assessed": "AI assessed (draft)", "in_review": "Under review",
+                "awaiting_supplement": "Awaiting supplement", "signed": "Signed off",
+                "letter_drafted": "Letter drafted", "letter_approved": "Letter approved"}
 FINAL_ALLOWED = ["met", "not_met", "unclear"]
 MIN_SECONDS_PER_RULE = int(os.environ.get("GRANTLENS_MIN_SECONDS_PER_RULE", "15"))
-# Xác nhận ĐẠT trên tiêu chí KHÔNG có lưới đỡ mã nguồn phải kèm bằng chứng tự kiểm chứng.
-# Ma sát chia theo tầng rủi ro để không làm phiền vô ích chỗ đã có lưới đỡ:
-#   needs-manual-guard : phải TỰ nhập, dài hơn, không được mượn câu trích của AI
-#   llm-only           : nhập ngắn hơn HOẶC xác nhận đúng câu trích AI đã cắt (phải mở ra đọc)
-# Cả hai trường hợp tự nhập đều bị mã nguồn kiểm: phải chứa đoạn NGUYÊN VĂN có thật trong hồ sơ.
+# Confirming MET on a criterion WITHOUT a code safety net requires self-verified evidence.
+# Friction is tiered by risk so that criteria with a safety net are not bothered needlessly:
+#   needs-manual-guard : must be typed by the officer, longer, may not borrow the AI's quotation
+#   llm-only           : shorter input OR confirmation of the quotation the AI cut (the row must be opened to read it)
+# Both typed variants are checked by code: they must contain a VERBATIM passage that really exists in the application.
 ATTESTATION_MIN_CHARS = int(os.environ.get("GRANTLENS_ATTESTATION_MIN_CHARS", "25"))
 ATTESTATION_MIN_CHARS_LLM_ONLY = int(os.environ.get("GRANTLENS_ATTESTATION_MIN_CHARS_LLM", "15"))
 ATTESTATION_MIN_QUOTE_WORDS = int(os.environ.get("GRANTLENS_ATTESTATION_MIN_QUOTE_WORDS", "5"))
@@ -47,7 +47,7 @@ class WorkflowError(Exception):
 def _case(case_id):
     c = store.get_case(case_id)
     if not c:
-        raise WorkflowError("Không có hồ sơ này", 404)
+        raise WorkflowError("No such application", 404)
     return c
 
 
@@ -56,7 +56,7 @@ def _rank(s):
 
 
 def case_rules(c: dict) -> list:
-    """Bộ tiêu chí CỦA HỒ SƠ NÀY: snapshot đã khóa nếu có, ngược lại bộ mặc định/được gán."""
+    """The criteria set OF THIS CASE: the locked snapshot when present, otherwise the default/assigned set."""
     snap = c.get("ruleset_snapshot")
     if snap and snap.get("rules"):
         return snap["rules"]
@@ -64,7 +64,7 @@ def case_rules(c: dict) -> list:
 
 
 def needs_countersign(c: dict, vs: list = None) -> bool:
-    """Hồ sơ đã ký mà có tiêu chí không đạt/chưa rõ -> phải có quản lý ký cấp 2 mới phát hành thư."""
+    """A signed case with not-met/unclear criteria -> a manager must countersign before the letter is issued."""
     if _rank(c["status"]) < _rank("signed") or c.get("countersigned_by"):
         return False
     vs = vs if vs is not None else store.get_verdicts(c["id"])
@@ -75,7 +75,7 @@ def needs_countersign(c: dict, vs: list = None) -> bool:
 def set_ruleset(case_id, ruleset_id, officer, role="officer"):
     c = _case(case_id)
     if _rank(c["status"]) >= _rank("signed"):
-        raise WorkflowError("Hồ sơ đã ký — không đổi được bộ tiêu chí.")
+        raise WorkflowError("The case is signed — the criteria set cannot be changed.")
     try:
         rs = core.get_ruleset(ruleset_id, require_approved=True)
     except KeyError as e:
@@ -84,7 +84,7 @@ def set_ruleset(case_id, ruleset_id, officer, role="officer"):
     store.update_case(case_id, ruleset_id=rs["id"], ruleset_version=rs["version"], ruleset_snapshot=None,
                       status="new", review_started_at=None, officer=None,
                       spot_rule=None, spot_answer=None, spot_ai=None)
-    store.log(officer, f"Gán bộ tiêu chí '{rs['name']}' v{rs['version']} cho {case_id} — kết quả cũ (nếu có) bị vô hiệu",
+    store.log(officer, f"Assigned criteria set '{rs['name']}' v{rs['version']} to {case_id} — previous results (if any) voided",
               case_id, role, {"ruleset": rs["id"], "version": rs["version"]})
     return store.get_case(case_id, with_text=False)
 
@@ -93,12 +93,12 @@ def set_ruleset(case_id, ruleset_id, officer, role="officer"):
 def can_assess(case_id):
     c = _case(case_id)
     if _rank(c["status"]) >= _rank("signed"):
-        raise WorkflowError("Hồ sơ đã ký duyệt — muốn đánh giá lại phải Mở lại hồ sơ (có lý do) trước.")
+        raise WorkflowError("The case is signed off — reopen it (with a reason) before re-assessing.")
     return c
 
 
 def assess_stream(case_id, actor="AI"):
-    """Generator NDJSON events; lưu từng verdict ngay khi có."""
+    """Generator of NDJSON events; every verdict is saved as soon as it is available."""
     c = can_assess(case_id)
     had = bool(store.get_verdicts(case_id))
     store.clear_verdicts(case_id)
@@ -106,11 +106,11 @@ def assess_stream(case_id, actor="AI"):
                       spot_rule=None, spot_answer=None, spot_ai=None, letter=None, letter_status=None,
                       countersigned_by=None, countersigned_at=None)
     info = core.llm.describe()
-    # --- KHÓA bộ tiêu chí tại thời điểm đánh giá đầu tiên (versioning) ---
+    # --- LOCK the criteria set at the first assessment (versioning) ---
     snap = c.get("ruleset_snapshot")
     if snap and snap.get("rules"):
         rs = snap
-        store.log(actor, f"Dùng bộ tiêu chí ĐÃ KHÓA của hồ sơ: {rs['name']} v{rs['version']}", case_id, "system",
+        store.log(actor, f"Using the case's LOCKED criteria set: {rs['name']} v{rs['version']}", case_id, "system",
                   {"ruleset": rs["id"], "version": rs["version"], "locked": True})
     else:
         try:
@@ -120,89 +120,84 @@ def assess_stream(case_id, actor="AI"):
         rs = {k: full[k] for k in ("id", "name", "version", "rules")}
         store.update_case(case_id, ruleset_id=rs["id"], ruleset_version=rs["version"],
                           ruleset_snapshot=json.dumps(rs, ensure_ascii=False))
-        store.log(actor, f"KHÓA bộ tiêu chí cho hồ sơ: {rs['name']} v{rs['version']} ({len(rs['rules'])} tiêu chí) — "
-                  "rule đổi sau này không ảnh hưởng hồ sơ đang xử lý", case_id, "system",
+        store.log(actor, f"LOCKED criteria set for this case: {rs['name']} v{rs['version']} ({len(rs['rules'])} criteria) — "
+                  "later rule changes do not affect cases in progress", case_id, "system",
                   {"ruleset": rs["id"], "version": rs["version"], "n_rules": len(rs["rules"])})
     rules = rs["rules"]
-    store.log(actor, f"Bắt đầu đánh giá AI{' (đánh giá LẠI, xoá xác nhận cũ)' if had else ''}", case_id, "system",
+    store.log(actor, f"Started AI assessment{' (RE-assessment, old confirmations erased)' if had else ''}", case_id, "system",
               {"llm": info["model"], "backend": info["backend"],
                "pipeline": "RAG -> extract facts -> judge on facts -> guard false-pass -> cite"})
-    # --- đối chiếu chéo chống gian lận (deterministic, chạy trước AI) ---
+    # --- anti-cheating cross-check (deterministic, runs before the AI) ---
     cc = run_crosscheck(case_id, c["text"])
     yield {"type": "crosscheck", **cc}
     meta = {"directorate": c.get("directorate") or ""}
     for i, rule in enumerate(rules):
-        yield {"type": "progress", "rule": rule["id"], "title": rule["title_vi"], "i": i, "n": len(rules)}
+        yield {"type": "progress", "rule": rule["id"], "title": rule["title"], "i": i, "n": len(rules)}
         v = core.assess_rule(case_id, c["text"], rule, ruleset_id=rs["id"], meta=meta)
-        # Bản tiếng Anh của ghi chú AI cho giao diện EN: một lượt dịch riêng, KHÔNG đụng prompt phán quyết.
-        # Tắt bằng GRANTLENS_NOTE_EN=off (kiểm thử/đo không cần).
-        if os.environ.get("GRANTLENS_NOTE_EN", "on") != "off":
-            from . import i18n
-            v["note_en"] = i18n.note_to_en(v.get("note"))
         store.save_ai_verdict(case_id, v)
         if v.get("guard") and v["guard"]["action"] in ("override", "flag"):
-            store.log("Hệ thống", f"GUARD chặn false-pass {rule['id']}: {v['guard']['reason']} → {v['v']}",
+            store.log("System", f"GUARD blocked a false pass on {rule['id']}: {v['guard']['reason']} → {v['v']}",
                       case_id, "system", {"rule": rule["id"], "guard": v["guard"]})
-        # "type" của rule (qualitative/quantitative) từng ghi đè "type": "verdict" -> giao diện không nhận được sự kiện
+        # the rule's own "type" (qualitative/quantitative) used to overwrite "type": "verdict" -> the UI never received the event
         yield {**v, "rule_type": v.get("type"), "type": "verdict"}
     store.update_case(case_id, status="assessed", assessed_at=store.now(),
                       llm_model=info["model"], embed_backend=rag.EMBED_BACKEND)
     vs = store.get_verdicts(case_id)
     summary = {k: sum(1 for x in vs if x["ai_verdict"] == k) for k in core.VERDICTS}
-    store.log(actor, f"Hoàn tất {len(rules)} kết luận NHÁP", case_id, "system",
+    store.log(actor, f"Completed {len(rules)} DRAFT verdicts", case_id, "system",
               {"summary": summary, "mock": info["is_mock"]})
     yield {"type": "done", "summary": summary}
 
 
-def run_crosscheck(case_id: str, text: str = None, actor: str = "Hệ thống") -> dict:
-    """Đối chiếu chéo tài liệu trong hồ sơ; lưu vào case + ghi nhật ký."""
+def run_crosscheck(case_id: str, text: str = None, actor: str = "System") -> dict:
+    """Cross-check the documents of a case; store the result in the case + log it."""
     c = _case(case_id) if text is None else None
     cc = crosscheck.run(text if text is not None else c["text"])
     store.update_case(case_id, crosscheck=json.dumps(cc, ensure_ascii=False))
     if cc["findings"]:
-        store.log(actor, f"ĐỐI CHIẾU CHÉO {case_id}: {len(cc['findings'])} điểm KHÔNG KHỚP giữa {cc['n_docs']} tài liệu — "
-                  + "; ".join(f.get("label_vi", f["category"]) for f in cc["findings"]),
+        store.log(actor, f"CROSS-CHECK {case_id}: {len(cc['findings'])} DISCREPANCIES across {cc['n_docs']} documents — "
+                  + "; ".join(f.get("label", f["category"]) for f in cc["findings"]),
                   case_id, "system", {"risk": cc["risk"], "findings": len(cc["findings"])})
     else:
-        store.log(actor, f"Đối chiếu chéo {case_id}: {cc['n_docs']} tài liệu nhất quán", case_id, "system",
+        store.log(actor, f"Cross-check {case_id}: {cc['n_docs']} documents consistent", case_id, "system",
                   {"risk": cc["risk"]})
     return cc
 
 
 def attach_document(case_id: str, name: str, text: str, officer: str, role="officer"):
-    """Thêm tài liệu đính kèm (trước khi ký; kể cả khi đang Chờ bổ sung). Đánh giá AI cũ bị vô hiệu."""
+    """Add an attached document (before sign-off; also while Awaiting supplement). Previous AI results are voided."""
     c = _case(case_id)
     if _rank(c["status"]) >= _rank("signed"):
-        raise WorkflowError("Hồ sơ đã ký — muốn thêm tài liệu phải Mở lại hồ sơ trước.")
+        raise WorkflowError("The case is signed — reopen it before adding documents.")
     text = text.replace("\r\n", "\n").strip()
     if len(text.split()) < 10:
-        raise WorkflowError("Tài liệu đính kèm quá ngắn", 400)
+        raise WorkflowError("Attached document is too short", 400)
     was_supp = c["status"] == "awaiting_supplement"
-    new_text = c["text"].rstrip() + f"\n\n=== TÀI LIỆU: {name.strip()} ===\n\n" + text
+    new_text = c["text"].rstrip() + f"\n\n=== DOCUMENT: {name.strip()} ===\n\n" + text
     store.clear_verdicts(case_id)
     store.update_case(case_id, text=new_text, status="new", review_started_at=None, officer=None,
                       spot_rule=None, spot_answer=None, spot_ai=None)
-    rnd = f" — hoàn tất vòng bổ sung #{c.get('supplement_round') or 0}" if was_supp else ""
-    store.log(officer, f"Đính kèm tài liệu '{name}' ({len(text.split())} từ){rnd} — kết quả AI cũ bị vô hiệu, cần đánh giá lại",
+    rnd = f" — completes supplement round #{c.get('supplement_round') or 0}" if was_supp else ""
+    store.log(officer, f"Attached document '{name}' ({len(text.split())} words){rnd} — previous AI results voided, re-assessment required",
               case_id, role, {"doc": name, "words": len(text.split()), "supplement_round": c.get("supplement_round") or 0})
     return run_crosscheck(case_id, new_text, actor=officer)
 
 
-# ---------- vòng bổ sung hồ sơ (nhiều lần, có hạn) ----------
+# ---------- supplement rounds (several, with a deadline) ----------
 def request_supplement(case_id, items, days, officer, role="officer"):
     c = _case(case_id)
     if c["status"] not in ("in_review", "assessed"):
-        raise WorkflowError("Chỉ yêu cầu bổ sung khi hồ sơ đang thẩm định / đã có kết quả AI")
+        raise WorkflowError("A supplement can only be requested while the case is under review / has AI results")
     items = (items or "").strip()
     if len(items) < 8:
-        raise WorkflowError("Ghi rõ danh mục cần bổ sung (≥ 8 ký tự)", 400)
+        raise WorkflowError("State the items to supplement (≥ 8 characters)", 400)
     days = max(1, min(int(days or 15), 90))
     rnd = (c.get("supplement_round") or 0) + 1
     supp = {"round": rnd, "items": items, "requested_at": store.now(),
             "deadline": (date.today() + timedelta(days=days)).isoformat(), "by": officer}
     store.update_case(case_id, status="awaiting_supplement", supplement=json.dumps(supp, ensure_ascii=False),
                       supplement_round=rnd)
-    store.log(officer, f"YÊU CẦU BỔ SUNG (vòng #{rnd}, hạn {supp['deadline']}): {items}", case_id, role, supp)
+    store.log(officer, f"SUPPLEMENT REQUESTED (round #{rnd}, due {supp['deadline']}): {items}", case_id, role, supp)
     return store.get_case(case_id, with_text=False)
 
 
@@ -210,31 +205,31 @@ def request_supplement(case_id, items, days, officer, role="officer"):
 def start_review(case_id, officer, role="officer", acknowledge_coi=False, coi_reason=""):
     c = _case(case_id)
     if not officer.strip():
-        raise WorkflowError("Cần tên cán bộ thẩm định", 400)
+        raise WorkflowError("Reviewing officer name required", 400)
     if c["status"] == "in_review":
         return c
     if c["status"] != "assessed":
-        raise WorkflowError(f"Chưa thể thẩm định ở trạng thái '{STATE_VI[c['status']]}'")
+        raise WorkflowError(f"Cannot start the review in status '{STATE_LABELS[c['status']]}'")
     ci = coi.check(officer, c)
     if ci["level"] == "block":
-        store.log("Hệ thống", f"CHẶN COI: {officer} không được thẩm định {case_id} — " + " | ".join(ci["reasons"]),
+        store.log("System", f"COI BLOCK: {officer} may not review {case_id} — " + " | ".join(ci["reasons"]),
                   case_id, "system", {"coi": ci})
-        raise WorkflowError("Xung đột lợi ích — không thể nhận hồ sơ này: " + " ".join(ci["reasons"]), 409,
+        raise WorkflowError("Conflict of interest — cannot take this case: " + " ".join(ci["reasons"]), 409,
                             {"coi": ci})
     if ci["level"] == "warn":
         if not acknowledge_coi:
-            raise WorkflowError("Cảnh báo xung đột lợi ích: " + " ".join(ci["reasons"]) +
-                                " — ghi lý do và xác nhận để tiếp tục.", 428,
+            raise WorkflowError("Conflict-of-interest warning: " + " ".join(ci["reasons"]) +
+                                " — give a reason and confirm to continue.", 428,
                                 {"coi": ci, "need_coi_ack": True})
         if len((coi_reason or "").strip()) < 8:
-            raise WorkflowError("Tiếp tục với cảnh báo COI bắt buộc ghi lý do (≥ 8 ký tự)", 400, {"coi": ci})
-        store.log(officer, f"Xác nhận tiếp tục dù cảnh báo COI — lý do: {coi_reason}. Cảnh báo: " + " | ".join(ci["reasons"]),
+            raise WorkflowError("Proceeding despite the COI warning requires a reason (≥ 8 characters)", 400, {"coi": ci})
+        store.log(officer, f"Proceeded despite the COI warning — reason: {coi_reason}. Warning: " + " | ".join(ci["reasons"]),
                   case_id, role, {"coi": ci, "reason": coi_reason})
     vs = store.get_verdicts(case_id)
     spot = random.choice(vs)
     store.update_case(case_id, status="in_review", officer=officer, review_started_at=store.now(),
                       spot_rule=spot["rule_id"], spot_ai=spot["ai_verdict"], spot_answer=None)
-    store.log(officer, f"Bắt đầu thẩm định. Spot-check mù: tiêu chí {spot['rule_id']} (AI bị che tới khi trả lời)",
+    store.log(officer, f"Review started. Blind spot-check: criterion {spot['rule_id']} (AI hidden until answered)",
               case_id, role, {"spot_rule": spot["rule_id"]})
     return store.get_case(case_id)
 
@@ -246,12 +241,12 @@ def spot_pending(c):
 def spot_check(case_id, verdict, officer, role="officer"):
     c = _case(case_id)
     if not spot_pending(c):
-        raise WorkflowError("Không có spot-check đang chờ")
+        raise WorkflowError("No spot-check pending")
     if verdict not in core.VERDICTS:
-        raise WorkflowError("Kết luận không hợp lệ", 400)
+        raise WorkflowError("Invalid verdict", 400)
     agree = verdict == c["spot_ai"]
     store.update_case(case_id, spot_answer=verdict)
-    store.log(officer, f"Spot-check {c['spot_rule']}: cán bộ = {verdict}, AI = {c['spot_ai']} → {'TRÙNG' if agree else 'KHÁC'}",
+    store.log(officer, f"Spot-check {c['spot_rule']}: officer = {verdict}, AI = {c['spot_ai']} → {'MATCH' if agree else 'DIFFERS'}",
               case_id, role, {"rule": c["spot_rule"], "officer": verdict, "ai": c["spot_ai"], "agree": agree})
     return {"rule": c["spot_rule"], "officer": verdict, "ai": c["spot_ai"], "agree": agree}
 
@@ -263,67 +258,68 @@ def _norm_reason(s: str) -> str:
 def confirm(case_id, rule_id, final_verdict, reason, officer, role="officer", evidence_ack: bool = False):
     c = _case(case_id)
     if c["status"] != "in_review":
-        raise WorkflowError("Chỉ xác nhận được khi hồ sơ đang thẩm định")
+        raise WorkflowError("Confirmation is only possible while the case is under review")
     if spot_pending(c):
-        raise WorkflowError("Phải hoàn thành spot-check mù trước khi xem/xác nhận đề xuất của AI")
+        raise WorkflowError("Complete the blind spot-check before viewing/confirming the AI's suggestions")
     v = store.get_verdict(case_id, rule_id)
     if not v:
-        raise WorkflowError("Không có tiêu chí này", 404)
+        raise WorkflowError("No such criterion", 404)
     if final_verdict not in FINAL_ALLOWED:
-        raise WorkflowError('Kết luận cuối phải là ĐẠT / KHÔNG ĐẠT / CHƯA RÕ (không được để "không đề cập")', 400)
+        raise WorkflowError('The final verdict must be MET / NOT MET / UNCLEAR ("not addressed" is not allowed)', 400)
     reason = (reason or "").strip()
     changed = final_verdict != v["ai_verdict"]
-    guarded = "[CHẶN FALSE-PASS]" in (v.get("note") or "") or "[NGHI FALSE-PASS]" in (v.get("note") or "")
+    guarded = "[FALSE-PASS BLOCKED]" in (v.get("note") or "") or "[SUSPECTED FALSE PASS]" in (v.get("note") or "")
     need_reason = changed or v["ai_verdict"] in ("unclear", "not_addressed") or final_verdict == "unclear"
     if need_reason and len(reason) < 8:
-        raise WorkflowError("Tiêu chí này bắt buộc ghi lý do (≥ 8 ký tự) trước khi xác nhận", 400)
+        raise WorkflowError("This criterion requires a reason (≥ 8 characters) before confirmation", 400)
     if guarded and final_verdict == "met" and len(reason) < 8:
-        raise WorkflowError("Tiêu chí này bị guard cảnh báo vi phạm — chọn ĐẠT phải ghi rõ lý do bác cảnh báo", 400)
-    # --- MA SÁT THEO TẦNG RỦI RO: không để AI một mình ở BẤT KỲ tiêu chí nào thiếu lưới đỡ code ---
+        raise WorkflowError("The guard flagged a violation on this criterion — choosing MET requires a reason for overriding the warning", 400)
+    # --- RISK-TIERED FRICTION: never leave the AI alone on ANY criterion without a code safety net ---
     attest_kind = None
     level = v.get("guard_level") or "llm-only"
     if final_verdict == "met" and level in ("needs-manual-guard", "llm-only"):
-        strict = level == "needs-manual-guard"     # vùng rủi ro cao nhất: phải TỰ nhập, không được mượn AI
+        strict = level == "needs-manual-guard"     # highest-risk zone: must be typed by the officer, may not borrow from the AI
         min_chars = ATTESTATION_MIN_CHARS if strict else ATTESTATION_MIN_CHARS_LLM_ONLY
         if not strict and evidence_ack and (v.get("aq") or "").strip():
-            # llm-only: cho phép xác nhận đúng câu trích AI đã cắt (cán bộ phải mở ra đọc mới bấm được),
-            # hệ thống tự ghi câu đó làm bằng chứng và gắn nhãn loại chứng thực để hậu kiểm đếm được.
-            reason = (reason + " | " if reason else "") + f"[Xác nhận trích dẫn AI] \"{v['aq']}\""
+            # llm-only: the officer may confirm the quotation the AI cut (the row must be opened to read it before the
+            # button is available); the system records that quotation as evidence and tags the attestation kind so
+            # post-audit can count it.
+            reason = (reason + " | " if reason else "") + f"[AI quotation confirmed] \"{v['aq']}\""
             attest_kind = "ai_quote_ack"
         else:
-            why = ("KHÔNG có lưới đỡ mã nguồn (logic mã nguồn không diễn đạt nổi)" if strict
-                   else "thuần định tính — mã nguồn không có số liệu nào để kiểm")
+            why = ("has NO code safety net (its logic cannot be expressed in code)" if strict
+                   else "is purely qualitative — code has no figures to check")
             if len(reason) < min_chars:
                 raise WorkflowError(
-                    f"Tiêu chí {rule_id} {why}, nên kết luận ĐẠT ở đây chỉ dựa vào AI. Bạn phải tự đối chiếu hồ sơ và "
-                    f"ghi bằng chứng (≥ {min_chars} ký tự, có DÁN đoạn nguyên văn từ hồ sơ)."
-                    + ("" if strict else " Hoặc bấm nút xác nhận đúng câu trích dẫn AI đã cắt."),
+                    f"Criterion {rule_id} {why}, so a MET verdict here rests on the AI alone. You must check the application yourself and "
+                    f"record evidence (≥ {min_chars} characters, PASTING a verbatim passage from the application)."
+                    + ("" if strict else " Or click the button to confirm the AI's quotation."),
                     400, {"need_attestation": True, "rule": rule_id, "min_chars": min_chars,
                           "level": level, "can_ack_ai_quote": not strict and bool(v.get("aq"))})
-            # CHỐNG GÕ RÁC: lời chứng thực phải chứa đoạn NGUYÊN VĂN có thật trong hồ sơ (kiểm bằng code)
+            # ANTI-PADDING: the attestation must contain a VERBATIM passage that really exists in the application (checked by code)
             ev = verify_mod.attestation_evidence(reason, c["text"], ATTESTATION_MIN_QUOTE_WORDS)
             if not ev:
                 raise WorkflowError(
-                    f"Lời chứng thực cho {rule_id} không chứa đoạn trích nào có thật trong hồ sơ. Hãy DÁN nguyên văn "
-                    f"≥ {ATTESTATION_MIN_QUOTE_WORDS} từ liên tiếp từ hồ sơ (chỗ bạn dựa vào để kết luận ĐẠT) — "
-                    "hệ thống đối chiếu bằng mã nguồn, viết cho đủ chữ sẽ không qua được.",
+                    f"The attestation for {rule_id} contains no passage that actually appears in the application. PASTE ≥ "
+                    f"{ATTESTATION_MIN_QUOTE_WORDS} consecutive words verbatim from the application (the part you relied on for MET) — "
+                    "code checks it; padding to length will not pass.",
                     400, {"need_verbatim_quote": True, "rule": rule_id,
                           "min_quote_words": ATTESTATION_MIN_QUOTE_WORDS})
-            # CHỐNG DÁN TRÙNG: không cho copy một câu dùng cho nhiều tiêu chí
+            # ANTI-DUPLICATE: one sentence may not be pasted for several criteria
             dup = next((x for x in store.get_verdicts(case_id)
                         if x["rule_id"] != rule_id and x.get("officer_reason")
                         and _norm_reason(x["officer_reason"]) == _norm_reason(reason)), None)
             if dup:
                 raise WorkflowError(
-                    f"Lời chứng thực này trùng nguyên văn với tiêu chí {dup['rule_id']} — mỗi tiêu chí cần bằng chứng "
-                    "riêng đúng nội dung của nó.", 400, {"duplicate_of": dup["rule_id"], "rule": rule_id})
+                    f"This attestation is identical to the one for criterion {dup['rule_id']} — each criterion needs its own "
+                    "evidence matching its content.", 400, {"duplicate_of": dup["rule_id"], "rule": rule_id})
             attest_kind = "officer_quote"
     store.confirm_verdict(case_id, rule_id, final_verdict, reason, officer)
-    ATT_LBL = {"officer_quote": "[TỰ CHỨNG THỰC — cán bộ dán trích dẫn từ hồ sơ, mã nguồn đã đối chiếu]",
-               "ai_quote_ack": "[XÁC NHẬN TRÍCH DẪN AI — cán bộ đọc và đồng ý câu AI cắt]"}
-    store.log(officer, f"Xác nhận {rule_id} = {final_verdict}" + (f" (AI: {v['ai_verdict']} → SỬA)" if changed else "")
+    ATT_LBL = {"officer_quote": "[SELF-ATTESTED — officer pasted a quotation from the application, verified by code]",
+               "ai_quote_ack": "[AI QUOTATION CONFIRMED — officer read and agreed with the AI's cut]"}
+    store.log(officer, f"Confirmed {rule_id} = {final_verdict}" + (f" (AI: {v['ai_verdict']} → OVERRIDDEN)" if changed else "")
               + (" " + ATT_LBL[attest_kind] if attest_kind else "")
-              + (f" — lý do: {reason}" if reason else ""), case_id, role,
+              + (f" — reason: {reason}" if reason else ""), case_id, role,
               {"rule": rule_id, "ai": v["ai_verdict"], "final": final_verdict, "override": changed,
                "reason": reason, "guard_level": level, "attestation": attest_kind})
     return store.get_verdict(case_id, rule_id)
@@ -332,79 +328,79 @@ def confirm(case_id, rule_id, final_verdict, reason, officer, role="officer", ev
 def unconfirm(case_id, rule_id, officer, role="officer"):
     c = _case(case_id)
     if c["status"] != "in_review":
-        raise WorkflowError("Chỉ bỏ xác nhận được khi hồ sơ đang thẩm định")
+        raise WorkflowError("Unconfirming is only possible while the case is under review")
     store.unconfirm_verdict(case_id, rule_id)
-    store.log(officer, f"Bỏ xác nhận {rule_id}", case_id, role, {"rule": rule_id})
+    store.log(officer, f"Unconfirmed {rule_id}", case_id, role, {"rule": rule_id})
 
 
 def sign(case_id, officer, acknowledge_fast=False, role="officer"):
     c = _case(case_id)
     if c["status"] != "in_review":
-        raise WorkflowError("Chỉ ký duyệt được khi hồ sơ đang thẩm định")
+        raise WorkflowError("Signing is only possible while the case is under review")
     vs = store.get_verdicts(case_id)
     missing = [v["rule_id"] for v in vs if not v["confirmed_at"]]
     if missing:
-        raise WorkflowError(f"Còn {len(missing)} tiêu chí chưa xác nhận: {', '.join(missing)}", 409, {"missing": missing})
+        raise WorkflowError(f"{len(missing)} criteria not yet confirmed: {', '.join(missing)}", 409, {"missing": missing})
     from datetime import datetime
     elapsed = (datetime.now() - datetime.fromisoformat(c["review_started_at"])).total_seconds()
     min_expected = len(vs) * MIN_SECONDS_PER_RULE
     fast = elapsed < min_expected
     if fast and not acknowledge_fast:
-        store.log("Hệ thống", f"CẢNH BÁO: ký duyệt sau {elapsed:.0f}s cho {len(vs)} tiêu chí (< {min_expected}s) — dấu hiệu rubber-stamping",
+        store.log("System", f"WARNING: signed after {elapsed:.0f}s for {len(vs)} criteria (< {min_expected}s) — possible rubber-stamping",
                   case_id, "system", {"elapsed": round(elapsed), "min_expected": min_expected})
-        raise WorkflowError(f"Bạn thẩm định {len(vs)} tiêu chí trong {elapsed:.0f} giây — nhanh bất thường (kỳ vọng ≥ {min_expected}s). "
-                            f"Cảnh báo đã ghi nhật ký. Xác nhận lại nếu vẫn muốn ký.", 428,
+        raise WorkflowError(f"You reviewed {len(vs)} criteria in {elapsed:.0f} seconds — unusually fast (expected ≥ {min_expected}s). "
+                            f"The warning has been logged. Confirm again if you still want to sign.", 428,
                             {"elapsed": round(elapsed), "min_expected": min_expected, "need_ack": True})
     store.update_case(case_id, status="signed", signed_at=store.now())
     overrides = sum(1 for v in vs if v["final_verdict"] != v["ai_verdict"])
     rules_by_id = {r["id"]: r for r in case_rules(c)}
     n_fb = feedback.record_signed_case(c, vs, rules_by_id, c.get("llm_model") or "", ruleset_id=c.get("ruleset_id") or "")
     if n_fb:
-        store.log("Hệ thống", f"Feedback loop: lưu {n_fb} mẫu (cán bộ sửa AI / người quyết thay AI) vào kho ground-truth",
+        store.log("System", f"Feedback loop: stored {n_fb} samples (officer overrode AI / human decided for AI) in the ground-truth store",
                   case_id, "system", {"n_samples": n_fb, "file": "data/feedback/feedback.jsonl"})
     rejection = any(v["final_verdict"] != "met" for v in vs)
-    store.log(officer, f"KÝ DUYỆT kết quả thẩm định ({elapsed:.0f}s, {overrides} tiêu chí sửa so với AI"
-              + (", ký nhanh — đã xác nhận cảnh báo" if fast else "") + ")"
-              + (" — hồ sơ có tiêu chí không đạt/chưa rõ: CẦN QUẢN LÝ KÝ CẤP 2 trước khi phát hành thư" if rejection else ""),
+    store.log(officer, f"SIGNED OFF the review ({elapsed:.0f}s, {overrides} criteria overridden vs AI"
+              + (", fast sign — warning acknowledged" if fast else "") + ")"
+              + (" — case has criteria not met/unclear: MANAGER COUNTERSIGNATURE REQUIRED before the letter is issued" if rejection else ""),
               case_id, role, {"elapsed": round(elapsed), "overrides": overrides, "fast_ack": fast, "rejection": rejection})
     return store.get_case(case_id, with_text=False)
 
 
-# ---------- ký xác nhận cấp 2 (quản lý) ----------
+# ---------- countersignature (manager) ----------
 def countersign(case_id, manager, role="manager"):
     from .screening import norm
     c = _case(case_id)
     if c["status"] != "signed":
-        raise WorkflowError("Chỉ ký cấp 2 sau khi cán bộ thẩm định đã ký duyệt")
+        raise WorkflowError("Countersigning is only possible after the reviewing officer has signed off")
     if c.get("countersigned_by"):
-        raise WorkflowError(f"Hồ sơ đã được {c['countersigned_by']} ký cấp 2")
+        raise WorkflowError(f"This case was already countersigned by {c['countersigned_by']}")
     if not needs_countersign(c):
-        raise WorkflowError("Hồ sơ đạt toàn bộ tiêu chí — không cần ký cấp 2")
+        raise WorkflowError("The case meets every criterion — no countersignature needed")
     if norm(manager) == norm(c.get("officer") or ""):
-        raise WorkflowError("Người ký cấp 2 phải KHÁC cán bộ thẩm định", 400)
+        raise WorkflowError("The countersigner must be DIFFERENT from the reviewing officer", 400)
     if coi.role_of(manager) != "manager":
-        raise WorkflowError(f"'{manager}' không có vai trò quản lý (manager) trong sổ cán bộ — không được ký cấp 2", 403)
+        raise WorkflowError(f"'{manager}' has no manager role in the officer register — cannot countersign", 403)
     ci = coi.check(manager, c)
     if ci["level"] == "block":
-        store.log("Hệ thống", f"CHẶN COI cấp 2: {manager} không được ký {case_id} — " + " | ".join(ci["reasons"]),
+        store.log("System", f"COI BLOCK at countersign: {manager} may not sign {case_id} — " + " | ".join(ci["reasons"]),
                   case_id, "system", {"coi": ci})
-        raise WorkflowError("Xung đột lợi ích — quản lý này không được ký hồ sơ: " + " ".join(ci["reasons"]), 409)
+        raise WorkflowError("Conflict of interest — this manager cannot sign this case: " + " ".join(ci["reasons"]), 409)
     store.update_case(case_id, countersigned_by=manager, countersigned_at=store.now())
-    store.log(manager, f"KÝ XÁC NHẬN CẤP QUẢN LÝ: đồng ý kết quả loại/yêu cầu bổ sung của {c.get('officer')} — "
-              "cho phép phát hành thư kết quả", case_id, role, {"officer": c.get("officer")})
+    store.log(manager, f"MANAGER COUNTERSIGNED: agrees with the rejection/supplement outcome by {c.get('officer')} — "
+              "the outcome letter may be issued", case_id, role, {"officer": c.get("officer")})
     return store.get_case(case_id, with_text=False)
 
 
 def reopen(case_id, officer, reason, role="officer"):
     c = _case(case_id)
     if _rank(c["status"]) < _rank("signed"):
-        raise WorkflowError("Hồ sơ chưa ký duyệt, không cần mở lại")
+        raise WorkflowError("The case is not signed off, nothing to reopen")
     if len((reason or "").strip()) < 8:
-        raise WorkflowError("Mở lại hồ sơ bắt buộc ghi lý do (≥ 8 ký tự)", 400)
+        raise WorkflowError("Reopening requires a reason (≥ 8 characters)", 400)
     store.update_case(case_id, status="in_review", signed_at=None, letter=None, letter_status=None,
                       letter_approved_at=None, review_started_at=store.now(),
                       countersigned_by=None, countersigned_at=None)
-    store.log(officer, f"MỞ LẠI hồ sơ đã ký — lý do: {reason} (chữ ký cấp 2 cũ bị vô hiệu)", case_id, role,
+    store.log(officer, f"REOPENED signed case — reason: {reason} (previous countersignature voided)", case_id, role,
               {"reason": reason})
     return store.get_case(case_id, with_text=False)
 
@@ -413,45 +409,45 @@ def reopen(case_id, officer, reason, role="officer"):
 def draft_letter(case_id, officer, role="officer"):
     c = _case(case_id)
     if _rank(c["status"]) < _rank("signed"):
-        raise WorkflowError("Thư kết quả chỉ được soạn sau khi cán bộ ký duyệt 100% tiêu chí")
+        raise WorkflowError("The outcome letter can only be drafted after the officer signs off 100% of the criteria")
     vs = store.get_verdicts(case_id)
     if needs_countersign(c, vs):
-        raise WorkflowError("Hồ sơ có tiêu chí KHÔNG ĐẠT / CHƯA RÕ — cần quản lý (role manager) ký xác nhận cấp 2 "
-                            "trước khi phát hành thư kết quả.", 428, {"need_countersign": True})
+        raise WorkflowError("The case has NOT MET / UNCLEAR criteria — a manager must countersign before the outcome "
+                            "letter is issued.", 428, {"need_countersign": True})
     rules_by_id = {r["id"]: r for r in case_rules(c)}
-    finals = [{"rule": v["rule_id"], "title": rules_by_id.get(v["rule_id"], {}).get("title_vi", v["rule_id"]),
+    finals = [{"rule": v["rule_id"], "title": rules_by_id.get(v["rule_id"], {}).get("title", v["rule_id"]),
                "rule_quote": v["rq"], "applicant_quote": v["aq"],
                "verdict": v["final_verdict"], "officer_reason": v["officer_reason"] or ""}
               for v in vs]
     text = core.draft_letter(case_id, c["applicant"] or case_id, finals, officer=c.get("officer") or officer,
                              org=c.get("org") or "")
     store.update_case(case_id, status="letter_drafted", letter=text, letter_status="draft")
-    store.log("AI", "Soạn NHÁP thư kết quả từ kết luận đã ký", case_id, "system", {"words": len(text.split())})
+    store.log("AI", "Drafted outcome letter from signed verdicts", case_id, "system", {"words": len(text.split())})
     return text
 
 
 def approve_letter(case_id, officer, edited_text=None, role="officer"):
     c = _case(case_id)
     if c["status"] != "letter_drafted":
-        raise WorkflowError("Chưa có thư nháp để phê duyệt")
+        raise WorkflowError("No draft letter to approve")
     text = (edited_text or c["letter"] or "").strip()
     edited = bool(edited_text) and edited_text.strip() != (c["letter"] or "").strip()
     store.update_case(case_id, status="letter_approved", letter=text, letter_status="approved",
                       letter_approved_at=store.now())
-    store.log(officer, "PHÊ DUYỆT nội dung thư kết quả" + (" (có chỉnh sửa tay)" if edited else ""), case_id, role,
+    store.log(officer, "APPROVED outcome letter content" + (" (hand-edited)" if edited else ""), case_id, role,
               {"edited": edited})
     return store.get_case(case_id, with_text=False)
 
 
 # ---------- view helpers ----------
 def case_view(case_id):
-    """Trả case + verdicts + bộ tiêu chí đã khóa; CHE kết quả AI nếu spot-check đang chờ."""
+    """Return case + verdicts + the locked criteria set; HIDE the AI results while a spot-check is pending."""
     c = _case(case_id)
     vs = store.get_verdicts(case_id)
     masked = spot_pending(c)
     if masked:
         for v in vs:
-            for k in ("ai_verdict", "ai_confidence", "facts", "aq", "note", "note_en", "chunk_id", "retrieval", "needs_attention"):
+            for k in ("ai_verdict", "ai_confidence", "facts", "aq", "note", "chunk_id", "retrieval", "needs_attention"):
                 v[k] = None
     snap = c.get("ruleset_snapshot") or {}
     rules = snap.get("rules") or core.get_ruleset(c.get("ruleset_id"))["rules"]
@@ -459,6 +455,6 @@ def case_view(case_id):
                "name": snap.get("name") or core.get_ruleset(c.get("ruleset_id"))["name"],
                "version": snap.get("version") or c.get("ruleset_version") or core.get_ruleset(c.get("ruleset_id"))["version"],
                "locked": bool(snap)}
-    c.pop("ruleset_snapshot", None)  # đã trả qua rules, tránh payload đôi
+    c.pop("ruleset_snapshot", None)  # already returned as rules; avoids a double payload
     return {"case": c, "verdicts": vs, "ai_masked": masked, "rules": rules, "ruleset": rs_meta,
-            "needs_countersign": needs_countersign(c, vs), "states": STATES, "state_vi": STATE_VI}
+            "needs_countersign": needs_countersign(c, vs), "states": STATES, "state_labels": STATE_LABELS}

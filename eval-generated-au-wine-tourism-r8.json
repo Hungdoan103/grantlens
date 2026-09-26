@@ -7,23 +7,23 @@
   "label_scope": "target",
   "labels_generated_at": "2026-09-14T15:24:18",
   "labels_approved_at": "2026-09-14T15:48:46",
-  "evaluated_at": "2026-09-19T12:12:41",
+  "evaluated_at": "2026-09-26T18:12:57",
   "provisional": false,
   "labels_approved": true,
-  "approved_by": "Rà kỹ thuật (nhà cung cấp) — chưa thay cán bộ đơn vị",
+  "approved_by": "Technical review (vendor) — not a substitute for the office's officers",
   "primary_metric": "target",
   "target": {
     "correct": 2,
     "total": 2,
     "false_pass": 0,
     "routed_to_officer": 0,
-    "note": "THƯỚC ĐO CHÍNH — vi phạm cài sẵn có bị bắt không"
+    "note": "PRIMARY METRIC — is the planted violation caught"
   },
   "control": {
-    "correct": 1,
+    "correct": 2,
     "total": 2,
     "false_alarm": 0,
-    "note": "rule mục tiêu chấm trên hồ sơ sạch — báo động giả"
+    "note": "target rules assessed on the clean application — false alarms"
   },
   "secondary": null,
   "excluded_weak_labels": 0,
@@ -32,14 +32,5 @@
   "small_sample": true,
   "disputed_cases": 2,
   "flagged_unresolved": 0,
-  "errors": [
-    {
-      "case": "GEN-au-wine-tourism-r8-00-clean",
-      "rule": "W06",
-      "kind": "control",
-      "pred": "unclear",
-      "truth": "met",
-      "note": "[CHỐT NHẤT QUÁN] AI kết luận KHÔNG ĐẠT nhưng không trỏ được vào dữ kiện nào nêu vi phạm — thiếu thôn"
-    }
-  ]
+  "errors": []
 }

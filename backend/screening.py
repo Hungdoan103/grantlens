@@ -1,12 +1,12 @@
-"""screening.py — lớp sàng lọc đối chiếu (denied-party screening).
+"""screening.py — denied-party screening layer.
 
-Nguồn dữ liệu (data/external/, xem README ở đó):
-  ASIC  Banned & Disqualified Persons (7.2k cá nhân, có ngày hiệu lực)
-  DFAT  Australian Sanctions Consolidated List (11k dòng, cá nhân + tổ chức, gộp alias theo Reference)
-  ABN   ABR Bulk Extract — tra qua chỉ mục SQLite FTS (lập bằng: python -m backend.abn_index)
+Data sources (data/external/, see the README there):
+  ASIC  Banned & Disqualified Persons (7.2k individuals, with effective dates)
+  DFAT  Australian Sanctions Consolidated List (11k rows, individuals + entities, aliases grouped by Reference)
+  ABN   ABR Bulk Extract — looked up through a SQLite FTS index (built with: python -m backend.abn_index)
 
-Triết lý như phần thẩm định: sàng lọc chỉ ĐƯA BẰNG CHỨNG (hit + điểm khớp + nguồn),
-không tự loại hồ sơ; hit ở mức nghi ngờ trở lên bắt buộc cán bộ xem.
+Same philosophy as the assessment: screening only SUPPLIES EVIDENCE (hit + match score + source);
+it never rejects an application by itself; hits at the possible level or above must be reviewed by an officer.
 """
 import csv, re, sqlite3, unicodedata
 from datetime import date, datetime
@@ -16,11 +16,11 @@ from pathlib import Path
 
 EXT = Path(__file__).resolve().parent.parent / "data" / "external"
 ABN_DB = EXT / "abn" / "abn.sqlite"
-STRONG, WEAK = 0.90, 0.78  # ngưỡng khớp mạnh / nghi ngờ
+STRONG, WEAK = 0.90, 0.78  # strong-match / possible-match thresholds
 
 
 def norm(name: str) -> str:
-    """Chuẩn hoá tên để so khớp: bỏ dấu, hoa, chỉ giữ chữ+số, gọn khoảng trắng."""
+    """Normalise a name for matching: strip accents, upper-case, keep letters+digits only, collapse whitespace."""
     s = unicodedata.normalize("NFKD", str(name or ""))
     s = "".join(c for c in s if not unicodedata.combining(c)).upper()
     s = re.sub(r"[^A-Z0-9 ]+", " ", s)
@@ -32,7 +32,7 @@ def _sorted_tokens(s: str) -> str:
 
 
 def score(query_norm: str, cand_norm: str) -> float:
-    """Điểm khớp 0..1: max của ratio trên chuỗi token-sort và jaccard token (chịu đảo thứ tự tên)."""
+    """Match score 0..1: max of the ratio on token-sorted strings and token Jaccard (tolerates reordered names)."""
     if not query_norm or not cand_norm:
         return 0.0
     r = SequenceMatcher(None, _sorted_tokens(query_norm), _sorted_tokens(cand_norm)).ratio()
@@ -58,7 +58,7 @@ def load_asic():
     with open(p, encoding="utf-8-sig", errors="replace") as f:
         for row in csv.DictReader(f):
             raw = row.get("BD_PER_NAME", "")
-            # "ABBOTT, BILL" -> thêm biến thể "BILL ABBOTT"
+            # "ABBOTT, BILL" -> add the variant "BILL ABBOTT"
             names = [raw]
             if "," in raw:
                 last, _, first = raw.partition(",")

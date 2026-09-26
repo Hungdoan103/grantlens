@@ -1,13 +1,13 @@
-"""coi.py — kiểm tra xung đột lợi ích (conflict of interest) trước khi cán bộ nhận hồ sơ.
+"""coi.py — conflict-of-interest check before an officer takes a case.
 
-Rủi ro: người nộp hồ sơ có thể chung tổ chức với chính cán bộ thẩm định.
-Sổ cán bộ: data/officers.json (tên + danh sách tổ chức liên quan). Quy tắc, kiểm tra Ở SERVER:
-  BLOCK : tổ chức của cán bộ trùng tổ chức nộp hồ sơ (khớp ≥ 0.85) — không được thẩm định,
-          phải chuyển hồ sơ; không có đường "xác nhận bỏ qua".
-  WARN  : tên cán bộ trùng/na ná người nộp, tên cán bộ xuất hiện trong văn bản hồ sơ,
-          hoặc tổ chức khớp mức nghi ngờ (0.70–0.85) — được tiếp tục nhưng phải ghi lý do,
-          tất cả vào nhật ký.
-Cán bộ KHÔNG có trong sổ -> không kiểm tra được lịch sử tổ chức: trả cảnh báo "chưa khai báo".
+Risk: the applicant may belong to the same organisation as the reviewing officer.
+Officer register: data/officers.json (name + list of affiliated organisations). Rules, checked ON THE SERVER:
+  BLOCK : the officer's organisation matches the applicant organisation (score ≥ 0.85) — the officer may not review,
+          the case must be reassigned; there is no "acknowledge and continue" path.
+  WARN  : the officer's name matches/resembles the applicant, the officer's name appears in the application text,
+          or an organisation matches at the suspicious level (0.70–0.85) — the officer may continue but must give a
+          reason, and everything is logged.
+An officer NOT in the register -> affiliation history cannot be checked: returns a "not declared" warning.
 """
 import json
 from functools import lru_cache
@@ -30,7 +30,7 @@ def load_officers():
 
 
 def sla_days() -> dict:
-    """Hạn xử lý (ngày) theo trạng thái — UI cảnh báo quá hạn."""
+    """Processing deadline (days) per status — the UI warns when overdue."""
     return _load_file().get("sla_days", {})
 
 
@@ -39,14 +39,14 @@ def reload():
 
 
 def role_of(name: str):
-    """Vai trò trong sổ cán bộ: 'officer' | 'manager' | None (chưa khai báo)."""
+    """Role in the officer register: 'officer' | 'manager' | 'auditor' | None (not declared)."""
     q = norm(name)
     rec = next((o for o in load_officers() if norm(o["name"]) == q), None)
     return (rec or {}).get("role")
 
 
 def check(officer_name: str, case: dict) -> dict:
-    """case cần: applicant, org, text. Trả {level: 'none'|'warn'|'block', reasons: [...], registered: bool}."""
+    """case needs: applicant, org, text. Returns {level: 'none'|'warn'|'block', reasons: [...], registered: bool}."""
     qname = norm(officer_name)
     rec = next((o for o in load_officers() if norm(o["name"]) == qname), None)
     reasons, level = [], "none"
@@ -64,23 +64,23 @@ def check(officer_name: str, case: dict) -> dict:
             s = score(norm(aff), norm(case_org)) if case_org else 0
             if s >= ORG_BLOCK:
                 bump("block")
-                reasons.append(f"Cán bộ thuộc/từng thuộc '{aff}' — trùng tổ chức nộp hồ sơ '{case_org}' (khớp {s:.0%}). Phải chuyển hồ sơ cho cán bộ khác.")
+                reasons.append(f"The officer belongs/belonged to '{aff}' — same as the applicant organisation '{case_org}' (match {s:.0%}). The case must go to another officer.")
             elif s >= ORG_WARN:
                 bump("warn")
-                reasons.append(f"Tổ chức liên quan của cán bộ '{aff}' khớp mức nghi ngờ với '{case_org}' ({s:.0%}).")
+                reasons.append(f"The officer's affiliated organisation '{aff}' is a possible match for '{case_org}' ({s:.0%}).")
             if norm(aff) and norm(aff) in text_norm and score(norm(aff), norm(case_org)) < ORG_WARN:
                 bump("warn")
-                reasons.append(f"Tổ chức liên quan của cán bộ '{aff}' xuất hiện trong văn bản hồ sơ.")
+                reasons.append(f"The officer's affiliated organisation '{aff}' appears in the application text.")
     else:
         bump("warn")
-        reasons.append("Cán bộ chưa khai báo trong sổ cán bộ (data/officers.json) — không kiểm tra được lịch sử tổ chức; ghi lý do để tiếp tục.")
+        reasons.append("Officer not declared in the officer register (data/officers.json) — affiliation history cannot be checked; give a reason to continue.")
 
     s = score(qname, norm(applicant)) if applicant else 0
     if s >= NAME_WARN:
         bump("warn")
-        reasons.append(f"Tên cán bộ trùng/na ná người nộp hồ sơ '{applicant}' ({s:.0%}).")
+        reasons.append(f"Officer name matches/resembles the applicant '{applicant}' ({s:.0%}).")
     if qname and qname in text_norm:
         bump("warn")
-        reasons.append("Tên cán bộ xuất hiện nguyên văn trong hồ sơ (có thể là người viết thư giới thiệu / cộng sự).")
+        reasons.append("Officer name appears verbatim in the application (possibly a referee / collaborator).")
 
     return {"level": level, "reasons": reasons, "registered": bool(rec)}

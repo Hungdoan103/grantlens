@@ -14,10 +14,10 @@
   ],
   "generated_at": "2026-09-14T15:24:18",
   "approved": true,
-  "approved_by": "Rà kỹ thuật (nhà cung cấp) — chưa thay cán bộ đơn vị",
+  "approved_by": "Technical review (vendor) — not a substitute for the office's officers",
   "approved_at": "2026-09-14T15:48:46",
   "n_needs_review": 0,
-  "note": "Vi phạm do mã nguồn chốt trước (câu dữ kiện được guard/verifier xác nhận, văn bản phải chứa nguyên văn); chặn lộ đáp án bằng mã nguồn; verifier dùng model tách khỏi hệ bị đo. CHƯA PHÊ CHUẨN — số đo từ bộ này là TẠM (provisional). Rà văn bản, xử lý hết cờ rồi --approve.",
+  "note": "Violations fixed by code first (the fact sentence is confirmed by guard/verifier and the text must contain it verbatim); answer leaks blocked by code; the verifier uses a model separate from the system under test. NOT APPROVED — measurements from this set are PROVISIONAL. Review the texts, resolve every flag, then --approve.",
   "cases": [
     {
       "id": "GEN-au-wine-tourism-r8-00-clean",
@@ -71,7 +71,7 @@
         "W08"
       ],
       "weak_reasons": {
-        "W03": "Soát lại bằng bộ lọc hiện hành: hồ sơ sạch có câu bình luận 'used to meet the $1,207,000 threshold' gợi ý thẳng W03 đạt — bỏ W03 khỏi đối chứng để không làm dễ phép đo báo động giả; giữ W06, W08"
+        "W03": "Re-screened with the current filter: the clean application contains the commentary 'used to meet the $1,207,000 threshold', which hints directly that W03 is met — W03 removed from the control so the test is not made easier."
       }
     },
     {
@@ -147,7 +147,7 @@
         ]
       },
       "status": "disputed",
-      "dispute_reason": "Nhãn SAI: câu vi phạm so doanh số cellar door ($1,199,000) thẳng với ngưỡng, trong khi W04 là phần cellar door VƯỢT sau khi đã dùng để đạt ngưỡng tổng: min(1,199,000; 1,285,000 − 1,207,000) = 78,000 > 0 nên hồ sơ vẫn THOẢ W04. Câu còn lộ đáp án ('falling short of the $1,207,000 threshold')"
+      "dispute_reason": "WRONG LABEL: the violation sentence compares cellar-door sales ($1,199,000) directly with the threshold, whereas W04 is about the cellar-door portion IN EXCESS after the total threshold is met: min(1,199,000, total − 1,207,000) — the rule was misread."
     },
     {
       "id": "GEN-au-wine-tourism-r8-03-W06",
@@ -186,7 +186,7 @@
         ]
       },
       "status": "disputed",
-      "dispute_reason": "Đáp án mơ hồ: hồ sơ của Riverbend Vineyards nhưng câu vi phạm nói về 'The Vineyard Co-op'; hồ sơ vẫn ghi $850,000 doanh số cellar door và cơ sở sản xuất mở cho khách thử + mua rượu — về thực chất là một cellar door"
+      "dispute_reason": "Ambiguous answer: the application is from Riverbend Vineyards but the violation sentence speaks about 'The Vineyard Co-op'; the text still reports $850,000 of cellar-door sales and a production site open to the public — the entity mismatch makes the answer unclear."
     },
     {
       "id": "GEN-au-wine-tourism-r8-04-W08",

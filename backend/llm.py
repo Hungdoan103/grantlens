@@ -1,12 +1,12 @@
-"""llm.py — lớp gọi mô hình ngôn ngữ, đổi backend bằng biến môi trường.
+"""llm.py — language-model access layer; the backend is selected by environment variable.
 
-GRANTLENS_LLM = ollama (mặc định) | openai | mock
-  ollama : Qwen3-8B local qua Ollama, JSON ép bằng structured outputs (format=schema).
+GRANTLENS_LLM = ollama (default) | openai | mock
+  ollama : Qwen3-8B running locally through Ollama; JSON is enforced with structured outputs (format=schema).
            GRANTLENS_MODEL (qwen3:8b), OLLAMA_URL, GRANTLENS_NUM_CTX
-  openai : bất kỳ endpoint OpenAI-compatible (vLLM, LM Studio, OpenAI...) cho khách có hạ tầng riêng.
+  openai : any OpenAI-compatible endpoint (vLLM, LM Studio, OpenAI...) for customers with their own infrastructure.
            OPENAI_BASE_URL, OPENAI_API_KEY, GRANTLENS_MODEL
-  mock   : KHÔNG gọi model — trả kết quả giả lập để kiểm thử luồng nghiệp vụ / demo UI khi chưa có GPU.
-           Kết quả mock được gắn nhãn rõ trong UI; tuyệt đối không dùng để báo cáo số liệu.
+  mock   : NO model is called — returns simulated results to test the workflow / demo the UI without a GPU.
+           Mock results are clearly labelled in the UI; they must never be used to report figures.
 """
 import os, json, re, requests
 
@@ -24,24 +24,24 @@ class LLMError(Exception):
 
 
 def describe() -> dict:
-    return {"backend": BACKEND, "model": MODEL if BACKEND != "mock" else "mock (không gọi model)",
+    return {"backend": BACKEND, "model": MODEL if BACKEND != "mock" else "mock (no model called)",
             "local": BACKEND == "ollama", "is_mock": BACKEND == "mock"}
 
 
 def health() -> dict:
-    """Kiểm tra model có sẵn sàng không (hiện trên dashboard)."""
+    """Is the model ready? (shown on the dashboard)."""
     if BACKEND == "mock":
-        return {"ok": True, "msg": "Chế độ MOCK — không gọi model"}
+        return {"ok": True, "msg": "MOCK mode — no model is called"}
     if BACKEND == "ollama":
         try:
             r = requests.get(f"{OLLAMA_URL}/api/tags", timeout=3)
             names = [m["name"] for m in r.json().get("models", [])]
             base = MODEL.split(":")[0]
             ok = any(n == MODEL or n.startswith(base) for n in names)
-            return {"ok": ok, "msg": f"Ollama OK, model {'sẵn sàng' if ok else 'CHƯA pull: ollama pull ' + MODEL}",
+            return {"ok": ok, "msg": f"Ollama OK, model {'ready' if ok else 'NOT pulled: ollama pull ' + MODEL}",
                     "models": names}
         except Exception as e:  # noqa
-            return {"ok": False, "msg": f"Không kết nối được Ollama tại {OLLAMA_URL}: {e}"}
+            return {"ok": False, "msg": f"Cannot connect to Ollama at {OLLAMA_URL}: {e}"}
     return {"ok": bool(OPENAI_API_KEY) or "localhost" in OPENAI_BASE_URL, "msg": f"OpenAI-compatible: {OPENAI_BASE_URL}"}
 
 
@@ -52,7 +52,7 @@ def _ollama(messages, fmt=None, max_tokens=700, model=None):
     if fmt is not None:
         payload["format"] = fmt
     last_err = None
-    for attempt in range(3):  # retry lỗi thoáng qua (500/timeout khi GPU bận)
+    for attempt in range(3):  # retry transient errors (500 / timeout while the GPU is busy)
         try:
             r = requests.post(f"{OLLAMA_URL}/api/chat", json=payload, timeout=TIMEOUT)
             r.raise_for_status()
@@ -62,7 +62,7 @@ def _ollama(messages, fmt=None, max_tokens=700, model=None):
             import time as _t
             _t.sleep(5 * (attempt + 1))
     else:
-        raise LLMError(f"Không gọi được Ollama tại {OLLAMA_URL} — kiểm tra `ollama serve` và `ollama pull {MODEL}`. Chi tiết: {last_err}")
+        raise LLMError(f"Cannot reach Ollama at {OLLAMA_URL} — check `ollama serve` and `ollama pull {MODEL}`. Details: {last_err}")
     data = r.json()
     if "error" in data:
         raise LLMError(data["error"])
@@ -77,14 +77,14 @@ def _openai(messages, fmt=None, max_tokens=700, model=None):
     headers = {"Authorization": f"Bearer {OPENAI_API_KEY}"} if OPENAI_API_KEY else {}
     try:
         r = requests.post(f"{OPENAI_BASE_URL}/chat/completions", json=payload, headers=headers, timeout=TIMEOUT)
-        if r.status_code == 400 and fmt is not None:  # server không hỗ trợ json_schema -> json_object
+        if r.status_code == 400 and fmt is not None:  # server does not support json_schema -> fall back to json_object
             payload["response_format"] = {"type": "json_object"}
             payload["messages"] = messages[:-1] + [{**messages[-1], "content": messages[-1]["content"] +
                                                     f"\n\nReturn ONLY JSON matching this schema:\n{json.dumps(fmt)}"}]
             r = requests.post(f"{OPENAI_BASE_URL}/chat/completions", json=payload, headers=headers, timeout=TIMEOUT)
         r.raise_for_status()
     except requests.RequestException as e:
-        raise LLMError(f"Lỗi gọi {OPENAI_BASE_URL}: {e}")
+        raise LLMError(f"Error calling {OPENAI_BASE_URL}: {e}")
     return r.json()["choices"][0]["message"]["content"]
 
 
@@ -102,7 +102,8 @@ def _mock_labels():
 
 
 def _mock(messages, fmt=None, max_tokens=700, model=None):
-    """Giả lập: trích câu đầu mỗi chunk làm 'fact'; verdict lấy từ nhãn (nếu có) — CHỈ để kiểm thử luồng."""
+    """Simulation: the first sentence of each chunk becomes a 'fact'; the verdict comes from the label (if any).
+    ONLY for testing the workflow."""
     user = messages[-1]["content"]
     if fmt is None:
         return ("[MOCK LETTER — no model called]\nDecision: see officer-approved verdicts.\n"
@@ -110,7 +111,7 @@ def _mock(messages, fmt=None, max_tokens=700, model=None):
     props = fmt.get("properties", {})
     if "answer" in props:  # casegen verifier
         return json.dumps({"answer": "unclear", "evidence": "[MOCK]"})
-    if "fact" in props:  # casegen: chốt câu vi phạm
+    if "fact" in props:  # casegen: planned violation sentence
         return json.dumps({"fact": "Riverbend Test Pty Ltd is an unincorporated association with no ABN."})
     if "facts" in props:  # extract step
         facts = []
@@ -125,9 +126,9 @@ def _mock(messages, fmt=None, max_tokens=700, model=None):
         if m:
             v = _mock_labels().get(m.group(1), {}).get(m.group(2), "unclear")
         return json.dumps({"verdict": v, "confidence": "medium", "supporting_fact": 1,
-                           "note_vi": "[MOCK] kết luận giả lập từ nhãn — không phải model."})
+                           "note": "[MOCK] simulated verdict taken from the label — not a model."})
     if "rules" in props:  # rule extraction
-        return json.dumps({"rules": [{"id": "R01", "type": "qualitative", "title_vi": "[MOCK] tiêu chí mẫu",
+        return json.dumps({"rules": [{"id": "R01", "type": "qualitative", "title": "[MOCK] sample criterion",
                                       "quote": user[:120]}]})
     return "{}"
 
@@ -137,12 +138,12 @@ _IMPL = {"ollama": _ollama, "openai": _openai, "mock": _mock}
 
 def _chat(messages, fmt=None, max_tokens=700, model=None):
     if BACKEND not in _IMPL:
-        raise LLMError(f"GRANTLENS_LLM={BACKEND} không hợp lệ (ollama|openai|mock)")
+        raise LLMError(f"GRANTLENS_LLM={BACKEND} is invalid (ollama|openai|mock)")
     return _IMPL[BACKEND](messages, fmt, max_tokens, model)
 
 
 def chat_json(system: str, user: str, schema: dict, max_tokens=600, model=None) -> dict:
-    """model=None -> model hệ thống; truyền model khác khi cần tách vai (vd sinh/kiểm nhãn test)."""
+    """model=None -> the system model; pass another model to separate roles (e.g. generating / verifying test labels)."""
     txt = _chat([{"role": "system", "content": system}, {"role": "user", "content": user}], fmt=schema, max_tokens=max_tokens, model=model)
     try:
         return json.loads(txt)
@@ -151,7 +152,7 @@ def chat_json(system: str, user: str, schema: dict, max_tokens=600, model=None) 
         try:
             return json.loads(cleaned)
         except json.JSONDecodeError:
-            raise LLMError(f"Model trả về JSON không hợp lệ: {txt[:200]}")
+            raise LLMError(f"Model returned invalid JSON: {txt[:200]}")
 
 
 def chat_text(system: str, user: str, max_tokens=700, model=None) -> str:

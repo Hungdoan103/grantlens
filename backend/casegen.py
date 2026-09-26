@@ -1,34 +1,37 @@
-"""casegen.py — AI SINH BỘ TEST CÓ NHÃN cho từng quỹ (ruleset), kèm cơ chế chống nhiễu và phê chuẩn nhãn.
+"""casegen.py — AI-GENERATED LABELLED TEST SETS per fund (ruleset), with anti-noise mechanisms and label approval.
 
-Chuỗi đo chuẩn cho MỖI quỹ (số của quỹ này KHÔNG dùng cho quỹ khác):
-    --gen  ->  rà văn bản (--confirm / --dispute / --flag-weak)  ->  --approve  ->  --eval  ->  [MỤC TIÊU]
+Standard measurement chain for EACH fund (one fund's figures are NEVER used for another):
+    --gen  ->  review the texts (--confirm / --dispute / --flag-weak)  ->  --approve  ->  --eval  ->  [TARGET]
 
-Vì sao nhãn đáng tin (và vì sao vẫn PHẢI có người rà):
-  1. VI PHẠM DO MÃ NGUỒN CHỐT TRƯỚC. Bước 1: LLM chỉ đề xuất MỘT câu dữ kiện vi phạm rule mục tiêu; câu đó
-     phải được guard (mã nguồn) hoặc verifier xác nhận là vi phạm thật. Bước 2: LLM viết hồ sơ và BẮT BUỘC
-     chứa NGUYÊN VĂN câu đó — mã nguồn kiểm. (Sửa lỗi 12/09/2026: chỉ dặn "hãy vi phạm rule X" thì LLM
-     thường viết ra hồ sơ hợp lệ hoàn toàn — 7/7 case ở Cyber Skills + Female Founders hỏng đúng kiểu này.)
-  2. CHỐNG LỘ ĐÁP ÁN bằng mã nguồn: văn bản nhắc mã rule hoặc tự bình luận "violates / satisfies /
-     meets all criteria..." bị loại (bộ Wine cũ có câu "violating W08" nên đã bị thu hồi).
-  3. GUARD ĐỐI SOÁT: guard bắn vào rule ngoài mục tiêu -> viết lại. Với vi phạm định lượng đã được guard
-     xác nhận, guard phải VẪN bắt trên toàn văn -> chặn văn bản có con số khác đè lên câu vi phạm.
-  4. VERIFIER dùng MODEL KHÁC hệ đang bị đo (GRANTLENS_CASEGEN_MODEL) và hỏi HAI CÁCH ĐẶT CÂU khác nhau
-     ("có thoả không?" / "có vi phạm không?"). Ở temperature 0, hỏi lặp một câu y hệt thì phiếu nào cũng
-     giống nhau — đó không phải phiếu độc lập. Verifier chỉ GẮN CỜ, người rà quyết; còn cờ chưa xử lý thì
-     KHÔNG phê chuẩn được — tránh âm thầm loại các case khó (thiên lệch chọn mẫu làm đẹp số).
-  5. ĐỐI CHỨNG: ở phạm vi 'target', rule mục tiêu còn được chấm trên hồ sơ SẠCH. Không có đối chứng thì một
-     hệ "từ chối tất cả" cũng đạt 100% bắt vi phạm.
-  6. Nhãn lưu approved=false; sửa nhãn sau khi phê chuẩn thì mất phê chuẩn; eval ghi provisional nếu chưa duyệt.
+Why the labels can be trusted (and why a human reviewer is STILL required):
+  1. THE VIOLATION IS FIXED BY CODE FIRST. Step 1: the LLM proposes ONE factual sentence that violates the target rule;
+     that sentence must be confirmed as a real violation by the guard (code) or by the verifier. Step 2: the LLM writes
+     the application and MUST contain that sentence VERBATIM — checked by code. (Fix of 2026-09-12: merely instructing
+     "violate rule X" made the LLM write a perfectly valid application — 7/7 cases in Cyber Skills + Female Founders
+     failed exactly this way.)
+  2. ANSWER LEAKS BLOCKED BY CODE: text that mentions rule IDs or comments on itself ("violates / satisfies /
+     meets all criteria...") is rejected (the old Wine set contained "violating W08" and was withdrawn).
+  3. GUARD CROSS-CHECK: if a guard fires on a rule other than the target -> rewrite. For a quantitative violation
+     confirmed by the guard, the guard must STILL fire on the full text -> blocks texts where another figure overrides
+     the violation sentence.
+  4. THE VERIFIER uses a DIFFERENT MODEL from the system under test (GRANTLENS_CASEGEN_MODEL) and asks TWO DIFFERENTLY
+     PHRASED questions ("is it satisfied?" / "is it violated?"). At temperature 0, repeating the same question gives the
+     same vote every time — that is not an independent vote. The verifier only FLAGS; the reviewer decides; while a flag
+     is unresolved the set CANNOT be approved — avoids silently dropping hard cases (selection bias that flatters the numbers).
+  5. CONTROL: in 'target' scope the target rule is also assessed on the CLEAN application. Without a control a
+     "reject everything" system would also score 100% on catching violations.
+  6. Labels are stored with approved=false; editing labels after approval revokes the approval; eval marks results
+     provisional while unapproved.
 
 CLI:
-  python -m backend.casegen <ruleset_id> --gen [N] [--target-only]     sinh bộ test
-  python -m backend.casegen <ruleset_id> --confirm <case_id> "lý do"   xác nhận vi phạm có thật dù verifier gắn cờ
-  python -m backend.casegen <ruleset_id> --confirm-control <case_id> <rule_id> "lý do"   hồ sơ sạch thoả rõ rule -> đối chứng
-  python -m backend.casegen <ruleset_id> --dispute <case_id> "lý do"   loại 1 case sai nhãn khỏi metric
-  python -m backend.casegen <ruleset_id> --flag-weak <case_id> <rule_id> "lý do"
-  python -m backend.casegen <ruleset_id> --approve "Tên người rà"      phê chuẩn nhãn
-  python -m backend.casegen <ruleset_id> --eval                         đo
-Biến môi trường: GRANTLENS_CASEGEN_MODEL = model sinh + kiểm nhãn (mặc định: cùng model hệ thống).
+  python -m backend.casegen <ruleset_id> --gen [N] [--target-only]     generate a test set
+  python -m backend.casegen <ruleset_id> --confirm <case_id> "reason"   confirm the violation is real despite a verifier flag
+  python -m backend.casegen <ruleset_id> --confirm-control <case_id> <rule_id> "reason"   clean case clearly satisfies the rule -> control
+  python -m backend.casegen <ruleset_id> --dispute <case_id> "reason"   remove a mislabelled case from the metric
+  python -m backend.casegen <ruleset_id> --flag-weak <case_id> <rule_id> "reason"
+  python -m backend.casegen <ruleset_id> --approve "Reviewer name"      approve the labels
+  python -m backend.casegen <ruleset_id> --eval                         measure
+Environment: GRANTLENS_CASEGEN_MODEL = model that writes + verifies labels (default: the system model).
 """
 import json, os, re, sys
 from datetime import datetime
@@ -38,7 +41,7 @@ GEN_DIR = core.DATA / "applications" / "generated"
 LBL_DIR = core.DATA / "labels"
 GEN_MODEL = os.environ.get("GRANTLENS_CASEGEN_MODEL") or None
 VERIFIER_MODEL = os.environ.get("GRANTLENS_VERIFIER_MODEL") or GEN_MODEL
-# Planner chỉ trả JSON bị ép schema -> dùng được cả model "chỉ-suy-nghĩ"; người viết văn bản tự do thì KHÔNG.
+# The planner only returns schema-enforced JSON -> a "thinking-only" model works there; the free-text writer must NOT be one.
 PLANNER_MODEL = os.environ.get("GRANTLENS_PLANNER_MODEL") or GEN_MODEL
 
 
@@ -99,7 +102,7 @@ VERIFY_SCHEMA = {"type": "object",
                  "required": ["answer", "evidence"]}
 
 
-# ---------------- kiểm cơ học (không dùng LLM) ----------------
+# ---------------- mechanical checks (no LLM) ----------------
 _META_PAT = re.compile(
     r"\b(violat(?:e|es|ed|ing|ion)|breach(?:es|ed|ing)?|non-?complian(?:ce|t)|fails? to (?:meet|satisfy)|"
     r"satisf(?:y|ies|ied|ying)|in compliance with|as required(?: by)?|meeting the requirements?|"
@@ -116,22 +119,22 @@ _META_PAT = re.compile(
 
 
 def _leak_check(ruleset: dict, text: str):
-    """Chặn LỘ ĐÁP ÁN bằng MÃ NGUỒN (không hỏi LLM).
+    """Block ANSWER LEAKS with CODE (no LLM involved).
 
-    Hồ sơ thi tự sinh hay kèm lời tự thú: "This violates C01", "satisfying W08", "meets all criteria".
-    Hồ sơ thật KHÔNG BAO GIỜ viết vậy, và nếu để lọt thì hệ thẩm định có thể chấm đúng vì ĐỌC ĐƯỢC
-    ĐÁP ÁN chứ không phải vì suy luận -> số đo bị thổi phồng. Phát hiện -> viết lại.
+    Generated test applications tend to confess: "This violates C01", "satisfying W08", "meets all criteria".
+    Real applications NEVER say that, and if it slips through the system under test may answer correctly because it
+    READ THE ANSWER, not because it reasoned -> inflated figures. Detected -> rewrite.
     """
     problems = []
     ids = sorted({r["id"] for r in ruleset["rules"]}, key=len, reverse=True)
     hit_ids = [i for i in ids if re.search(rf"\b{re.escape(i)}\b", text)]
     if hit_ids:
-        problems.append("lộ mã rule: " + ", ".join(hit_ids))
+        problems.append("rule IDs leaked: " + ", ".join(hit_ids))
     m = _META_PAT.search(text)
     if m:
-        problems.append(f"câu tự bình luận quy tắc: '{m.group(0)}'")
+        problems.append(f"sentence commenting on the rules: '{m.group(0)}'")
     if "[[FACT]]" in text:
-        problems.append("còn sót dấu [[FACT]] của bộ sinh")
+        problems.append("leftover [[FACT]] marker from the generator")
     return problems
 
 
@@ -140,18 +143,18 @@ def _norm_cmp(s: str) -> str:
 
 
 def _contains(text: str, fact: str) -> bool:
-    """Văn bản có chứa NGUYÊN VĂN câu vi phạm đã chốt không (so sau chuẩn hoá khoảng trắng/dấu/tiền tệ)."""
+    """Does the text contain the fixed violation sentence VERBATIM (compared after whitespace/punctuation/currency normalisation)?"""
     return bool(fact) and _norm_cmp(fact) in _norm_cmp(text)
 
 
 def _insert_fact(text: str, fact: str):
-    """MÃ NGUỒN chèn câu vi phạm đã chốt vào chỗ đánh dấu [[FACT]] — không phó mặc LLM chép lại (model nhỏ
-    hay chép sai/diễn giải lại). Thiếu dấu thì nối thành đoạn cuối."""
+    """CODE inserts the fixed violation sentence at the [[FACT]] marker — not left to the LLM to copy (small models
+    copy inaccurately or paraphrase). Without a marker it is appended as a final paragraph."""
     if "[[FACT]]" in text:
         out, how = text.replace("[[FACT]]", fact, 1).replace("[[FACT]]", ""), "marker"
     else:
         out, how = text.rstrip() + "\n\nAdditional Details\n" + fact, "appended"
-    # người viết hay chép luôn câu vi phạm cạnh dấu -> câu lặp đôi: giữ lần xuất hiện đầu tiên
+    # the writer often copies the violation sentence next to the marker too -> duplicate: keep the first occurrence
     first = out.find(fact)
     if first >= 0:
         cut = first + len(fact)
@@ -164,9 +167,10 @@ _SENT_SPLIT = re.compile(r"(?<=[.!?])\s+")
 
 
 def _repair_meta(ruleset: dict, text: str, keep: str = None):
-    """Bỏ từng CÂU tự bình luận quy tắc / nhắc mã rule (vd "This exceeds the minimum $500,000 requirement.")
-    thay vì vứt cả hồ sơ. KHÔNG BAO GIỜ bỏ câu vi phạm đã chốt. Hồ sơ sau khi bỏ vẫn phải qua lại mọi chốt
-    kiểm (lộ đề, đối soát guard, verifier), và danh sách câu đã bỏ được lưu cho người rà xem."""
+    """Remove each SENTENCE that comments on the rules / mentions a rule ID (e.g. "This exceeds the minimum $500,000
+    requirement.") instead of discarding the whole application. NEVER removes the fixed violation sentence. After repair
+    the application must pass every gate again (leaks, guard cross-check, verifier), and the removed sentences are
+    stored for the reviewer."""
     id_pat = re.compile(r"\b(?:" + "|".join(re.escape(r["id"]) for r in ruleset["rules"]) + r")\b")
     lines, removed = [], []
     for line in text.split("\n"):
@@ -180,9 +184,10 @@ def _repair_meta(ruleset: dict, text: str, keep: str = None):
     return "\n".join(lines), removed
 
 
-# Dấu hiệu văn bản KHÔNG PHẢI hồ sơ mà là lời model tự nói với mình ("Okay, the user wants me to write...").
-# Đo thật 14/09/2026: qwen3:4b (bản chỉ-suy-nghĩ) bỏ qua think=false và trả nguyên đoạn độc thoại; mọi chốt kiểm
-# cũ vẫn cho qua vì câu vi phạm được chèn vào giữa độc thoại — chỉ bước người rà phát hiện. Nay chặn bằng mã nguồn.
+# Signs that the text is NOT an application but the model talking to itself ("Okay, the user wants me to write...").
+# Measured 2026-09-14: qwen3:4b (thinking-only build) ignored think=false and returned its whole monologue; every earlier
+# gate still passed because the violation sentence was inserted in the middle of it — only the human reviewer caught it.
+# Now blocked by code.
 _MONOLOGUE_PAT = re.compile(
     r"\b(?:the user wants|user wants|the user (?:asked|specified|has given)|I need to|I'll|I will write|let me|let's|"
     r"we are writing|we must (?:not )?write|the marker|marker topic|placeholder|the instructions?|the prompt|"
@@ -190,14 +195,14 @@ _MONOLOGUE_PAT = re.compile(
 
 
 def _doc_problems(raw: str) -> list:
-    """Bản viết có phải một HỒ SƠ không — kiểm cơ học trên bản thô, trước khi chèn câu vi phạm / xoá câu bình luận."""
+    """Is the draft an APPLICATION at all — mechanical check on the raw text, before inserting the violation / removing commentary."""
     problems = []
     hits = sorted({m.group(0).strip().lower() for m in _MONOLOGUE_PAT.finditer(raw)})
     if hits:
-        problems.append("không phải hồ sơ — model tự độc thoại: " + ", ".join(hits[:4]))
+        problems.append("not an application — model monologue: " + ", ".join(hits[:4]))
     n = len(raw.split())
     if not 120 <= n <= 520:
-        problems.append(f"độ dài bất thường ({n} từ)")
+        problems.append(f"abnormal length ({n} words)")
     return problems
 
 
@@ -211,27 +216,27 @@ def _guard_crosscheck(ruleset: dict, text: str, target_id: str):
     return (not wrong), (target_id in fired), fired
 
 
-# ---------------- verifier (LLM, model tách khỏi hệ bị đo) ----------------
+# ---------------- verifier (LLM, model separate from the system under test) ----------------
 def _votes(rule: dict, text: str):
-    """Hai phiếu HỎI HAI CÁCH, quy về cùng một thang "rule có được thoả không": yes / no / unclear.
-    Không đưa mã rule vào câu hỏi để verifier không thiên theo mã."""
+    """Two votes ASKED TWO WAYS, mapped onto one scale "is the rule satisfied": yes / no / unclear.
+    Rule IDs are kept out of the question so the verifier cannot lean on the ID."""
     body = f'RULE: "{rule["quote"]}"\n\nAPPLICATION TEXT:\n{text}'
     out = []
     for system, flip in ((SYS_VERIFY, False), (SYS_VERIFY_VIOL, True)):
         try:
             a = llm.chat_json(system, body, VERIFY_SCHEMA, max_tokens=160, model=VERIFIER_MODEL).get("answer", "unclear")
         except llm.LLMError:
-            out.append("error")   # ghi rõ lỗi gọi model — không để lỗi trông giống "không rõ" (GPU dùng chung hay timeout)
+            out.append("error")   # record the model-call error explicitly — never let it look like "unclear" (shared GPU or timeout)
             continue
         out.append({"yes": "no", "no": "yes"}.get(a, a) if flip else a)
     return out
 
 
 def _verify(ruleset: dict, text: str, target_id: str):
-    """Kiểm nhãn PHỤ (phạm vi 'full'):
-      • Mọi phiếu nói có bằng chứng -> nhãn met đáng tin. Phiếu mâu thuẫn -> giữ metric, gắn cờ.
-        Mọi phiếu nói không rõ -> 'weak', loại khỏi metric.
-      • Mã nguồn PHỦ QUYẾT: guard khẳng định rule vi phạm bằng số liệu -> nhãn met chắc chắn sai -> weak.
+    """Check the SECONDARY labels ('full' scope):
+      • Every vote says there is evidence -> the met label is trustworthy. Contradicting votes -> keep in the metric, flag.
+        Every vote says unclear -> 'weak', excluded from the metric.
+      • CODE HAS A VETO: if a guard asserts a violation by figures, the met label is certainly wrong -> weak.
     """
     weak, detail, disagree = [], {}, []
     for r in ruleset["rules"]:
@@ -255,9 +260,9 @@ def _verify(ruleset: dict, text: str, target_id: str):
     return weak, detail, disagree
 
 
-# ---------------- sinh ----------------
+# ---------------- generation ----------------
 def _confirm_fact(ruleset: dict, rule: dict, fact: str):
-    """Câu dữ kiện có THẬT là vi phạm không: ưu tiên mã nguồn (guard), không được thì 2 phiếu verifier."""
+    """Is the fact sentence REALLY a violation: prefer code (guard); otherwise two verifier votes."""
     g = guards.check(ruleset["id"], rule, "met", fact, {})
     if g and g["action"] in ("override", "flag"):
         return True, "code"
@@ -268,26 +273,26 @@ def _confirm_fact(ruleset: dict, rule: dict, fact: str):
 
 
 def _plan_fact(ruleset: dict, rule: dict, seed: str, tries: int = 4):
-    why, rejected = "chưa thử", []
+    why, rejected = "not attempted", []
     for k in range(tries):
-        # temperature 0: không đổi đề thì lần thử sau y hệt lần trước -> đưa câu bị loại KÈM LÝ DO vào để buộc đổi hướng
+        # temperature 0: an unchanged prompt gives the identical answer -> feed back the rejected sentences WITH REASONS to force a new direction
         retry = ("\n\nThese earlier attempts were REJECTED:\n"
                  + "\n".join(f'- "{r}" (reason: {why_en})' for r, why_en in rejected[-3:])
                  + "\nWrite a different sentence that directly contradicts the rule and avoids those problems.") if rejected else ""
         try:
-            # không đưa "hạt giống" vào prompt: model lấy luôn chuỗi đó làm tên tổ chức ("Case 2-0")
+            # the "seed" is kept out of the prompt: the model would use it as the organisation name ("Case 2-0")
             d = llm.chat_json(SYS_PLAN, f'PROGRAM: {ruleset["name"]}\nRULE: "{rule["quote"]}"{retry}\n\n'
                                         "Write the fact sentence now.",
                               PLAN_SCHEMA, max_tokens=120, model=PLANNER_MODEL)
         except llm.LLMError as e:
-            why = f"lỗi LLM: {e}"
+            why = f"LLM error: {e}"
             continue
         fact = re.sub(r"\s+", " ", guards.normalise(d.get("fact", ""))).strip().strip('"')
         if len(fact.split()) < 6:
-            why = f"câu quá ngắn: {fact!r}"
+            why = f"sentence too short: {fact!r}"
             continue
         if _MONOLOGUE_PAT.search(fact) or re.search(r"\bcase\s*\d", fact, re.I):
-            why = f"câu không phải dữ kiện hồ sơ: {fact[:90]}"
+            why = f"sentence is not an application fact: {fact[:90]}"
             rejected.append((fact, "it is not a plain statement of fact about a named applicant"))
             continue
         leaks = _leak_check(ruleset, fact)
@@ -299,17 +304,17 @@ def _plan_fact(ruleset: dict, rule: dict, seed: str, tries: int = 4):
         ok, how = _confirm_fact(ruleset, rule, fact)
         if ok:
             return fact, how
-        why = f"chưa phải vi phạm rõ ({how}) — {fact[:90]}"
+        why = f"not a clear violation ({how}) — {fact[:90]}"
         rejected.append((fact, "it does not clearly fail this exact rule"))
     return None, why
 
 
-# temperature 0: thử lại với prompt y hệt thì ra y hệt -> đổi VĂN PHONG giữa các lần (không dùng mã/hạt giống).
+# temperature 0: retrying with the identical prompt returns the identical text -> vary the STYLE between attempts (no IDs/seeds).
 _STYLE = ["", "Use title-case paragraph headings.", "Use slightly more formal wording and different paragraph headings."]
 
 
 def _gen_text(ruleset: dict, target_rule: dict = None, fact: str = None, variant: int = 0) -> str:
-    rules_txt = "\n".join(f'- "{r["quote"]}"' for r in ruleset["rules"])   # KHÔNG đưa mã rule cho người viết
+    rules_txt = "\n".join(f'- "{r["quote"]}"' for r in ruleset["rules"])   # NO rule IDs for the writer
     if fact:
         req = (f'MARKER TOPIC: "{target_rule["quote"]}"\n'
                f'The marker [[FACT]] will be replaced by this sentence (use the same organisation name): "{fact}"')
@@ -323,34 +328,34 @@ def _gen_text(ruleset: dict, target_rule: dict = None, fact: str = None, variant
 
 def generate(ruleset_id: str, n_violations: int = None, officer: str = "casegen", verify: bool = True,
              scope: str = "full"):
-    """scope='full'  : kiểm TẤT CẢ nhãn phụ (đắt) -> đo được cả metric phụ.
-       scope='target': chỉ kiểm rule MỤC TIÊU + đối chứng trên hồ sơ sạch (rẻ) -> đo [MỤC TIÊU] + đối chứng;
-                       file nhãn ghi rõ phạm vi để eval KHÔNG báo cáo số phụ như thể đã kiểm."""
+    """scope='full'  : verify ALL secondary labels (expensive) -> the secondary metric can be measured too.
+       scope='target': verify only the TARGET rule + control on the clean application (cheap) -> measures [TARGET] + control;
+                       the label file records the scope so eval does NOT report secondary figures as if verified."""
     rs = core.get_ruleset(ruleset_id)
     rules = rs["rules"]
     guarded = [r for r in rules if guards.compile_rule_guards(r) or r["id"] in guards.HAND_COVERAGE.get(ruleset_id, set())]
     targets = (guarded if n_violations is None else guarded[:n_violations]) or rules[:n_violations or 3]
     out_dir = GEN_DIR / ruleset_id
     out_dir.mkdir(parents=True, exist_ok=True)
-    for old in out_dir.glob("*.txt"):   # bộ mới thay hẳn bộ cũ (file nhãn cũng bị ghi đè) — lịch sử nằm trong git
+    for old in out_dir.glob("*.txt"):   # a new set fully replaces the old one (the label file is overwritten too) — history lives in git
         old.unlink()
-    print(f"[casegen] {ruleset_id} · chốt vi phạm: {_planner_model_name()} · viết: {_gen_model_name()} · "
-          f"kiểm nhãn: {_verifier_model_name()} · phạm vi: {scope} · "
-          f"rule mục tiêu: {[t['id'] for t in targets]}", flush=True)
+    print(f"[casegen] {ruleset_id} · violation planner: {_planner_model_name()} · writer: {_gen_model_name()} · "
+          f"label verifier: {_verifier_model_name()} · scope: {scope} · "
+          f"target rules: {[t['id'] for t in targets]}", flush=True)
     cases, skipped = [], []
-    for i, tgt in enumerate([None] + targets):  # case đầu = hồ sơ sạch (đối chứng)
+    for i, tgt in enumerate([None] + targets):  # first case = clean application (control)
         cid = f"GEN-{ruleset_id}-{i:02d}" + ("-clean" if tgt is None else f"-{tgt['id']}")
         tid = tgt["id"] if tgt else "__none__"
         fact, how = None, None
-        # hạt giống TRUNG TÍNH: mã case chứa mã rule (vd "...-01-C01") -> đưa vào prompt là tự lộ đáp án
+        # NEUTRAL seed: the case ID contains the rule ID (e.g. "...-01-C01") -> putting it in the prompt would leak the answer
         seed = f"case{i}"
         if tgt:
             fact, how = _plan_fact(rs, tgt, seed)
             if not fact:
-                skipped.append({"id": cid, "reason": "không chốt được câu vi phạm rõ ràng sau 4 lần", "detail": how})
-                print(f"  {cid}: BỎ — không chốt được câu vi phạm ({how})", flush=True)
+                skipped.append({"id": cid, "reason": "could not fix a clear violation sentence after 4 attempts", "detail": how})
+                print(f"  {cid}: SKIPPED — could not fix a violation sentence ({how})", flush=True)
                 continue
-        problem, agree, text = "chưa viết", False, ""
+        problem, agree, text = "not written", False, ""
         placement, removed, rest_votes = None, [], None
         for k in range(3):
             text = _gen_text(rs, tgt, fact, k)
@@ -360,14 +365,14 @@ def generate(ruleset_id: str, n_violations: int = None, officer: str = "casegen"
                 continue
             if fact:
                 text, placement = _insert_fact(text, fact)
-            # hồ sơ SẠCH cũng có thể bị người viết chèn dấu [[FACT]] (On-farm 14/09) -> xoá dấu sót ở mọi case
+            # even a CLEAN application may get a [[FACT]] marker from the writer (On-farm 09-14) -> strip leftovers in every case
             text = re.sub(r"[ \t]*\[\[FACT\]\][ \t]*", " ", text)
             text, removed = _repair_meta(rs, text, keep=fact)
-            if len(removed) > 3:   # hồ sơ thật lỡ vài câu bình luận thì sửa được; nhiều hơn là văn bản hỏng
-                problem = f"quá nhiều câu bình luận quy tắc phải xoá ({len(removed)})"
+            if len(removed) > 3:   # a real application may slip a few commentary sentences; more than that means a broken text
+                problem = f"too many rule-commentary sentences had to be removed ({len(removed)})"
                 continue
             if fact and not _contains(text, fact):
-                problem = "văn bản không chứa nguyên văn câu vi phạm"
+                problem = "text does not contain the violation sentence verbatim"
                 continue
             leaks = _leak_check(rs, text)
             if leaks:
@@ -375,25 +380,25 @@ def generate(ruleset_id: str, n_violations: int = None, officer: str = "casegen"
                 continue
             ok, agree, fired = _guard_crosscheck(rs, text, tid)
             if not ok:
-                problem = f"guard bắn vào rule ngoài mục tiêu: {sorted(r for r in fired if r != tid)}"
+                problem = f"guard fired on a non-target rule: {sorted(r for r in fired if r != tid)}"
                 continue
             if how == "code" and not agree:
-                problem = "guard không còn bắt trên toàn văn — có dữ kiện khác đè lên câu vi phạm"
+                problem = "guard no longer fires on the full text — another fact overrides the violation sentence"
                 continue
             if tgt and verify:
-                # CHỐNG TỰ MÂU THUẪN: bỏ câu vi phạm đi thì phần còn lại phải IM LẶNG về tiêu chí mục tiêu.
-                # Nếu cả hai phiếu vẫn thấy tiêu chí được thoả (vd "CEO đã ký xác nhận" bên cạnh "không có board"),
-                # hồ sơ tự mâu thuẫn, không phải đề thi sạch -> viết lại. (Cyber 14/09: 2/3 case hỏng đúng kiểu này.)
+                # ANTI-SELF-CONTRADICTION: with the violation sentence removed, the rest must be SILENT about the target rule.
+                # If both votes still see the rule satisfied (e.g. "the CEO signed the certification" next to "there is no
+                # board"), the application contradicts itself and is not a clean test -> rewrite. (Cyber 09-14: 2/3 cases failed this way.)
                 rest_votes = _votes(tgt, re.sub(r"[ \t]{2,}", " ", text.replace(fact, " ")))
                 if rest_votes and all(a == "yes" for a in rest_votes):
-                    problem = f"tự mâu thuẫn — bỏ câu vi phạm đi, phần còn lại vẫn cho thấy tiêu chí được thoả {rest_votes}"
+                    problem = f"self-contradictory — with the violation sentence removed, the rest still shows the rule satisfied {rest_votes}"
                     continue
             problem = None
             break
         if problem:
-            skipped.append({"id": cid, "reason": problem + " (sau 3 lần viết)", "fact": fact,
-                            "last_text": text[:2000]})   # giữ bản viết cuối để người rà xem vì sao bị bỏ
-            print(f"  {cid}: BỎ — {problem}", flush=True)
+            skipped.append({"id": cid, "reason": problem + " (after 3 attempts)", "fact": fact,
+                            "last_text": text[:2000]})   # keep the last draft so the reviewer can see why it was dropped
+            print(f"  {cid}: SKIPPED — {problem}", flush=True)
             continue
 
         verifier, weak, disagree, clear, control = {}, [], [], None, None
@@ -405,7 +410,7 @@ def generate(ruleset_id: str, n_violations: int = None, officer: str = "casegen"
         if verify and scope == "full":
             weak, sec, disagree = _verify(rs, text, tid)
             verifier.update(sec)
-        elif verify and not tgt:  # đối chứng: rule mục tiêu chấm trên hồ sơ sạch
+        elif verify and not tgt:  # control: target rules assessed on the clean application
             control = []
             for t in targets:
                 verifier[t["id"]] = _votes(t, text)
@@ -427,11 +432,11 @@ def generate(ruleset_id: str, n_violations: int = None, officer: str = "casegen"
             case["control_rules"] = control
         cases.append(case)
         if tgt:
-            print(f"  {cid}: vi phạm {tgt['id']} [chốt bởi {how}] · guard {'XÁC NHẬN' if agree else 'không bắt'} · "
-                  + ("verifier xác nhận" if clear else f"!! VERIFIER GẮN CỜ {verifier.get(tgt['id'])} — cần người rà"),
+            print(f"  {cid}: violates {tgt['id']} [fixed by {how}] · guard {'CONFIRMS' if agree else 'did not fire'} · "
+                  + ("verifier confirms" if clear else f"!! FLAGGED BY VERIFIER {verifier.get(tgt['id'])} — needs a reviewer"),
                   flush=True)
         else:
-            print(f"  {cid}: sạch · đối chứng dùng được cho {control}", flush=True)
+            print(f"  {cid}: clean · usable as control for {control}", flush=True)
 
     doc = {"ruleset": ruleset_id, "version": rs["version"], "label_scope": scope,
            "generator_model": _gen_model_name(), "verifier_model": _verifier_model_name(),
@@ -440,19 +445,19 @@ def generate(ruleset_id: str, n_violations: int = None, officer: str = "casegen"
            "generated_at": datetime.now().isoformat(timespec="seconds"),
            "approved": False, "approved_by": None, "approved_at": None,
            "n_needs_review": sum(1 for c in cases if c["status"] == "needs_review"),
-           "note": "Vi phạm do mã nguồn chốt trước (câu dữ kiện được guard/verifier xác nhận, văn bản phải chứa "
-                   "nguyên văn); chặn lộ đáp án bằng mã nguồn; verifier dùng model tách khỏi hệ bị đo. "
-                   "CHƯA PHÊ CHUẨN — số đo từ bộ này là TẠM (provisional). Rà văn bản, xử lý hết cờ rồi --approve.",
+           "note": "Violations fixed by code first (the fact sentence is confirmed by guard/verifier and the text must contain "
+                   "it verbatim); answer leaks blocked by code; the verifier uses a model separate from the system under test. "
+                   "NOT APPROVED — measurements from this set are PROVISIONAL. Review the texts, resolve every flag, then --approve.",
            "cases": cases, "skipped": skipped}
     (LBL_DIR / f"generated-{ruleset_id}.json").write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
     return doc
 
 
-# ---------------- rà & phê chuẩn ----------------
+# ---------------- review & approval ----------------
 def _load(ruleset_id):
     p = LBL_DIR / f"generated-{ruleset_id}.json"
     if not p.exists():
-        raise FileNotFoundError(f"Chưa có bộ test sinh cho '{ruleset_id}' — chạy --gen trước")
+        raise FileNotFoundError(f"No generated test set for '{ruleset_id}' — run --gen first")
     return p, json.loads(p.read_text(encoding="utf-8"))
 
 
@@ -464,31 +469,31 @@ def _case(doc: dict, case_id: str) -> dict:
 
 
 def _save_edited(p, doc):
-    """Mọi chỉnh sửa nhãn sau khi phê chuẩn đều làm MẤT phê chuẩn — phải duyệt lại."""
+    """Every label edit after approval REVOKES the approval — the set must be approved again."""
     doc.update(approved=False, approved_by=None, approved_at=None,
                n_needs_review=sum(1 for c in doc["cases"] if c.get("status") == "needs_review"))
     p.write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def approve(ruleset_id: str, officer: str):
-    """Phê chuẩn nhãn sau khi đã rà văn bản — từ đây số đo mới hết 'provisional'.
-    Từ chối nếu còn case bị verifier gắn cờ mà chưa ai xử lý (confirm hoặc dispute)."""
+    """Approve the labels after reviewing the texts — only then do measurements stop being 'provisional'.
+    Refused while a verifier-flagged case is unresolved (confirm or dispute)."""
     p, doc = _load(ruleset_id)
     if officer in (doc.get("reviewers") or []):
-        raise ValueError(f"Tách nhiệm vụ: '{officer}' đã tham gia rà nhãn bộ này nên không được tự phê chuẩn — cần người khác duyệt")
+        raise ValueError(f"Separation of duties: '{officer}' took part in reviewing this set's labels and cannot approve it — another person must approve")
     pending = [c["id"] for c in doc["cases"] if c.get("status") == "needs_review"]
     if pending:
-        raise ValueError(f"Còn {len(pending)} case bị verifier gắn cờ chưa rà: {pending} — "
-                         "đọc văn bản rồi --confirm (vi phạm có thật) hoặc --dispute (nhãn sai) trước khi phê chuẩn")
-    # Soát lại bằng BỘ LỌC HIỆN HÀNH trước khi phê chuẩn: bộ lọc lộ đáp án được siết dần qua các lượt rà
-    # (vd "falling short of the $1,207,000 threshold" lọt ở Wine 14/09) — case vi phạm sinh bằng bộ lọc cũ
-    # vẫn phải qua bộ lọc mới, vì câu lộ đáp án ở case vi phạm thổi phồng thẳng vào metric chính.
+        raise ValueError(f"{len(pending)} verifier-flagged cases still unreviewed: {pending} — "
+                         "read the text then --confirm (real violation) or --dispute (wrong label) before approving")
+    # Re-screen with the CURRENT filter before approving: the leak filter is tightened over review rounds
+    # (e.g. "falling short of the $1,207,000 threshold" slipped through in Wine 09-14) — violation cases generated with an
+    # older filter must still pass the new one, because a leaked answer in a violation case inflates the primary metric directly.
     rs = core.get_ruleset(ruleset_id)
     leaky = {c["id"]: _leak_check(rs, (core.DATA / "applications" / c["file"]).read_text(encoding="utf-8"))
              for c in doc["cases"] if c.get("target") and c.get("status") != "disputed"}
     leaky = {k: v for k, v in leaky.items() if v}
     if leaky:
-        raise ValueError(f"Case vi phạm còn lộ đáp án theo bộ lọc hiện hành: {leaky} — --dispute hoặc sinh lại trước khi phê chuẩn")
+        raise ValueError(f"Violation cases still leak the answer under the current filter: {leaky} — --dispute or regenerate before approving")
     live = [c for c in doc["cases"] if c.get("status") != "disputed"]
     doc.update(approved=True, approved_by=officer, approved_at=datetime.now().isoformat(timespec="seconds"))
     for c in doc["cases"]:
@@ -499,27 +504,27 @@ def approve(ruleset_id: str, officer: str):
 
 
 def confirm_target(ruleset_id: str, case_id: str, reason: str):
-    """Người rà đọc văn bản và xác nhận vi phạm mục tiêu CÓ THẬT dù verifier gắn cờ.
-    Đây chính là các case khó mà metric cần giữ lại, không được âm thầm loại."""
+    """The reviewer read the text and confirms the target violation is REAL despite the verifier flag.
+    These are exactly the hard cases the metric must keep — never drop them silently."""
     p, doc = _load(ruleset_id)
     hit = _case(doc, case_id)
     if not hit.get("target"):
-        raise ValueError("case sạch không có rule mục tiêu để xác nhận")
+        raise ValueError("a clean case has no target rule to confirm")
     hit.update(target_label_clear=True, target_confirmed_by_reviewer=reason, status="pending_review")
     _save_edited(p, doc)
     return {"ok": True, "case": case_id, "reason": reason}
 
 
 def confirm_control(ruleset_id: str, case_id: str, rule_id: str, reason: str):
-    """Người rà đọc hồ sơ SẠCH và xác nhận nó thoả RÕ RÀNG rule mục tiêu -> dùng rule đó làm đối chứng.
-    Verifier chỉ gắn cờ: model kiểm nhỏ có thể trả 'không rõ' dù văn bản nêu rõ (đo thật 14/09: cùng một văn bản
-    Cyber, lượt trước yes/yes, lượt sau không) — bỏ đối chứng vì thế sẽ làm mất phép đo báo động giả."""
+    """The reviewer read the CLEAN application and confirms it CLEARLY satisfies the target rule -> use that rule as control.
+    The verifier only flags: a small verifier model may answer 'unclear' although the text is explicit (measured 09-14: the
+    same Cyber text got yes/yes in one round and not in the next) — dropping the control for that would lose the false-alarm measurement."""
     p, doc = _load(ruleset_id)
     hit = _case(doc, case_id)
     if hit.get("target"):
-        raise ValueError("chỉ áp dụng cho hồ sơ sạch (case không có rule mục tiêu)")
+        raise ValueError("only applies to the clean case (the case without a target rule)")
     if rule_id not in (doc.get("targets") or []):
-        raise ValueError(f"{rule_id} không phải rule mục tiêu của bộ test này ({doc.get('targets')})")
+        raise ValueError(f"{rule_id} is not a target rule of this test set ({doc.get('targets')})")
     hit.setdefault("control_rules", [])
     if rule_id not in hit["control_rules"]:
         hit["control_rules"].append(rule_id)
@@ -529,7 +534,7 @@ def confirm_control(ruleset_id: str, case_id: str, rule_id: str, reason: str):
 
 
 def flag_weak(ruleset_id: str, case_id: str, rule_id: str, reason: str):
-    """Người rà đánh dấu MỘT nhãn phụ không đáng tin -> loại khỏi metric (giữ case)."""
+    """The reviewer marks ONE secondary label as untrustworthy -> excluded from the metric (the case is kept)."""
     p, doc = _load(ruleset_id)
     hit = _case(doc, case_id)
     hit.setdefault("weak_labels", [])
@@ -543,23 +548,23 @@ def flag_weak(ruleset_id: str, case_id: str, rule_id: str, reason: str):
 
 
 def dispute(ruleset_id: str, case_id: str, reason: str, by: str = None):
-    """Đánh dấu một case là sai/đáng ngờ -> loại khỏi mọi metric (giữ lại để truy vết)."""
+    """Mark a case as wrong/doubtful -> excluded from every metric (kept for traceability)."""
     p, doc = _load(ruleset_id)
     hit = _case(doc, case_id)
     hit.update(status="disputed", dispute_reason=reason)
-    if by:  # ghi người rà -> tách nhiệm vụ: người rà nhãn không được tự phê chuẩn bộ nhãn đó
+    if by:  # record the reviewer -> separation of duties: whoever reviewed the labels cannot approve the same set
         hit["disputed_by"] = by
         doc["reviewers"] = sorted(set(doc.get("reviewers") or []) | {by})
     _save_edited(p, doc)
     return {"ok": True, "case": case_id, "reason": reason}
 
 
-# ---------------- đo ----------------
+# ---------------- measurement ----------------
 def evaluate(ruleset_id: str):
-    """Đo hệ thẩm định (model hệ thống) trên bộ sinh — TÁCH metric để không lẫn nhiễu đề thi:
-      • target  : rule mục tiêu của từng case vi phạm — THƯỚC ĐO CHÍNH (bắt được / false-pass / đẩy về cán bộ).
-      • control : (phạm vi 'target') rule mục tiêu chấm trên hồ sơ SẠCH — báo động giả.
-      • secondary: (phạm vi 'full') rule phụ có bằng chứng rõ — tham khảo.
+    """Measure the assessment system (system model) on the generated set — SEPARATE metrics so test-set noise does not mix in:
+      • target   : the target rule of each violation case — PRIMARY METRIC (caught / false pass / routed to officer).
+      • control  : ('target' scope) target rules assessed on the CLEAN application — false alarms.
+      • secondary: ('full' scope) secondary rules with clear evidence — reference only.
     """
     _, doc = _load(ruleset_id)
     info = llm.describe()
@@ -570,14 +575,14 @@ def evaluate(ruleset_id: str):
                or (c.get("target") and c.get("target_label_clear") is False)} - disputed
     live = [c for c in doc["cases"] if c["id"] not in disputed | flagged]
     print("=" * 70)
-    print(f"EVAL '{ruleset_id}' · hệ bị đo: {info['model']} · bộ nhãn sinh bởi: "
-          f"{doc.get('generator_model') or doc.get('generated_by')} · {len(live)} case"
-          + (f" (bỏ {len(disputed)} disputed)" if disputed else "")
-          + (f" (bỏ {len(flagged)} case còn cờ chưa rà)" if flagged else ""))
+    print(f"EVAL '{ruleset_id}' · system under test: {info['model']} · labels generated by: "
+          f"{doc.get('generator_model') or doc.get('generated_by')} · {len(live)} cases"
+          + (f" (excluding {len(disputed)} disputed)" if disputed else "")
+          + (f" (excluding {len(flagged)} cases with unresolved flags)" if flagged else ""))
     if scope == "target":
-        print("PHẠM VI: rule MỤC TIÊU trên case vi phạm + đối chứng trên hồ sơ sạch (không đo, không báo cáo rule phụ).")
+        print("SCOPE: TARGET rule on violation cases + control on the clean application (secondary rules are neither measured nor reported).")
     if not approved:
-        print("!! NHÃN CHƯA PHÊ CHUẨN — số dưới đây là TẠM (provisional), không dùng để tuyên bố.")
+        print("!! LABELS NOT APPROVED — the figures below are PROVISIONAL; do not report them.")
     print("=" * 70)
     T = {"n": 0, "ok": 0, "fp": 0}
     C = {"n": 0, "ok": 0, "false_alarm": 0}
@@ -618,26 +623,26 @@ def evaluate(ruleset_id: str):
     total_seen = T["n"] + S["n"] + excluded
     excl_rate = excluded / max(total_seen, 1)
     print("\n" + "#" * 70)
-    print("# THƯỚC ĐO CHÍNH — [MỤC TIÊU]: mỗi case có đúng 1 vi phạm cài sẵn, hệ có bắt được không")
-    print(f"#   Bắt đúng vi phạm      : {T['ok']}/{T['n']}" + (f" = {T['ok']/T['n']:.0%}" if T["n"] else ""))
-    print(f"#   FALSE-PASS            : {T['fp']}/{T['n']} (kỳ vọng 0 — chỉ số quan trọng nhất)")
-    print(f"#   Đẩy về cán bộ (chưa rõ): {routed}/{T['n']} (không phải lỗi lọt, nhưng tốn công người)")
+    print("# PRIMARY METRIC — [TARGET]: each case has exactly 1 planted violation; does the system catch it?")
+    print(f"#   Violations caught      : {T['ok']}/{T['n']}" + (f" = {T['ok']/T['n']:.0%}" if T["n"] else ""))
+    print(f"#   FALSE PASS             : {T['fp']}/{T['n']} (expected 0 — the most important figure)")
+    print(f"#   Routed to officer (unclear): {routed}/{T['n']} (not a miss, but costs human time)")
     print("#" * 70)
     if scope == "target":
-        print(f"[ĐỐI CHỨNG] rule mục tiêu trên hồ sơ SẠCH: đúng {C['ok']}/{C['n']} · BÁO ĐỘNG GIẢ {C['false_alarm']}/{C['n']}"
-              " — không có dòng này thì hệ 'từ chối tất cả' cũng đạt 100% ở trên.")
+        print(f"[CONTROL] target rules on the CLEAN application: correct {C['ok']}/{C['n']} · FALSE ALARMS {C['false_alarm']}/{C['n']}"
+              " — without this line a 'reject everything' system would also score 100% above.")
     else:
-        print(f"[THAM KHẢO] rule phụ có bằng chứng rõ: {S['ok']}/{S['n']}" + (f" = {S['ok']/S['n']:.0%}" if S["n"] else "")
-              + " — không dùng làm thước đo chất lượng.")
-        print(f"[LOẠI]      {excluded}/{total_seen} lượt rule bị loại ({excl_rate:.0%}) — nhãn phụ yếu.")
+        print(f"[REFERENCE] secondary rules with clear evidence: {S['ok']}/{S['n']}" + (f" = {S['ok']/S['n']:.0%}" if S["n"] else "")
+              + " — not used as a quality measure.")
+        print(f"[EXCLUDED]  {excluded}/{total_seen} rule evaluations excluded ({excl_rate:.0%}) — weak secondary labels.")
         if excl_rate > 0.3:
-            print("!! CẢNH BÁO: loại >30% — bộ test tự sinh chất lượng thấp.")
+            print("!! WARNING: >30% excluded — low-quality generated test set.")
     if T["n"] < 10:
-        print(f"!! CỠ MẪU NHỎ ({T['n']} case vi phạm): đây là bằng chứng sơ bộ theo quỹ, không phải tỷ lệ thống kê.")
+        print(f"!! SMALL SAMPLE ({T['n']} violation cases): preliminary per-fund evidence, not a statistical rate.")
     if not approved:
-        print("!! NHẮC LẠI: nhãn chưa phê chuẩn -> mọi số trên là TẠM TÍNH.")
+        print("!! REMINDER: labels not approved -> every figure above is PROVISIONAL.")
     for e in errors:
-        print(f"  [{e['kind']}] {e['case']} {e['rule']}: dự đoán {e['pred']} / nhãn {e['truth']} — {e['note']}")
+        print(f"  [{e['kind']}] {e['case']} {e['rule']}: predicted {e['pred']} / label {e['truth']} — {e['note']}")
     out = {"ruleset": ruleset_id, "llm": info["model"], "assessor_model": info["model"],
            "generator_model": doc.get("generator_model") or doc.get("generated_by"),
            "verifier_model": doc.get("verifier_model"), "label_scope": scope,
@@ -646,11 +651,11 @@ def evaluate(ruleset_id: str):
            "provisional": not approved, "labels_approved": approved, "approved_by": doc.get("approved_by"),
            "primary_metric": "target",
            "target": {"correct": T["ok"], "total": T["n"], "false_pass": T["fp"], "routed_to_officer": routed,
-                      "note": "THƯỚC ĐO CHÍNH — vi phạm cài sẵn có bị bắt không"},
+                      "note": "PRIMARY METRIC — is the planted violation caught"},
            "control": ({"correct": C["ok"], "total": C["n"], "false_alarm": C["false_alarm"],
-                        "note": "rule mục tiêu chấm trên hồ sơ sạch — báo động giả"} if scope == "target" else None),
+                        "note": "target rules assessed on the clean application — false alarms"} if scope == "target" else None),
            "secondary": ({"correct": S["ok"], "total": S["n"], "false_pass": S["fp"],
-                          "note": "chỉ tham khảo — rule phụ do đề thi tự sinh, dễ nhiễu"} if scope == "full" else None),
+                          "note": "reference only — secondary rules are generated by the test writer and noisy"} if scope == "full" else None),
            "excluded_weak_labels": excluded, "excluded_rate": round(excl_rate, 3),
            "low_quality_testset": scope == "full" and excl_rate > 0.3,
            "small_sample": T["n"] < 10,
@@ -668,21 +673,21 @@ if __name__ == "__main__":
         if cmd == "--gen":
             d = generate(rid, int(args[0]) if args else None,
                          scope="target" if "--target-only" in sys.argv else "full")
-            print(f"\nSinh xong: {len(d['cases'])} case (bỏ {len(d['skipped'])}, {d['n_needs_review']} case bị gắn cờ cần rà)"
-                  f" -> data/labels/generated-{rid}.json\nNHÃN CHƯA PHÊ CHUẨN — rà văn bản rồi --confirm/--dispute, sau đó --approve.")
+            print(f"\nGenerated: {len(d['cases'])} cases (skipped {len(d['skipped'])}, {d['n_needs_review']} flagged for review)"
+                  f" -> data/labels/generated-{rid}.json\nLABELS NOT APPROVED — review the texts, then --confirm/--dispute, then --approve.")
         elif cmd == "--eval":
             evaluate(rid)
         elif cmd == "--approve":
-            print(approve(rid, args[0] if args else "Cán bộ"))
+            print(approve(rid, args[0] if args else "Officer"))
         elif cmd == "--confirm":
-            print(confirm_target(rid, args[0], args[1] if len(args) > 1 else "không nêu lý do"))
+            print(confirm_target(rid, args[0], args[1] if len(args) > 1 else "no reason given"))
         elif cmd == "--confirm-control":
-            print(confirm_control(rid, args[0], args[1], args[2] if len(args) > 2 else "không nêu lý do"))
+            print(confirm_control(rid, args[0], args[1], args[2] if len(args) > 2 else "no reason given"))
         elif cmd == "--dispute":
-            print(dispute(rid, args[0], args[1] if len(args) > 1 else "không nêu lý do"))
+            print(dispute(rid, args[0], args[1] if len(args) > 1 else "no reason given"))
         elif cmd == "--flag-weak":
-            print(flag_weak(rid, args[0], args[1], args[2] if len(args) > 2 else "không nêu lý do"))
+            print(flag_weak(rid, args[0], args[1], args[2] if len(args) > 2 else "no reason given"))
         else:
             print(__doc__); sys.exit(1)
     except (ValueError, KeyError, FileNotFoundError) as e:
-        print(f"LỖI: {e}"); sys.exit(2)
+        print(f"ERROR: {e}"); sys.exit(2)

@@ -1,15 +1,15 @@
-"""feedback.py — vòng phản hồi: quyết định của cán bộ trở thành dữ liệu huấn luyện.
+"""feedback.py — feedback loop: officer decisions become training data.
 
-Khi cán bộ KÝ DUYỆT một hồ sơ, mọi tiêu chí mà (a) cán bộ SỬA kết luận AI, hoặc (b) AI trả
-CHƯA RÕ / KHÔNG ĐỀ CẬP và người phải quyết — được ghi vào data/feedback/feedback.jsonl:
-    {case, rule, rule_quote, facts AI trích, ai_verdict, final_verdict, officer_reason, aq, ts, llm}
+When an officer SIGNS OFF a case, every criterion where (a) the officer OVERRODE the AI verdict, or (b) the AI
+returned UNCLEAR / NOT ADDRESSED and a human had to decide — is written to data/feedback/feedback.jsonl:
+    {case, rule, rule_quote, AI-extracted facts, ai_verdict, final_verdict, officer_reason, aq, ts, llm}
 
-Dùng theo 2 tầng:
-  1. NGAY LẬP TỨC (không cần huấn luyện): các ca đã sửa của CÙNG tiêu chí được bơm ngược vào
-     prompt phán quyết làm ví dụ few-shot ("lần trước với dữ kiện X, kết luận đúng là Y vì Z").
-     Bật/tắt: GRANTLENS_FEEDBACK=on|off (mặc định on).
-  2. ĐỊNH KỲ: python -m backend.feedback export -> feedback-sft.jsonl (định dạng chat messages)
-     để fine-tune lại bước trích dữ kiện / phán quyết (GĐ3, cần đủ ~vài trăm mẫu).
+Used in two tiers:
+  1. IMMEDIATELY (no training needed): past corrections for the SAME criterion are injected back into the
+     judgement prompt as few-shot examples ("last time with facts X the correct verdict was Y because Z").
+     Toggle: GRANTLENS_FEEDBACK=on|off (default on).
+  2. PERIODICALLY: python -m backend.feedback export -> feedback-sft.jsonl (chat-messages format)
+     to fine-tune the extraction / judgement steps (phase 3, needs a few hundred samples).
 """
 import json, os, sys
 from datetime import datetime
@@ -34,7 +34,8 @@ def _load():
 
 
 def record_signed_case(case: dict, verdicts: list, rules_by_id: dict, llm_model: str, ruleset_id: str = "") -> int:
-    """Gọi lúc ký duyệt: ghi các tiêu chí cán bộ sửa / phải quyết thay AI. Trả số mẫu ghi."""
+    """Called at sign-off: records the criteria the officer overrode / had to decide in place of the AI.
+    Returns the number of samples written."""
     DIR.mkdir(parents=True, exist_ok=True)
     n = 0
     with open(FILE, "a", encoding="utf-8") as f:
@@ -58,7 +59,7 @@ def record_signed_case(case: dict, verdicts: list, rules_by_id: dict, llm_model:
 
 
 def examples_for_rule(rule_id: str, ruleset_id: str = None, limit: int = MAX_FEWSHOT):
-    """Ví dụ few-shot: các lần cán bộ SỬA kết luận AI của tiêu chí này TRONG CÙNG bộ tiêu chí."""
+    """Few-shot examples: officer OVERRIDES of the AI verdict for this criterion WITHIN THE SAME criteria set."""
     if not ENABLED:
         return []
     ex = [e for e in _load() if e["rule"] == rule_id and e["kind"] == "override" and e.get("facts")
@@ -89,7 +90,7 @@ def stats():
 
 
 def export_sft(out_path=None) -> str:
-    """Xuất định dạng fine-tune (chat messages) cho bước phán quyết."""
+    """Export the fine-tuning format (chat messages) for the judgement step."""
     from .core import SYS_JUDGE
     out_path = Path(out_path or DIR / "feedback-sft.jsonl")
     data = _load()
@@ -103,7 +104,7 @@ def export_sft(out_path=None) -> str:
                 {"role": "user", "content": f'CASE {e["case"]} — RULE {e["rule"]}: "{e["rule_quote"]}"\n\nFACTS (normalized, style removed):\n{fact_list}\n\nDecide.'},
                 {"role": "assistant", "content": json.dumps({
                     "verdict": e["final_verdict"], "confidence": "high", "supporting_fact": 1,
-                    "note_vi": e["officer_reason"] or "Theo kết luận đã ký của cán bộ."}, ensure_ascii=False)},
+                    "note": e["officer_reason"] or "Per the officer's signed verdict."}, ensure_ascii=False)},
             ]}, ensure_ascii=False) + "\n")
     return str(out_path)
 
@@ -111,6 +112,6 @@ def export_sft(out_path=None) -> str:
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "export":
         p = export_sft()
-        print(f"Đã xuất {stats()['total']} mẫu -> {p}")
+        print(f"Exported {stats()['total']} samples -> {p}")
     else:
         print(json.dumps(stats(), ensure_ascii=False, indent=2))

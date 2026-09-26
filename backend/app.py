@@ -1,6 +1,6 @@
 """app.py — GrantLens backend (FastAPI).
-Chạy:  uvicorn backend.app:app --port 8000   (từ thư mục gốc dự án)
-Mở:    http://localhost:8000
+Run:   uvicorn backend.app:app --port 8000   (from the project root)
+Open:  http://localhost:8000
 """
 import json
 from pathlib import Path
@@ -12,11 +12,12 @@ from . import core, store, workflow, llm, rag, screening, tables, feedback, coi,
 from .llm import LLMError
 from .workflow import WorkflowError
 
-# Mọi JSON trả về đi qua lớp dịch (chỉ đổi khi cookie gl_lang=en; nguyên văn hồ sơ/tiêu chí không bao giờ bị dịch)
-app = FastAPI(title="GrantLens", version="2.3", default_response_class=i18n.I18nJSONResponse)
+# Every JSON response goes through the locale layer (only changes anything when cookie gl_lang selects another UI
+# language; verbatim application/rule text is never translated)
+app = FastAPI(title="GrantLens", version="2.4", default_response_class=i18n.I18nJSONResponse)
 FRONTEND = Path(__file__).resolve().parent.parent / "frontend" / "index.html"
 
-# --- khóa truy cập cho bản demo public: đặt GRANTLENS_ACCESS_KEY thì mọi request phải có key ---
+# --- access key for a public demo: when GRANTLENS_ACCESS_KEY is set every request must carry the key ---
 import os
 ACCESS_KEY = os.environ.get("GRANTLENS_ACCESS_KEY", "")
 
@@ -29,8 +30,8 @@ async def access_gate(request, call_next):
         if supplied != ACCESS_KEY:
             return HTMLResponse(
                 "<div style='font-family:sans-serif;max-width:420px;margin:15vh auto;text-align:center'>"
-                "<h2>GrantLens — bản demo riêng tư</h2><p>Cần khóa truy cập. Mở lại đường dẫn dạng:</p>"
-                "<code>…/?key=KHÓA-ĐƯỢC-CẤP</code></div>", status_code=401)
+                "<h2>GrantLens — private demo</h2><p>An access key is required. Open the link in this form:</p>"
+                "<code>…/?key=YOUR-ACCESS-KEY</code></div>", status_code=401)
         resp = await call_next(request)
         if request.query_params.get("key") == ACCESS_KEY:
             resp.set_cookie("gl_key", ACCESS_KEY, httponly=True, max_age=86400 * 7)
@@ -38,7 +39,7 @@ async def access_gate(request, call_next):
     return await call_next(request)
 
 
-# Danh tính + vai trò lấy từ PHIÊN phía máy chủ; trường officer/role trong request bị ghi đè (xem auth.py).
+# Identity + role come from the server-side SESSION; officer/role fields in requests are overwritten (see auth.py).
 app.add_middleware(auth.IdentityMiddleware)
 
 
@@ -52,11 +53,13 @@ async def _http_err(request, exc: HTTPException):
     return i18n.I18nJSONResponse(status_code=exc.status_code, content={"detail": exc.detail}, headers=exc.headers)
 
 
-@app.get("/api/i18n/en")
-def i18n_dictionary():
-    """Từ điển VI->EN cho giao diện (cùng nguồn với lớp dịch JSON phía máy chủ). Công khai, không cần đăng nhập."""
+@app.get("/api/i18n/{lang}")
+def i18n_dictionary(lang: str):
+    """UI locale dictionary (same source as the server-side JSON locale layer). Public, no login needed."""
     from fastapi.responses import JSONResponse
-    return JSONResponse(i18n.dictionary_payload())
+    if lang not in i18n.LANGS:
+        raise HTTPException(404, f"No locale '{lang}'")
+    return JSONResponse(i18n.dictionary_payload(lang))
 
 
 class LoginReq(BaseModel):
@@ -69,11 +72,11 @@ def auth_login(req: LoginReq, response: Response):
     try:
         user = auth.login(req.username, req.password)
     except auth.AuthError as e:
-        store.log("Hệ thống", f"ĐĂNG NHẬP THẤT BẠI: '{req.username[:40]}' — {e}", None, "system")
+        store.log("System", f"SIGN-IN FAILED: '{req.username[:40]}' — {e}", None, "system")
         raise
     response.set_cookie(auth.COOKIE, auth.make_session(user), httponly=True, samesite="strict",
                         max_age=int(auth.SESSION_HOURS * 3600))
-    store.log(user["name"], "ĐĂNG NHẬP", None, user["role"], {"username": user["username"]})
+    store.log(user["name"], "SIGNED IN", None, user["role"], {"username": user["username"]})
     return {"user": user}
 
 
@@ -81,7 +84,7 @@ def auth_login(req: LoginReq, response: Response):
 def auth_logout(request: Request, response: Response):
     u = getattr(request.state, "user", None)
     if u:
-        store.log(u["name"], "ĐĂNG XUẤT", None, u["role"])
+        store.log(u["name"], "SIGNED OUT", None, u["role"])
     response.delete_cookie(auth.COOKIE)
     return {"ok": True}
 
@@ -101,7 +104,7 @@ def seed():
                 rs = core.get_ruleset(c["ruleset"])
                 store.update_case(c["id"], ruleset_id=rs["id"], ruleset_version=rs["version"])
     if not store.audit_events(limit=1):
-        store.log("Hệ thống", "Khởi tạo nhật ký kiểm toán (genesis)", None, "system")
+        store.log("System", "Audit log initialised (genesis)", None, "system")
 
 
 @app.exception_handler(WorkflowError)
@@ -123,7 +126,7 @@ def index():
 def meta():
     all_rs = core.load_rulesets()
     return {"rules": core.load_rules(), "llm": llm.describe(), "llm_health": llm.health(),
-            "embed_backend": rag.EMBED_BACKEND, "states": workflow.STATES, "state_vi": workflow.STATE_VI,
+            "embed_backend": rag.EMBED_BACKEND, "states": workflow.STATES, "state_labels": workflow.STATE_LABELS,
             "min_seconds_per_rule": workflow.MIN_SECONDS_PER_RULE,
             "attestation_min_chars": workflow.ATTESTATION_MIN_CHARS,
             "attestation_min_chars_llm": workflow.ATTESTATION_MIN_CHARS_LLM_ONLY,
@@ -133,7 +136,7 @@ def meta():
                           "n_rules": len(r["rules"]), "status": r.get("status", "approved"),
                           "default": r["id"] == all_rs["_default"]}
                          for k, r in all_rs.items() if k != "_default"],
-            "sla_days": coi.sla_days(), "auth_enabled": auth.ENABLED,
+            "sla_days": coi.sla_days(), "auth_enabled": auth.ENABLED, "languages": list(i18n.LANGS),
             "managers": [o["name"] for o in coi.load_officers() if o.get("role") == "manager"]}
 
 
@@ -169,28 +172,28 @@ class NewCase(BaseModel):
     org: str = ""
     directorate: str = ""
     text: str
-    officer: str = "Cán bộ"
+    officer: str = "Officer"
     ruleset_id: str = ""
 
 
 def _create_case(applicant, org, directorate, text, officer, filename=None, ruleset_id=""):
     text = text.replace("\r\n", "\n").strip()
     if len(text.split()) < 40:
-        raise HTTPException(400, "Văn bản hồ sơ quá ngắn (< 40 từ)")
+        raise HTTPException(400, "Application text is too short (< 40 words)")
     cid = store.next_upload_id()
     store.upsert_case({"id": cid, "applicant": applicant.strip() or cid, "org": org, "directorate": directorate,
-                       "scenario": "Hồ sơ tải lên" + (f" ({filename})" if filename else ""), "tags": ["upload"],
+                       "scenario": "Uploaded application" + (f" ({filename})" if filename else ""), "tags": ["upload"],
                        "source": "upload", "text": text})
     try:
         rs = core.get_ruleset(ruleset_id or None, require_approved=True)
     except KeyError as e:
         raise HTTPException(409, str(e))
     store.update_case(cid, ruleset_id=rs["id"], ruleset_version=rs["version"])
-    store.log(officer, f"Tải lên hồ sơ mới {cid} — {applicant} ({len(text.split())} từ) · bộ tiêu chí {rs['name']} v{rs['version']}",
+    store.log(officer, f"Uploaded new application {cid} — {applicant} ({len(text.split())} words) · criteria set {rs['name']} v{rs['version']}",
               cid, "officer", {"filename": filename, "words": len(text.split()), "ruleset": rs["id"]})
     try:
-        _screen(cid, "Hệ thống")
-    except Exception:  # sàng lọc lỗi không được chặn việc tạo hồ sơ
+        _screen(cid, "System")
+    except Exception:  # a screening error must not block case creation
         pass
     return store.get_case(cid, with_text=False)
 
@@ -202,18 +205,18 @@ def create_case(req: NewCase):
 
 @app.post("/api/cases/upload")
 async def upload_case(request: Request, file: UploadFile = File(...), applicant: str = Form(""), org: str = Form(""),
-                      directorate: str = Form(""), officer: str = Form("Cán bộ"), ruleset_id: str = Form("")):
+                      directorate: str = Form(""), officer: str = Form("Officer"), ruleset_id: str = Form("")):
     officer = auth.current_user(request, officer)["name"]
     try:
         meta = tables.file_to_text(file.filename, await file.read())
     except Exception as e:
-        raise HTTPException(400, f"Không đọc được file {file.filename}: {e}")
+        raise HTTPException(400, f"Cannot read file {file.filename}: {e}")
     c = _create_case(applicant or Path(file.filename).stem, org, directorate, meta["text"], officer, file.filename,
                      ruleset_id=ruleset_id)
     if meta["n_tables"] or meta["scanned_pages"]:
-        store.log("Hệ thống", f"Phân tích layout {file.filename}: {meta['n_tables']} bảng giữ nguyên cấu trúc"
-                  + (f", {len(meta['scanned_pages'])} trang scan CẦN OCR (trang {meta['scanned_pages']})" if meta["scanned_pages"] else "")
-                  + (", đã OCR dự phòng" if meta["ocr_used"] else ""), c["id"], "system", meta | {"text": None})
+        store.log("System", f"Layout analysis {file.filename}: {meta['n_tables']} tables kept structured"
+                  + (f", {len(meta['scanned_pages'])} scanned pages NEED OCR (pages {meta['scanned_pages']})" if meta["scanned_pages"] else "")
+                  + (", fallback OCR applied" if meta["ocr_used"] else ""), c["id"], "system", meta | {"text": None})
     return {**c, "ingest": {k: v for k, v in meta.items() if k != "text"}}
 
 
@@ -221,18 +224,16 @@ async def upload_case(request: Request, file: UploadFile = File(...), applicant:
 @app.post("/api/cases/{case_id}/assess")
 def assess(case_id: str):
     workflow.can_assess(case_id)
-    lang = i18n.get_lang()   # generator chạy ngoài context của request -> chốt ngôn ngữ ở đây
+    lang = i18n.get_lang()   # the generator runs outside the request context -> capture the language here
 
     def gen():
         def line(ev):
-            if lang == "en":
-                ev = i18n._walk(ev)
-            return json.dumps(ev, ensure_ascii=False) + "\n"
+            return json.dumps(i18n.localize(ev, lang), ensure_ascii=False) + "\n"
         try:
             for ev in workflow.assess_stream(case_id):
                 yield line(ev)
         except LLMError as e:
-            store.log("Hệ thống", f"LỖI LLM khi đánh giá: {e}", case_id, "system")
+            store.log("System", f"LLM ERROR during assessment: {e}", case_id, "system")
             yield line({"type": "error", "detail": str(e)})
         except WorkflowError as e:
             yield line({"type": "error", "detail": str(e)})
@@ -270,7 +271,7 @@ class ConfirmReq(Officer):
     rule_id: str
     verdict: str
     reason: str = ""
-    evidence_ack: bool = False   # llm-only: cán bộ xác nhận đúng câu trích dẫn AI đã cắt
+    evidence_ack: bool = False   # llm-only: the officer confirms the quotation the AI cut
 
 
 @app.post("/api/cases/{case_id}/confirm")
@@ -321,7 +322,7 @@ def approve_letter(case_id: str, req: ApproveReq):
     return workflow.approve_letter(case_id, req.officer, req.text, req.role)
 
 
-# ---------------- multi-GO: bộ tiêu chí theo đợt tài trợ + versioning ----------------
+# ---------------- multi-GO: criteria sets per grant round + versioning ----------------
 @app.get("/api/rulesets")
 def rulesets():
     all_rs = core.load_rulesets()
@@ -344,8 +345,8 @@ def set_case_ruleset(case_id: str, req: SetRulesetReq):
 class SaveRulesetReq(Officer):
     id: str
     name: str
-    version: str = "1"
     region: str = ""
+    version: str = "1"
     source: str = ""
     rules: list
 
@@ -355,23 +356,23 @@ def save_ruleset(req: SaveRulesetReq):
     import re as _re
     rid = req.id.strip().lower()
     if not _re.fullmatch(r"[a-z0-9][a-z0-9\-_.]{2,60}", rid):
-        raise HTTPException(400, "id bộ tiêu chí: chữ thường/số/gạch, 3-60 ký tự")
-    rules = [r for r in req.rules if r.get("id") and r.get("quote") and r.get("title_vi")]
+        raise HTTPException(400, "criteria-set id: lowercase/digits/dashes, 3-60 characters")
+    rules = [r for r in req.rules if r.get("id") and r.get("quote") and r.get("title")]
     if len(rules) < 3:
-        raise HTTPException(400, "Bộ tiêu chí cần ≥ 3 rule hợp lệ (id, title_vi, quote)")
+        raise HTTPException(400, "A criteria set needs ≥ 3 valid rules (id, title, quote)")
     for r in rules:
         r["type"] = r.get("type") if r.get("type") in ("quantitative", "qualitative") else "qualitative"
     rs = {"id": rid, "name": req.name.strip(), "region": req.region, "version": req.version.strip() or "1",
           "source": req.source, "saved_by": req.officer, "saved_at": store.now(), "rules": rules,
-          "status": "draft"}  # lưu = NHÁP; đổi/ghi đè bộ đang active cũng về nháp — phải phê chuẩn lại
+          "status": "draft"}  # saving = DRAFT; changing/overwriting the active set also goes back to draft — must be re-approved
     (core.RULESETS_DIR / f"{rid}.json").write_text(json.dumps(rs, ensure_ascii=False, indent=2), encoding="utf-8")
     idx = json.loads((core.RULESETS_DIR / "index.json").read_text(encoding="utf-8"))
     idx["rulesets"] = [e for e in idx["rulesets"] if e["id"] != rid] + [
         {"id": rid, "file": f"{rid}.json", "name": rs["name"], "region": rs["region"], "version": rs["version"]}]
     (core.RULESETS_DIR / "index.json").write_text(json.dumps(idx, ensure_ascii=False, indent=2), encoding="utf-8")
     core.reload_rulesets()
-    store.log(req.officer, f"LƯU bộ tiêu chí '{rs['name']}' v{rs['version']} ({len(rules)} rule) — id {rid}, trạng thái NHÁP. "
-              "Chưa gán được cho hồ sơ cho tới khi QUẢN LÝ phê chuẩn (kèm kiểm độ phủ guard); hồ sơ cũ giữ bộ đã khóa.",
+    store.log(req.officer, f"SAVED criteria set '{rs['name']}' v{rs['version']} ({len(rules)} rules) — id {rid}, status DRAFT. "
+              "Cannot be assigned to cases until a MANAGER approves it (with a guard-coverage check); existing cases keep their locked set.",
               None, req.role, {"ruleset": rid, "version": rs["version"], "n_rules": len(rules), "status": "draft"})
     return {"ok": True, "ruleset": {k: v for k, v in rs.items() if k != "rules"}, "n_rules": len(rules)}
 
@@ -383,44 +384,44 @@ class ApproveRulesetReq(Officer):
 
 @app.post("/api/rulesets/{ruleset_id}/approve")
 def approve_ruleset(ruleset_id: str, req: ApproveRulesetReq, request: Request):
-    """QUẢN LÝ phê chuẩn bộ tiêu chí (kiểm độ phủ guard tối thiểu trước khi cho phép gán hồ sơ)."""
+    """A MANAGER approves a criteria set (minimum guard coverage is checked before cases can be assigned)."""
     from . import guards
     auth.require_role(request, "manager", fallback_name=req.officer)
     try:
         rs = core.get_ruleset(ruleset_id)
     except KeyError:
-        raise HTTPException(404, f"Không có bộ tiêu chí '{ruleset_id}'")
+        raise HTTPException(404, f"No criteria set '{ruleset_id}'")
     if rs.get("status", "approved") == "approved":
-        raise HTTPException(409, "Bộ tiêu chí này đã được phê chuẩn")
+        raise HTTPException(409, "This criteria set is already approved")
     cov = guards.coverage(rs)
     MIN_COV = 0.5
     if cov["pct"] < MIN_COV and not req.acknowledge_low_coverage:
-        raise HTTPException(428, f"Độ phủ guard {cov['n_guarded']}/{cov['n_rules']} ({cov['pct']:.0%}) dưới mức tối thiểu {MIN_COV:.0%} — "
-                            "các rule 'llm-only' không có lưới đỡ code. Bổ sung ngưỡng/mục cấm tường minh vào quote, "
-                            "hoặc xác nhận chấp nhận rủi ro kèm lý do (acknowledge_low_coverage=true).")
+        raise HTTPException(428, f"Guard coverage {cov['n_guarded']}/{cov['n_rules']} ({cov['pct']:.0%}) is below the minimum {MIN_COV:.0%} — "
+                            "'llm-only' rules have no code safety net. Add explicit thresholds/prohibitions to the quote, "
+                            "or accept the risk with a reason (acknowledge_low_coverage=true).")
     if cov["pct"] < MIN_COV and len((req.reason or "").strip()) < 8:
-        raise HTTPException(400, "Chấp nhận độ phủ guard thấp bắt buộc ghi lý do (≥ 8 ký tự)")
+        raise HTTPException(400, "Accepting low guard coverage requires a reason (≥ 8 characters)")
     p = core.RULESETS_DIR / f"{ruleset_id}.json"
     doc = json.loads(p.read_text(encoding="utf-8"))
     doc.update(status="approved", approved_by=req.officer, approved_at=store.now(),
                approved_coverage=f"{cov['n_guarded']}/{cov['n_rules']}")
     p.write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
     core.reload_rulesets()
-    store.log(req.officer, f"PHÊ CHUẨN bộ tiêu chí '{rs['name']}' v{rs['version']} — độ phủ guard {cov['n_guarded']}/{cov['n_rules']}"
-              + (f" (DƯỚI ngưỡng, chấp nhận rủi ro — lý do: {req.reason})" if cov["pct"] < MIN_COV else "")
-              + ". Từ giờ gán được cho hồ sơ.", None, "manager",
+    store.log(req.officer, f"APPROVED criteria set '{rs['name']}' v{rs['version']} — guard coverage {cov['n_guarded']}/{cov['n_rules']}"
+              + (f" (BELOW threshold, risk accepted — reason: {req.reason})" if cov["pct"] < MIN_COV else "")
+              + ". Can now be assigned to cases.", None, "manager",
               {"ruleset": ruleset_id, "coverage": cov["pct"], "low_cov_ack": cov["pct"] < MIN_COV})
     return {"ok": True, "status": "approved", "coverage": cov}
 
 
 @app.get("/api/rulesets/{ruleset_id}/coverage")
 def ruleset_coverage(ruleset_id: str):
-    """Độ phủ guard: rule nào được code bảo vệ (tay/tự biên dịch), rule nào CHỈ dựa LLM + cán bộ."""
+    """Guard coverage: which rules are protected by code (hand-written/compiled), which rely ONLY on LLM + officer."""
     from . import guards
     try:
         return guards.coverage(core.get_ruleset(ruleset_id))
     except KeyError:
-        raise HTTPException(404, f"Không có bộ tiêu chí '{ruleset_id}'")
+        raise HTTPException(404, f"No criteria set '{ruleset_id}'")
 
 
 class CasegenReq(Officer):
@@ -429,24 +430,24 @@ class CasegenReq(Officer):
 
 @app.post("/api/rulesets/{ruleset_id}/casegen")
 def ruleset_casegen(ruleset_id: str, req: CasegenReq):
-    """AI sinh bộ test có nhãn cho ruleset (1 case sạch + n case vi phạm; nhãn by-construction, guard đối soát).
-    Model local chậm — mỗi case ~60-90s. Bộ lớn chạy CLI: python -m backend.casegen <id> --gen"""
+    """The AI generates a labelled test set for the ruleset (1 clean case + n violation cases; labels by construction,
+    cross-checked by guards). A local model is slow — ~60-90s per case. Large sets: python -m backend.casegen <id> --gen"""
     from . import casegen
     try:
         core.get_ruleset(ruleset_id)
     except KeyError:
-        raise HTTPException(404, f"Không có bộ tiêu chí '{ruleset_id}'")
+        raise HTTPException(404, f"No criteria set '{ruleset_id}'")
     doc = casegen.generate(ruleset_id, n_violations=max(1, min(req.n, 5)), officer=req.officer)
-    store.log(req.officer, f"AI sinh bộ test cho '{ruleset_id}': {len(doc['cases'])} case (bỏ {len(doc['skipped'])}) — "
-              "nhãn by-construction + guard đối soát, CHỜ cán bộ phê chuẩn", None, req.role,
+    store.log(req.officer, f"AI generated a test set for '{ruleset_id}': {len(doc['cases'])} cases (skipped {len(doc['skipped'])}) — "
+              "labels by construction + guard cross-check, AWAITING officer approval", None, req.role,
               {"ruleset": ruleset_id, "n_cases": len(doc["cases"]), "skipped": len(doc["skipped"])})
     return doc
 
 
 @app.get("/api/guard-backlog")
 def guard_backlog():
-    """Danh sách việc phải làm để giảm rủi ro false-pass: mọi tiêu chí chưa có lưới đỡ code trên
-    MỌI bộ tiêu chí, xếp theo mức nguy hiểm. Đây là backlog được quản lý công khai, không để trôi."""
+    """The to-do list for reducing false-pass risk: every criterion without a code safety net across ALL criteria
+    sets, ordered by danger. This backlog is managed in the open and never allowed to drift."""
     from . import guards
     all_rs = core.load_rulesets()
     items = []
@@ -457,34 +458,34 @@ def guard_backlog():
         for r in cov["rows"]:
             if r["guard"] == "needs-manual-guard":
                 items.append({"ruleset": rs["id"], "ruleset_name": rs["name"], "rule": r["rule"],
-                              "title_vi": r["title_vi"], "priority": "cao", "reason": "; ".join(g["reason"] for g in r["gaps"]),
-                              "action": "viết guard tay cho tiêu chí này"})
+                              "title": r["title"], "priority": "high", "reason": "; ".join(g["reason"] for g in r["gaps"]),
+                              "action": "write a hand guard for this criterion"})
             elif r["guard"] == "code-guarded" and r["gaps"]:
                 items.append({"ruleset": rs["id"], "ruleset_name": rs["name"], "rule": r["rule"],
-                              "title_vi": r["title_vi"], "priority": "trung bình",
+                              "title": r["title"], "priority": "medium",
                               "reason": "; ".join(g["reason"] for g in r["gaps"]),
-                              "action": "rà lại guard tay xem đã phủ hết nhánh chưa"})
+                              "action": "re-check the hand guard covers every branch"})
             elif r["guard"] == "llm-only":
                 items.append({"ruleset": rs["id"], "ruleset_name": rs["name"], "rule": r["rule"],
-                              "title_vi": r["title_vi"], "priority": "thấp",
-                              "reason": "tiêu chí thuần định tính — không có số liệu để mã nguồn kiểm",
-                              "action": "dựa LLM + bắt buộc cán bộ chứng thực bằng trích dẫn (đã bật)"})
-    order = {"cao": 0, "trung bình": 1, "thấp": 2}
+                              "title": r["title"], "priority": "low",
+                              "reason": "purely qualitative criterion — no figures for code to check",
+                              "action": "LLM + mandatory officer attestation by quotation (enabled)"})
+    order = {"high": 0, "medium": 1, "low": 2}
     items.sort(key=lambda x: (order[x["priority"]], x["ruleset"], x["rule"]))
     return {"total": len(items), "by_priority": {p: sum(1 for i in items if i["priority"] == p) for p in order},
             "items": items,
-            "note": "Ưu tiên 'cao' = tiêu chí có logic định lượng mà mã nguồn chưa diễn đạt được: phải viết guard tay "
-                    "cho đúng quỹ đó. Trong lúc chưa có guard, hệ thống ép cán bộ chứng thực bằng trích dẫn nguyên văn "
-                    "và ghi nhật ký để hậu kiểm."}
+            "note": "Priority 'high' = criteria with quantitative logic that code cannot yet express: a hand guard must be "
+                    "written for that fund. Until then the system forces officers to attest with a verbatim quotation "
+                    "and logs it for post-audit."}
 
 
 @app.get("/api/measurement-status")
 def measurement_status():
-    """TRẠNG THÁI ĐO THEO TỪNG QUỸ — chống hiểu nhầm "đo 1 quỹ = chứng minh cả hệ thống".
+    """MEASUREMENT STATUS PER FUND — prevents the misreading "measuring 1 fund = proving the whole system".
 
-    Số false-pass chỉ có giá trị cho đúng quỹ đã đi hết chuỗi:
-        sinh bộ test -> rà/dispute/flag -> phê chuẩn nhãn -> eval -> metric [MỤC TIÊU].
-    Quỹ chưa đi hết chuỗi thì ghi rõ đang đứng ở bước nào, KHÔNG mượn số của quỹ khác.
+    A false-pass figure is only valid for the fund that completed the full chain:
+        generate test set -> review/dispute/flag -> approve labels -> eval -> [TARGET] metric.
+    A fund that has not completed the chain shows which step it is at and NEVER borrows another fund's figure.
     """
     from . import guards
     root = core.DATA.parent
@@ -499,26 +500,26 @@ def measurement_status():
         ev = json.loads(ev_p.read_text(encoding="utf-8")) if ev_p.exists() else None
         measured = False
         if not lbl:
-            stage, claim = "chưa có bộ test", "CHƯA ĐO — không có số để công bố"
+            stage, claim = "no test set yet", "NOT MEASURED — no figure to report"
         elif any(c.get("status") == "needs_review" for c in lbl.get("cases", [])):
-            stage, claim = "có bộ test, còn case bị verifier gắn cờ chưa rà", "CHƯA ĐO — đang rà nhãn"
+            stage, claim = "test set exists, verifier-flagged cases still unreviewed", "NOT MEASURED — labels under review"
         elif not lbl.get("approved"):
-            stage, claim = "có bộ test, nhãn chưa phê chuẩn", "TẠM TÍNH — không dùng để tuyên bố"
+            stage, claim = "test set exists, labels not approved", "PROVISIONAL — not for reporting"
         elif not ev:
-            stage, claim = "nhãn đã phê chuẩn, chưa chạy eval", "CHƯA ĐO"
+            stage, claim = "labels approved, evaluation not run", "NOT MEASURED"
         elif (ev.get("labels_generated_at") != lbl.get("generated_at")
               or ev.get("labels_approved_at") != lbl.get("approved_at")):
-            # chống trích số cũ: eval phải chạy trên ĐÚNG bộ nhãn đang phê chuẩn
-            stage, claim = "kết quả eval cũ, không khớp bộ nhãn hiện tại", "CHƯA ĐO — phải chạy lại eval"
+            # no stale figures: the evaluation must have run on EXACTLY the currently approved labels
+            stage, claim = "evaluation is stale — does not match the current labels", "NOT MEASURED — evaluation must be re-run"
         elif ev.get("provisional"):
-            stage, claim = "đã eval nhưng nhãn chưa phê chuẩn", "TẠM TÍNH — không dùng để tuyên bố"
+            stage, claim = "evaluated but labels not approved", "PROVISIONAL — not for reporting"
         else:
             t, ctl = ev.get("target") or {}, ev.get("control") or {}
-            measured, stage = True, "đã đo đủ chuỗi"
-            claim = (f"bắt đúng vi phạm {t.get('correct')}/{t.get('total')}, "
-                     f"false-pass {t.get('false_pass')}/{t.get('total')}"
-                     + (f"; hồ sơ sạch: báo động giả {ctl.get('false_alarm')}/{ctl.get('total')}" if ctl else "")
-                     + (" · cỡ mẫu nhỏ, bằng chứng sơ bộ" if (t.get("total") or 0) < 10 else ""))
+            measured, stage = True, "measured through the full chain"
+            claim = (f"caught violations {t.get('correct')}/{t.get('total')}, "
+                     f"false passes {t.get('false_pass')}/{t.get('total')}"
+                     + (f"; clean cases: false alarms {ctl.get('false_alarm')}/{ctl.get('total')}" if ctl else "")
+                     + (" · small sample, preliminary evidence" if (t.get("total") or 0) < 10 else ""))
         out.append({
             "ruleset": rs["id"], "name": rs["name"], "version": rs.get("version"),
             "region": rs.get("region", ""), "ruleset_status": rs.get("status", "approved"),
@@ -538,16 +539,16 @@ def measurement_status():
     out.sort(key=lambda x: (not x["measured"], x["ruleset"]))
     n_measured = sum(1 for x in out if x["measured"])
     return {"n_rulesets": len(out), "n_measured": n_measured,
-            "headline": f"{n_measured}/{len(out)} quỹ đã có số đo riêng; "
-                        f"{len(out) - n_measured} quỹ mới có ruleset + lưới đỡ code, CHƯA có số đo.",
-            "warning": "Không được dùng số của quỹ này để nói về quỹ khác. Mỗi quỹ phải tự đi hết chuỗi "
-                       "sinh bộ test → rà → phê chuẩn nhãn → eval mới có số.",
+            "headline": f"{n_measured}/{len(out)} funds have their own measurement; "
+                        f"{len(out) - n_measured} funds only have a ruleset + code guards, NOT measured yet.",
+            "warning": "Never use one fund's figure to speak for another. Each fund must complete its own chain: "
+                       "generate test set → review → approve labels → evaluate.",
             "rulesets": out}
 
 
 @app.get("/api/rulesets/{ruleset_id}/testset")
 def get_testset(ruleset_id: str):
-    """Trạng thái bộ test sinh cho ruleset: đã phê chuẩn nhãn chưa, case nào nhãn yếu/disputed."""
+    """Status of the generated test set for a ruleset: labels approved or not, which cases are weak/disputed."""
     from . import casegen
     try:
         _, doc = casegen._load(ruleset_id)
@@ -566,18 +567,18 @@ class ApproveLabelsReq(Officer):
 
 @app.post("/api/rulesets/{ruleset_id}/testset/approve")
 def approve_testset(ruleset_id: str, req: ApproveLabelsReq, request: Request):
-    """QUẢN LÝ phê chuẩn nhãn bộ test — sau bước này số đo mới hết 'tạm/provisional'.
-    Khoá vai trò: trước đây ai cũng gọi được cổng này."""
+    """A MANAGER approves the test-set labels — only after this step do measurements stop being 'provisional'.
+    Role lock: previously anyone could call this gate."""
     from . import casegen
     auth.require_role(request, "manager", fallback_name=req.officer)
     try:
         res = casegen.approve(ruleset_id, req.officer)
     except FileNotFoundError as e:
         raise HTTPException(404, str(e))
-    except ValueError as e:  # còn case bị verifier gắn cờ chưa rà -> không cho phê chuẩn
+    except ValueError as e:  # verifier-flagged cases still unreviewed -> approval refused
         raise HTTPException(409, str(e))
-    store.log(req.officer, f"PHÊ CHUẨN nhãn bộ test '{ruleset_id}' ({res['n_cases']} case) — "
-              "từ đây số đo trên bộ này không còn là tạm tính", None, req.role, {"ruleset": ruleset_id})
+    store.log(req.officer, f"APPROVED test-set labels '{ruleset_id}' ({res['n_cases']} cases) — "
+              "measurements on this set are no longer provisional", None, req.role, {"ruleset": ruleset_id})
     return res
 
 
@@ -588,22 +589,23 @@ class DisputeReq(Officer):
 
 @app.post("/api/rulesets/{ruleset_id}/testset/dispute")
 def dispute_testcase(ruleset_id: str, req: DisputeReq):
-    """Loại một case sinh khỏi metric (nhãn sai / đề thi không rõ) — giữ lại để truy vết."""
+    """Remove a generated case from the metric (wrong label / ambiguous test) — kept for traceability."""
     from . import casegen
     if len((req.reason or "").strip()) < 8:
-        raise HTTPException(400, "Loại case khỏi bộ test bắt buộc ghi lý do (≥ 8 ký tự)")
+        raise HTTPException(400, "Removing a case from the test set requires a reason (≥ 8 characters)")
     try:
         res = casegen.dispute(ruleset_id, req.case_id, req.reason, by=req.officer)
     except (FileNotFoundError, KeyError) as e:
         raise HTTPException(404, str(e))
-    store.log(req.officer, f"LOẠI case '{req.case_id}' khỏi bộ test '{ruleset_id}' — lý do: {req.reason}",
+    store.log(req.officer, f"REMOVED case '{req.case_id}' from test set '{ruleset_id}' — reason: {req.reason}",
               None, req.role, {"ruleset": ruleset_id, "case": req.case_id})
     return res
 
 
-# ---------------- hậu kiểm lấy mẫu (quản lý / thanh tra) ----------------
-# Lấp rủi ro còn lại của cổng chứng thực: máy kiểm được đoạn trích CÓ THẬT trong hồ sơ, không kiểm được nó có ĐÚNG
-# tiêu chí. Hồ sơ đạt toàn bộ lại không qua ký cấp 2 -> đây là "mắt thứ hai theo mẫu" cho đúng vùng đó.
+# ---------------- post-audit sampling (manager / auditor) ----------------
+# Closes the residual risk of the attestation gate: code can check that a quoted passage REALLY EXISTS in the application,
+# not that it is RELEVANT to the criterion. Cases that meet every criterion never pass through countersignature -> this is
+# the "sampled second pair of eyes" for exactly that zone.
 @app.get("/api/post-audit/sample")
 def post_audit_sample(request: Request, n: int = 5, officer: str = ""):
     import random
@@ -615,12 +617,12 @@ def post_audit_sample(request: Request, n: int = 5, officer: str = ""):
         c = store.get_case(v["case_id"], with_text=False)
         rule = next((r for r in workflow.case_rules(c) if r["id"] == v["rule_id"]), {})
         items.append({"case_id": v["case_id"], "applicant": v.get("applicant"), "rule_id": v["rule_id"],
-                      "rule_title": rule.get("title_vi"), "rule_quote": rule.get("quote"),
+                      "rule_title": rule.get("title"), "rule_quote": rule.get("quote"),
                       "guard_level": v.get("guard_level"), "ai_verdict": v.get("ai_verdict"), "ai_quote": v.get("aq"),
                       "attestation": v.get("officer_reason"), "confirmed_by": v.get("confirmed_by"),
                       "confirmed_at": v.get("confirmed_at")})
-    if items:  # ghi cả việc RÚT MẪU: không ai rút đi rút lại tới khi gặp mẫu dễ mà không để lại dấu vết
-        store.log(u["name"], f"RÚT MẪU hậu kiểm: {len(items)}/{len(pool)} lần xác nhận ĐẠT ở tiêu chí không lưới đỡ",
+    if items:  # log the SAMPLING itself: nobody redraws until an easy sample turns up without leaving a trace
+        store.log(u["name"], f"POST-AUDIT SAMPLE drawn: {len(items)}/{len(pool)} MET confirmations on unguarded criteria",
                   None, u["role"], {"sample": [[i["case_id"], i["rule_id"]] for i in items]})
     return {"pool": len(pool), "items": items, "stats": store.post_audit_stats()}
 
@@ -636,19 +638,19 @@ class PostAuditReq(Officer):
 def post_audit_save(req: PostAuditReq, request: Request):
     u = auth.require_role(request, "manager", "auditor", fallback_name=req.officer)
     if req.outcome not in ("agree", "disagree"):
-        raise HTTPException(400, "outcome phải là agree hoặc disagree")
+        raise HTTPException(400, "outcome must be agree or disagree")
     v = store.get_verdict(req.case_id, req.rule_id)
     if not v or v.get("final_verdict") != "met":
-        raise HTTPException(404, "Không có lần xác nhận ĐẠT này")
+        raise HTTPException(404, "No such MET confirmation")
     if (v.get("confirmed_by") or "") == u["name"]:
-        raise HTTPException(409, "Không được tự hậu kiểm lần xác nhận của chính mình")
+        raise HTTPException(409, "You cannot post-audit your own confirmation")
     note = (req.note or "").strip()
     if req.outcome == "disagree" and len(note) < 8:
-        raise HTTPException(400, "Không đồng ý thì bắt buộc ghi lý do (≥ 8 ký tự)")
+        raise HTTPException(400, "Disagreeing requires a reason (≥ 8 characters)")
     store.save_post_audit(req.case_id, req.rule_id, u["name"], req.outcome, note)
-    verb = "ĐỒNG Ý với" if req.outcome == "agree" else "KHÔNG ĐỒNG Ý với"
-    store.log(u["name"], f"HẬU KIỂM {req.rule_id}: {verb} chứng thực của {v.get('confirmed_by')}"
-              + (f" — {note}" if note else "") + (" → đề nghị MỞ LẠI hồ sơ" if req.outcome == "disagree" else ""),
+    verb = "AGREES with the attestation by" if req.outcome == "agree" else "DISAGREES with the attestation by"
+    store.log(u["name"], f"POST-AUDIT {req.rule_id}: {verb} {v.get('confirmed_by')}"
+              + (f" — {note}" if note else "") + (" → recommends REOPENING the case" if req.outcome == "disagree" else ""),
               req.case_id, u["role"], {"rule": req.rule_id, "outcome": req.outcome, "confirmed_by": v.get("confirmed_by")})
     return {"ok": True, "stats": store.post_audit_stats()}
 
@@ -658,7 +660,7 @@ def post_audit_list():
     return {"stats": store.post_audit_stats(), "items": store.post_audit_list()}
 
 
-# ---------------- ký cấp 2 (quản lý) + vòng bổ sung hồ sơ ----------------
+# ---------------- countersignature (manager) + supplement rounds ----------------
 @app.post("/api/cases/{case_id}/countersign")
 def countersign(case_id: str, req: Officer, request: Request):
     auth.require_role(request, "manager", fallback_name=req.officer)
@@ -686,17 +688,17 @@ def bias_compare(req: BiasReq):
     va = {v["rule_id"]: v for v in store.get_verdicts(req.a)}
     vb = {v["rule_id"]: v for v in store.get_verdicts(req.b)}
     if not va or not vb:
-        raise HTTPException(409, "Cả hai hồ sơ phải được AI đánh giá trước (mở từng hồ sơ → Chạy đánh giá AI)")
-    rows = [{"rule": r["id"], "title": r["title_vi"], "a": va[r["id"]]["ai_verdict"], "b": vb[r["id"]]["ai_verdict"],
+        raise HTTPException(409, "Both applications must be assessed by the AI first (open each → Run AI assessment)")
+    rows = [{"rule": r["id"], "title": r["title"], "a": va[r["id"]]["ai_verdict"], "b": vb[r["id"]]["ai_verdict"],
              "a_conf": va[r["id"]]["ai_confidence"], "b_conf": vb[r["id"]]["ai_confidence"],
              "match": va[r["id"]]["ai_verdict"] == vb[r["id"]]["ai_verdict"]} for r in core.load_rules()]
     match = sum(1 for r in rows if r["match"])
-    store.log("Hệ thống", f"Bias test {req.a} vs {req.b}: {match}/{len(rows)} tiêu chí trùng", None, "system",
+    store.log("System", f"Bias test {req.a} vs {req.b}: {match}/{len(rows)} criteria match", None, "system",
               {"a": req.a, "b": req.b, "match": match})
     return {"rows": rows, "match": match, "total": len(rows)}
 
 
-# ---------------- crosscheck (đối chiếu chéo chống gian lận) + đính kèm ----------------
+# ---------------- crosscheck (anti-cheating) + attachments ----------------
 @app.post("/api/cases/{case_id}/crosscheck")
 def crosscheck_run(case_id: str, req: Officer):
     return {"crosscheck": workflow.run_crosscheck(case_id, actor=req.officer)}
@@ -704,30 +706,30 @@ def crosscheck_run(case_id: str, req: Officer):
 
 @app.post("/api/cases/{case_id}/attach")
 async def attach(request: Request, case_id: str, file: UploadFile = File(None), name: str = Form(""),
-                 text: str = Form(""), officer: str = Form("Cán bộ")):
+                 text: str = Form(""), officer: str = Form("Officer")):
     officer = auth.current_user(request, officer)["name"]
     if file is not None:
         try:
             meta_doc = tables.file_to_text(file.filename, await file.read())
         except Exception as e:
-            raise HTTPException(400, f"Không đọc được file {file.filename}: {e}")
+            raise HTTPException(400, f"Cannot read file {file.filename}: {e}")
         doc_text, doc_name = meta_doc["text"], name or file.filename
     else:
-        doc_text, doc_name = text, name or "Tài liệu đính kèm"
+        doc_text, doc_name = text, name or "Attached document"
     cc = workflow.attach_document(case_id, doc_name, doc_text, officer)
     return {"crosscheck": cc, **workflow.case_view(case_id)}
 
 
-# ---------------- screening (đối chiếu danh sách cấm + ABN) ----------------
+# ---------------- screening (denied-party lists + ABN) ----------------
 def _screen(case_id: str, actor: str) -> dict:
     c = store.get_case(case_id, with_text=False)
     if not c:
-        raise HTTPException(404, "Không có hồ sơ này")
+        raise HTTPException(404, "No such application")
     res = screening.screen_case(c.get("applicant") or "", c.get("org") or "")
     store.update_case(case_id, screening=json.dumps(res, ensure_ascii=False))
-    lbl = {"clear": "không có hit", "note_expired": "chỉ hit đã hết hiệu lực",
-           "review": "CÓ HIT — cần cán bộ xem", "review_strong": "HIT KHỚP MẠNH — cần cán bộ xem"}[res["risk"]]
-    store.log(actor, f"Sàng lọc danh sách cấm {case_id}: {res['n_hits']} hit → {lbl}", case_id, "system",
+    lbl = {"clear": "no hits", "note_expired": "only expired hits",
+           "review": "HITS — officer must review", "review_strong": "STRONG HIT — officer must review"}[res["risk"]]
+    store.log(actor, f"Sanctions screening {case_id}: {res['n_hits']} hits → {lbl}", case_id, "system",
               {"risk": res["risk"], "n_hits": res["n_hits"]})
     return res
 
@@ -750,7 +752,7 @@ class LookupReq(BaseModel):
 @app.post("/api/screening/lookup")
 def screening_lookup(req: LookupReq):
     if len(req.name.strip()) < 4:
-        raise HTTPException(400, "Tên tra cứu quá ngắn")
+        raise HTTPException(400, "Lookup name is too short")
     return {"asic": screening.match_asic(req.name), "dfat": screening.match_dfat(req.name),
             "abn": screening.abn_lookup(req.name)}
 
@@ -761,7 +763,7 @@ def audit(case_id: Optional[str] = None, limit: int = 300):
     return {"events": store.audit_events(case_id, limit), "chain": store.verify_chain()}
 
 
-# ---------------- letter template: xem / sinh từ bộ quy tắc / lưu ----------------
+# ---------------- letter template: view / generate from office rules / save ----------------
 LETTER_TEMPLATE_PATH = Path(__file__).resolve().parent.parent / "data" / "letter-template.txt"
 
 
@@ -777,11 +779,11 @@ class TemplateGenReq(BaseModel):
 @app.post("/api/letter-template/generate")
 def generate_template(req: TemplateGenReq):
     if len(req.rules_text.split()) < 20:
-        raise HTTPException(400, "Bộ quy tắc quá ngắn (< 20 từ)")
+        raise HTTPException(400, "Rules text is too short (< 20 words)")
     tpl = core.generate_letter_template(req.rules_text)
-    store.log("AI", f"Dịch ngược bộ quy tắc ({len(req.rules_text.split())} từ) thành BẢN NHÁP mẫu thư — chờ cán bộ rà và lưu",
+    store.log("AI", f"Reverse-engineered the office rules ({len(req.rules_text.split())} words) into a DRAFT letter template — awaiting officer review and save",
               None, "system", {"words_rules": len(req.rules_text.split()), "words_template": len(tpl.split())})
-    return {"template": tpl, "note": "Bản nháp — cán bộ rà/sửa rồi bấm Lưu mới có hiệu lực"}
+    return {"template": tpl, "note": "Draft — takes effect only after an officer reviews/edits and clicks Save"}
 
 
 class TemplateSaveReq(Officer):
@@ -792,9 +794,9 @@ class TemplateSaveReq(Officer):
 def save_template(req: TemplateSaveReq):
     tpl = req.template.strip()
     if len(tpl.split()) < 20:
-        raise HTTPException(400, "Mẫu thư quá ngắn")
-    LETTER_TEMPLATE_PATH.write_text(f"[Mẫu thư đơn vị — lưu bởi {req.officer} {store.now()}]\n{tpl}\n", encoding="utf-8")
-    store.log(req.officer, "LƯU mẫu thư đơn vị mới — mọi thư kết quả từ giờ soạn theo mẫu này", None, req.role,
+        raise HTTPException(400, "Template is too short")
+    LETTER_TEMPLATE_PATH.write_text(f"[Office letter template — saved by {req.officer} {store.now()}]\n{tpl}\n", encoding="utf-8")
+    store.log(req.officer, "SAVED new office letter template — all outcome letters now follow it", None, req.role,
               {"words": len(tpl.split())})
     return {"ok": True, "active": True}
 
@@ -807,7 +809,7 @@ class GuidelineReq(BaseModel):
 @app.post("/api/rules/extract")
 def rules_extract(req: GuidelineReq):
     if len(req.text.split()) < 50:
-        raise HTTPException(400, "Văn bản hướng dẫn quá ngắn")
+        raise HTTPException(400, "Guideline text is too short")
     rules = core.extract_rules(req.text)
-    store.log("AI", f"Trích {len(rules)} tiêu chí ứng viên từ hướng dẫn mới ({len(req.text.split())} từ)", None, "system")
-    return {"rules": rules, "note": "Bản xem trước — tiêu chí chỉ có hiệu lực sau khi cán bộ rà soát và đưa vào rules.json"}
+    store.log("AI", f"Extracted {len(rules)} candidate criteria from a new guideline ({len(req.text.split())} words)", None, "system")
+    return {"rules": rules, "note": "Preview — criteria take effect only after an officer reviews them and adds them to rules.json"}

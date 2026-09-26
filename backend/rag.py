@@ -1,8 +1,8 @@
 """rag.py — chunking + retrieval.
-Mặc định TF-IDF (chạy mọi máy, không cần GPU/tải model).
-Đặt EMBED_BACKEND=bge để dùng BAAI/bge-m3 qua sentence-transformers (+FAISS nếu có).
-Chunk giữ (id, start, end, text) — offset ký tự là nền của citation-by-retrieval:
-quote cuối cùng do CODE cắt từ chunk, model không tự sinh quote.
+Default: TF-IDF (runs on any machine, no GPU or model download needed).
+Set EMBED_BACKEND=bge to use BAAI/bge-m3 through sentence-transformers (+FAISS when available).
+Each chunk keeps (id, start, end, text) — the character offsets are the basis of citation-by-retrieval:
+the final quotation is cut by CODE from the chunk; the model never generates a quotation itself.
 """
 import os, re
 import numpy as np
@@ -11,7 +11,7 @@ EMBED_BACKEND = os.environ.get("EMBED_BACKEND", "tfidf")
 
 
 def chunk_text(text: str):
-    """Tách theo đoạn (dòng trống); mỗi chunk kèm offset ký tự trong văn bản gốc."""
+    """Split on paragraphs (blank lines); each chunk carries its character offsets in the original text."""
     chunks, pos = [], 0
     for i, para in enumerate(re.split(r"\n\s*\n", text)):
         para_stripped = para.strip()
@@ -24,7 +24,7 @@ def chunk_text(text: str):
 
 
 def split_sentences(text: str):
-    """Tách câu đơn giản, giữ nguyên văn từng câu."""
+    """Simple sentence split that keeps every sentence verbatim."""
     parts = re.split(r"(?<=[.!?])\s+", text.strip())
     return [p.strip() for p in parts if p.strip()]
 

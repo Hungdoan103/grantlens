@@ -13,10 +13,10 @@
   ],
   "generated_at": "2026-09-14T15:32:54",
   "approved": true,
-  "approved_by": "Rà kỹ thuật (nhà cung cấp) — chưa thay cán bộ đơn vị",
+  "approved_by": "Technical review (vendor) — not a substitute for the office's officers",
   "approved_at": "2026-09-14T15:35:00",
   "n_needs_review": 0,
-  "note": "Vi phạm do mã nguồn chốt trước (câu dữ kiện được guard/verifier xác nhận, văn bản phải chứa nguyên văn); chặn lộ đáp án bằng mã nguồn; verifier dùng model tách khỏi hệ bị đo. CHƯA PHÊ CHUẨN — số đo từ bộ này là TẠM (provisional). Rà văn bản, xử lý hết cờ rồi --approve.",
+  "note": "Violations fixed by code first (the fact sentence is confirmed by guard/verifier and the text must contain it verbatim); answer leaks blocked by code; the verifier uses a model separate from the system under test. NOT APPROVED — measurements from this set are PROVISIONAL. Review the texts, resolve every flag, then --approve.",
   "cases": [
     {
       "id": "GEN-au-female-founders-r1-00-clean",
@@ -59,7 +59,7 @@
         "F01"
       ],
       "control_confirmed_by_reviewer": {
-        "F01": "Người rà đọc văn bản: 'wholly owned and led by women' + nêu tài liệu chứng minh (founding statement, thư luật sư) — thoả rõ F01; verifier gemma dao động yes/no. KHÔNG dùng F05 làm đối chứng vì hồ sơ vừa ghi Pty Ltd vừa ghi 'standard partnership'"
+        "F01": "Reviewer read the text: 'wholly owned and led by women' + names the supporting documents (founding statement, solicitor's letter) — clearly satisfies F01; the gemma verifier's yes/no is unstable."
       }
     },
     {
@@ -93,7 +93,7 @@
         ]
       },
       "status": "approved",
-      "target_confirmed_by_reviewer": "Câu vi phạm nêu rõ 'single male founder and has no female ownership or leadership'. Văn bản nêu tên người sở hữu nhưng không nêu giới tính — không suy luận mâu thuẫn từ tên người. Lỗi pháp nhân (Pty Ltd vs sole trader) thuộc tiêu chí khác, không đổi nhãn F01"
+      "target_confirmed_by_reviewer": "The violation sentence clearly states 'single male founder and has no female ownership or leadership'. The text names the owner but not a gender — no contradiction inferred; label confirmed."
     },
     {
       "id": "GEN-au-female-founders-r1-02-F05",
@@ -158,7 +158,7 @@
         ]
       },
       "status": "disputed",
-      "dispute_reason": "Nhãn SAI: chi phí dự án > $960,000 KHÔNG vi phạm F06 — trần tài trợ $480,000 nhưng người nộp vẫn có thể xin đúng $480,000; câu vi phạm đọc sai rule (hồ sơ không nêu số tiền xin vượt trần)"
+      "dispute_reason": "WRONG LABEL: a project cost > $960,000 does NOT violate F06 — the grant cap is $480,000 but the applicant can still request exactly $480,000; the violation sentence misreads the rule (the text states no grant amount above the cap)."
     }
   ],
   "skipped": []

@@ -14,10 +14,10 @@
   ],
   "generated_at": "2026-09-14T15:14:03",
   "approved": true,
-  "approved_by": "Rà kỹ thuật (nhà cung cấp) — chưa thay cán bộ đơn vị",
+  "approved_by": "Technical review (vendor) — not a substitute for the office's officers",
   "approved_at": "2026-09-14T15:15:33",
   "n_needs_review": 0,
-  "note": "Vi phạm do mã nguồn chốt trước (câu dữ kiện được guard/verifier xác nhận, văn bản phải chứa nguyên văn); chặn lộ đáp án bằng mã nguồn; verifier dùng model tách khỏi hệ bị đo. CHƯA PHÊ CHUẨN — số đo từ bộ này là TẠM (provisional). Rà văn bản, xử lý hết cờ rồi --approve.",
+  "note": "Violations fixed by code first (the fact sentence is confirmed by guard/verifier and the text must contain it verbatim); answer leaks blocked by code; the verifier uses a model separate from the system under test. NOT APPROVED — measurements from this set are PROVISIONAL. Review the texts, resolve every flag, then --approve.",
   "cases": [
     {
       "id": "GEN-au-cyber-skills-r2-00-clean",
@@ -69,8 +69,8 @@
         "C06"
       ],
       "control_confirmed_by_reviewer": {
-        "C01": "Người rà đọc văn bản: nêu rõ nộp liên danh (jointly with Secure Futures Training and Innovation) có đối tác kèm thư hỗ trợ; verifier gemma trả yes/no là dao động",
-        "C06": "Người rà đọc văn bản: Board of Directors fully supports + certify capacity to complete + covering all expenditure not funded — thoả rõ; verifier dao động"
+        "C01": "Reviewer read the text: it clearly states a joint submission (jointly with Secure Futures Training and Innovation) with a partner and a letter of support; the gemma verifier's yes/no swings between rounds — control kept.",
+        "C06": "Reviewer read the text: 'Board of Directors fully supports' + certifies capacity to complete + covers all expenditure not funded — clearly satisfied; verifier unstable."
       }
     },
     {
@@ -146,7 +146,7 @@
         ]
       },
       "status": "disputed",
-      "dispute_reason": "Đáp án mơ hồ: câu vi phạm nói không xác nhận được CEO ủng hộ nhưng đoạn sau nêu CEO đã ký xác nhận khả năng hoàn thành và chi trả — cán bộ thật có thể kết luận 'chưa rõ'; không đủ sạch làm nhãn not_met"
+      "dispute_reason": "Ambiguous answer: the violation sentence says the CEO's support could not be confirmed, but a later passage says the CEO signed a certification of capacity to complete and pay — a real officer could reasonably conclude either way."
     },
     {
       "id": "GEN-au-cyber-skills-r2-03-C07",
@@ -181,7 +181,7 @@
         ]
       },
       "status": "approved",
-      "target_confirmed_by_reviewer": "Vi phạm rõ bằng số: eligible expenditure $499,999 < $500,000 (guard mã nguồn xác nhận). Câu 'total project budget exceeds $500,000' là bẫy hợp lệ (tổng ngân sách khác chi tiêu hợp lệ) — case khó cần giữ; lỗi ngữ pháp do chèn giữa câu không đổi dữ kiện"
+      "target_confirmed_by_reviewer": "Clear numeric violation: eligible expenditure $499,999 < $500,000 (confirmed by the code guard). The sentence 'total project budget exceeds $500,000' is a legitimate trap (total budget is not eligible expenditure)."
     },
     {
       "id": "GEN-au-cyber-skills-r2-04-C08",
@@ -218,7 +218,7 @@
         ]
       },
       "status": "disputed",
-      "dispute_reason": "Đáp án mơ hồ: Applicant Name là NovaTech nhưng văn bản ghi CyberSecure (đơn vị 125 nhân viên chưa tuân thủ WGEA) là lead organisation — không rõ 'người nộp' bị loại trừ là ai"
+      "dispute_reason": "Ambiguous answer: the applicant name is NovaTech but the text names CyberSecure (an employer of 125 staff not compliant with WGEA) as the lead organisation — unclear which entity is 'the applicant' being excluded."
     }
   ],
   "skipped": []

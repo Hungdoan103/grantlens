@@ -1,22 +1,22 @@
 __pycache__/
 *.pyc
-# dữ liệu nặng / runtime — không đẩy lên repo
+# heavy / runtime data — never pushed to the repo
 data/grantlens.db
 data/external/abn/*.zip
 data/external/abn/abn.sqlite
-"data/Dữ liệu -"*.zip
+"data/Du lieu -"*.zip
 data/*.zip
 data/feedback/feedback.jsonl
 data/feedback/feedback-sft.jsonl
 *.bak
 docs/_render.html
 data/data-rar/
-# dữ liệu khách tải đợt 2: bỏ phần trùng/nặng, giữ PDF guideline + case + form
+# customer data drop #2: skip duplicates/heavy parts, keep guideline PDFs + cases + forms
 data/New-dataset/*.zip
-"data/New-dataset/Dữ liệu/abn/"
+"data/New-dataset/Data/abn/"
 data/New-dataset/**/abn/
 data/New-dataset/**/Ds*/
 
-# xác thực: khoá ký phiên + mật khẩu demo dạng rõ — KHÔNG đưa vào git
+# authentication: session signing key + clear-text demo passwords — NEVER committed
 data/.secret
 data/demo-accounts.txt
