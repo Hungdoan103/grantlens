@@ -16,7 +16,7 @@ sys.path.insert(0, ROOT); os.chdir(ROOT)
 
 from backend import auth, i18n, locale_vi, store
 _book = json.loads(auth.OFFICERS.read_text(encoding="utf-8"))
-PW = {"nguyen.van.an": "password-an-123", "pham.van.quyet": "password-quyet-123"}
+PW = {"sarah.mitchell": "password-mitchell-123", "david.thompson": "password-thompson-123"}
 for o in _book["officers"]:
     if o.get("username") in PW:
         o["password"] = auth.hash_password(PW[o["username"]])
@@ -83,7 +83,7 @@ chk("/api/meta EN: no Vietnamese anywhere", not VI.search(json.dumps(m_en, ensur
 chk("/api/meta VI: state labels + rule titles localised", m_vi["state_labels"]["in_review"] == "Đang thẩm định" and all(VI.search(r["title"]) for r in m_vi["rules"]))
 chk("/api/meta VI: rule quotes untouched", [r["quote"] for r in m_vi["rules"]] == [r["quote"] for r in m_en["rules"]])
 
-off = client("nguyen.van.an")
+off = client("sarah.mitchell")
 cases = off.get("/api/cases").json()["cases"]
 new = next(c for c in cases if c["status"] == "new")
 lines = [json.loads(l) for l in off.post(f"/api/cases/{new['id']}/assess").text.splitlines() if l.strip()]
@@ -100,9 +100,9 @@ blob = json.dumps([cases, lines, cv, au, ms, cov, bl, r400.json(), r403.json()],
 chk("EN default: no Vietnamese in cases/stream/case view/audit/measurement/coverage/backlog/errors", not VI.search(blob),
     [m.group(0) for m in re.finditer(r".{30}[àáảãạăằắẳẵặâầấẩẫậđèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵ].{30}", blob)][:3])
 chk("workflow error EN", r400.status_code in (400, 409) and r400.json()["detail"] == "Signing is only possible while the case is under review", r400.text)
-chk("403 EN", r403.status_code == 403 and r403.json()["detail"].startswith("Account 'Nguyen Van An' has role 'officer'"), r403.text)
+chk("403 EN", r403.status_code == 403 and r403.json()["detail"].startswith("Account 'Sarah Mitchell' has role 'officer'"), r403.text)
 
-vi = client("nguyen.van.an", lang="vi")
+vi = client("sarah.mitchell", lang="vi")
 chk("VI: workflow error localised", vi.post(f"/api/cases/{new['id']}/sign", json={"officer": "x"}).json()["detail"] == "Chỉ ký duyệt được khi hồ sơ đang thẩm định")
 cvv = vi.get(f"/api/cases/{new['id']}").json()
 chk("VI: application text + quotations identical to EN", cvv["case"]["text"] == cv["case"]["text"] and [v["rq"] for v in cvv["verdicts"]] == [v["rq"] for v in cv["verdicts"]])

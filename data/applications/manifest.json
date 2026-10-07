@@ -9,7 +9,8 @@
       "scenario": "Clearly eligible",
       "tags": [
         "pass"
-      ]
+      ],
+      "ruleset": "nsf-22-586"
     },
     {
       "id": "HS-02",
@@ -21,7 +22,8 @@
       "tags": [
         "fail",
         "plain-english"
-      ]
+      ],
+      "ruleset": "nsf-22-586"
     },
     {
       "id": "HS-03",
@@ -32,7 +34,8 @@
       "scenario": "Unclear — needs a human",
       "tags": [
         "unclear"
-      ]
+      ],
+      "ruleset": "nsf-22-586"
     },
     {
       "id": "HS-04A",
@@ -45,7 +48,8 @@
         "bias-pair",
         "polished"
       ],
-      "pair": "HS-04B"
+      "pair": "HS-04B",
+      "ruleset": "nsf-22-586"
     },
     {
       "id": "HS-04B",
@@ -58,7 +62,8 @@
         "bias-pair",
         "plain-english"
       ],
-      "pair": "HS-04A"
+      "pair": "HS-04A",
+      "ruleset": "nsf-22-586"
     },
     {
       "id": "HS-05",
@@ -70,7 +75,8 @@
       "tags": [
         "fail",
         "community-college"
-      ]
+      ],
+      "ruleset": "nsf-22-586"
     },
     {
       "id": "HS-06",
@@ -81,7 +87,8 @@
       "scenario": "Ineligible — foreign organisation",
       "tags": [
         "fail"
-      ]
+      ],
+      "ruleset": "nsf-22-586"
     },
     {
       "id": "HS-07",
@@ -93,7 +100,8 @@
       "tags": [
         "fail",
         "threshold"
-      ]
+      ],
+      "ruleset": "nsf-22-586"
     },
     {
       "id": "HS-08",
@@ -104,7 +112,8 @@
       "scenario": "Ineligible — 18-page description, cost sharing present",
       "tags": [
         "fail"
-      ]
+      ],
+      "ruleset": "nsf-22-586"
     },
     {
       "id": "HS-09",
@@ -116,7 +125,8 @@
       "tags": [
         "fail",
         "unclear"
-      ]
+      ],
+      "ruleset": "nsf-22-586"
     },
     {
       "id": "HS-10",
@@ -127,7 +137,8 @@
       "scenario": "Missing information — 4 items not addressed",
       "tags": [
         "incomplete"
-      ]
+      ],
+      "ruleset": "nsf-22-586"
     },
     {
       "id": "HS-11A",
@@ -141,7 +152,8 @@
         "polished",
         "fail"
       ],
-      "pair": "HS-11B"
+      "pair": "HS-11B",
+      "ruleset": "nsf-22-586"
     },
     {
       "id": "HS-11B",
@@ -155,7 +167,8 @@
         "plain-english",
         "fail"
       ],
-      "pair": "HS-11A"
+      "pair": "HS-11A",
+      "ruleset": "nsf-22-586"
     },
     {
       "id": "HS-12",
@@ -167,7 +180,8 @@
       "tags": [
         "pass",
         "edge"
-      ]
+      ],
+      "ruleset": "nsf-22-586"
     },
     {
       "id": "HS-13",
@@ -180,7 +194,8 @@
         "pass",
         "plain-english",
         "community-college"
-      ]
+      ],
+      "ruleset": "nsf-22-586"
     },
     {
       "id": "HS-14",
@@ -192,7 +207,8 @@
       "tags": [
         "fraud",
         "crosscheck"
-      ]
+      ],
+      "ruleset": "nsf-22-586"
     },
     {
       "id": "HS-AU-01",

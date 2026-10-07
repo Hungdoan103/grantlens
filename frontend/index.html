@@ -182,13 +182,12 @@ pre.json{font-family:'IBM Plex Mono',monospace;font-size:11px;background:#F6F7F5
     <label for="lg-pass">Password</label><input id="lg-pass" type="password" autocomplete="current-password" required>
     <button class="btn green" type="submit">Sign in</button>
     <div class="loginerr" id="lg-err"></div>
-    <div class="conf" style="text-align:center;margin-top:8px"><a href="#" id="langlink" class="notranslate" onclick="toggleLang();return false">Tiếng Việt</a></div>
   </form>
 </div>
 <main>
   <div class="topbar">
     <h1 id="pagetitle">Overview</h1>
-    <div class="who"><b id="whoname">—</b><span class="rolechip" id="whorole"></span><button id="langbtn" class="notranslate" onclick="toggleLang()" title="Switch display language (EN/VI)">VI</button><button onclick="logout()">Sign out</button></div>
+    <div class="who"><b id="whoname">—</b><span class="rolechip" id="whorole"></span><button onclick="logout()">Sign out</button></div>
   </div>
 
   <!-- ===== DASHBOARD ===== -->
@@ -253,7 +252,8 @@ pre.json{font-family:'IBM Plex Mono',monospace;font-size:11px;background:#F6F7F5
   <div class="view" id="v-ingest">
     <div class="card">
       <h3 style="margin-top:0">Upload a new application to the queue</h3>
-      <div class="row"><input type="text" id="upApplicant" placeholder="Applicant name"><input type="text" id="upOrg" placeholder="Organisation"><input type="text" id="upDir" placeholder="Directorate (CISE/BIO/…)" style="width:170px"><select id="upRuleset" title="Funding round / fund — criteria set applied"></select></div>
+      <div class="note" style="margin-top:0">Choose the funding round that matches the application. New uploads default to <b>AU Demo Fund</b>. NSF CAREER remains available in the list for US applications — select it explicitly when needed.</div>
+      <div class="row"><input type="text" id="upApplicant" placeholder="Applicant name"><input type="text" id="upOrg" placeholder="Organisation"><input type="text" id="upDir" placeholder="Directorate / programme area" style="width:170px"><select id="upRuleset" title="Funding round / fund — criteria set applied"></select></div>
       <div class="row"><input type="file" id="upFile" accept=".txt,.docx,.pdf"><span class="conf">.txt / .docx / .pdf — or paste the text below</span></div>
       <textarea id="upText" placeholder="Paste the application text (English) here…" style="min-height:160px;font-family:'IBM Plex Mono',monospace;font-size:12px"></textarea>
       <div class="row"><button class="btn green" onclick="uploadCase()">Create application</button><span id="upmsg"></span></div>
@@ -287,52 +287,12 @@ pre.json{font-family:'IBM Plex Mono',monospace;font-size:11px;background:#F6F7F5
 <div class="toast" id="toast"></div>
 
 <script>
-/* ================= i18n: optional UI locale (English is the source language) =================
-   The dictionary comes from /api/i18n/<lang> — the same source the server uses for JSON responses. Translates text
-   nodes, placeholder/title attributes and confirm/prompt/alert dialogs. NEVER translates verbatim regions: application
-   text (.doc), rule quotes (.rquote/.qt), AI-extracted facts (.facts), letters (.letter), inputs (textarea/input),
-   audit JSON (pre), reasons typed by officers (.notranslate). */
-const LANG=(document.cookie.match(/(?:^|;\s*)gl_lang=(en|vi)/)||[])[1]||'en';
-let I18N=null,I18N_PATS=[],I18N_PATS_LAST=[],I18N_PHRASE=null;
-const I18N_SKIP='script,style,textarea,input,pre,.doc,.rquote,.qt,.letter,.facts,.notranslate,#whoname';
-function setLang(l){document.cookie=`gl_lang=${l}; path=/; max-age=31536000; SameSite=Lax`;location.reload();}
-function toggleLang(){setLang(LANG==='vi'?'en':'vi');}
-function t(s){
-  if(!I18N||typeof s!=='string'||!s)return s;
-  const m=s.match(/^(\s*)([\s\S]*?)(\s*)$/);const core=m[2];if(!core)return s;
-  if(core.includes('\n'))return m[1]+core.split('\n').map(t).join('\n')+m[3];
-  let out=I18N.exact[core];
-  if(out===undefined){
-    out=core;for(const [re,rep] of I18N_PATS)out=out.replace(re,rep);
-    if(I18N_PHRASE)out=out.replace(I18N_PHRASE,k=>I18N.exact[k]??k);
-    for(const [re,rep] of I18N_PATS_LAST)out=out.replace(re,rep);
-  }
-  return m[1]+out+m[3];
-}
-function trNode(n){
-  if(n.nodeType===3){const p=n.parentElement;if(!p||p.closest(I18N_SKIP))return;const v=n.data;if(n.__gl===v)return;const o=t(v);if(o!==v)n.data=o;n.__gl=n.data;return;}
-  if(n.nodeType!==1)return;
-  for(const a of ['placeholder','title']){if(n.hasAttribute(a)){const v=n.getAttribute(a),o=t(v);if(o!==v)n.setAttribute(a,o);}}
-  if(n.matches('script,style,pre,.doc,.letter'))return;   // verbatim-only regions: no need to descend
-  for(const c of Array.from(n.childNodes))trNode(c);
-}
-async function loadI18n(){
-  const b=document.getElementById('langbtn'),a=document.getElementById('langlink');
-  if(b)b.textContent=LANG==='vi'?'EN':'VI';if(a)a.textContent=LANG==='vi'?'English':'Tiếng Việt';
-  if(LANG==='en')return;
-  try{
-    I18N=await (await fetch('/api/i18n/'+LANG)).json();
-    I18N_PATS=I18N.patterns.map(([p,r])=>[new RegExp(p,'g'),r]);I18N_PATS_LAST=(I18N.patterns_last||[]).map(([p,r])=>[new RegExp(p,'g'),r]);
-    const keys=Object.keys(I18N.exact).filter(k=>k.length>=(I18N.min_phrase||6)).sort((x,y)=>y.length-x.length);
-    I18N_PHRASE=keys.length?new RegExp('(?<![\\p{L}\\p{N}_])(?:'+keys.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')(?![\\p{L}\\p{N}_])','gu'):null;
-    const _c=window.confirm.bind(window),_p=window.prompt.bind(window),_a=window.alert.bind(window);
-    window.confirm=m=>_c(t(String(m)));window.prompt=(m,d)=>_p(t(String(m)),d);window.alert=m=>_a(t(String(m)));
-    document.documentElement.lang=LANG;document.title=t(document.title);
-    trNode(document.documentElement);
-    new MutationObserver(ms=>{for(const r of ms){if(r.type==='characterData')trNode(r.target);else for(const n of r.addedNodes)trNode(n);}})
-      .observe(document.documentElement,{childList:true,subtree:true,characterData:true});
-  }catch(e){console.warn('i18n',e);}
-}
+/* ================= UI language: English only =================
+   The HTML/JS source is English. Clear any leftover gl_lang cookie so API
+   error messages stay English too (backend still supports /api/i18n for tests). */
+document.cookie='gl_lang=en; path=/; max-age=31536000; SameSite=Lax';
+document.documentElement.lang='en';
+async function loadI18n(){}
 </script>
 <script>
 /* ================= state & helpers ================= */
@@ -466,8 +426,10 @@ async function init(){
     $('asidefoot').innerHTML=`AI core: <b style="color:#fff">${esc(META.llm.model)}</b><br>RAG: ${esc(META.embed_backend)} · ${META.llm.local?'runs locally, data never leaves the machine':META.llm.backend}<div class="pill"><span class="dot ${ok?'':'bad'}"></span>${ok?'model ready':'model not ready'}</div>`;
     const authOff=META.auth_enabled===false?`<div class="err"><b>AUTHENTICATION IS OFF</b> (GRANTLENS_AUTH=off) — automated testing only. Officer names are not verified.</div>`:'';
     $('llmbanner').innerHTML=authOff+(META.llm.is_mock?`<div class="warn"><b>MOCK mode</b> — no model is called; AI results are simulated to test the workflow. Real run: <span class="mono">ollama pull qwen3:8b</span> then start the server without <span class="mono">GRANTLENS_LLM=mock</span>.</div>`:(!ok?`<div class="err"><b>Model not ready:</b> ${esc(h.msg)}</div>`:''));
-    RULESETS=(await api('/rulesets')).rulesets;
-    const rsOpts=RULESETS.map(r=>`<option value="${r.id}">${esc(r.name)} v${esc(r.version)}${r.region?' · '+esc(r.region):''} (${r.rules.length} criteria)</option>`).join('');
+    const rsPayload=await api('/rulesets');
+    RULESETS=rsPayload.rulesets;
+    const defId=rsPayload.default|| (RULESETS.find(r=>r.default)||RULESETS[0]||{}).id;
+    const rsOpts=RULESETS.map(r=>`<option value="${r.id}"${r.id===defId?' selected':''}>${esc(r.name)} v${esc(r.version)}${r.region?' · '+esc(r.region):''} (${r.rules.length} criteria)${r.id===defId?' — default':''}</option>`).join('');
     $('rulesetsel').innerHTML=rsOpts;$('upRuleset').innerHTML=rsOpts;renderRuleset();
     $('statusfilter').innerHTML='<option value="">Any status</option>'+META.states.map(s=>`<option value="${s}">${META.state_labels[s]}</option>`).join('');
     await loadCases();renderDash();

@@ -1,127 +1,344 @@
-# GrantLens — grant eligibility screening assistant
-**AI supplies the evidence — people decide.** AI core: Qwen3-8B running locally through Ollama (data never leaves the machine, no API fees); an OpenAI-compatible endpoint can be used instead for customers with their own infrastructure.
+# GrantLens
 
-English is the source language of the code, the data files and every message. A Vietnamese UI locale (`backend/locale_vi.py`, VI/EN switch in the top bar) is an optional display layer; verbatim application and rule text is never translated.
+GrantLens is a human-in-the-loop assistant for assessing grant eligibility. It reads an application against a versioned set of criteria, drafts a per-criterion verdict with verbatim citations, and hands the decision to an authenticated officer. The language model runs locally through Ollama (default: Qwen3-8B), so application data never leaves the host.
+
+The guiding principle is that the AI supplies source-checked evidence while people retain the decision. Every control that enforces this principle is implemented on the server; the web interface cannot bypass it.
+
+## Table of contents
+
+1. [Features](#features)
+2. [Architecture](#architecture)
+3. [Prerequisites](#prerequisites)
+4. [Installation](#installation)
+5. [Configuration](#configuration)
+6. [Running the application](#running-the-application)
+7. [Running the tests](#running-the-tests)
+8. [Evaluation and measurement](#evaluation-and-measurement)
+9. [Data](#data)
+10. [Known limitations](#known-limitations)
+11. [Deployment](#deployment)
+12. [Project layout](#project-layout)
+
+## Features
+
+- Four-layer assessment pipeline: retrieval, fact extraction (LLM pass 1), judgement (LLM pass 2), and citation by code. The judgement pass never sees the original prose, so writing style cannot influence the verdict.
+- Verbatim citations by construction. The model points at a chunk and a few key words; code cuts the matching sentence and string-matches it against the source.
+- False-pass guards. After the LLM, code re-checks quantitative and pattern-checkable rules. Guards can downgrade a verdict to NOT MET or UNCLEAR but never upgrade to MET.
+- Server-enforced review workflow: blind spot-check, one-by-one confirmation, mandatory reasons for overrides, attestation on criteria without a code safety net, manager countersignature on adverse outcomes, and post-audit sampling.
+- SHA-256 hash-chained audit log. Editing or deleting any event breaks the chain.
+- Authentication with HMAC-signed sessions and role separation (officer, manager, auditor). Identity is always taken from the session, never from the request body.
+- Multi-fund rulesets with versioning. Each case locks a snapshot of the ruleset at first assessment.
+- Denied-party screening against ASIC, DFAT, and ABR/ABN lists, presented as evidence rather than automatic rejection.
+- Outcome letter drafting from an office template, with two-sided quotations, supplement and appeal sections.
+- English-only web UI. The backend retains an optional locale layer for tests; the product interface does not expose a language switch.
+
+When packaging for submission, zip this `grantlens/` directory only (omit `.git`). Sibling folders such as `_extras/` are not required to run the system.
 
 ## Architecture
+
 ```
-frontend/index.html   Single-page web app: Overview · Applications · Criteria sets · Bias Lab · Audit log · Data intake
+frontend/index.html   Single-page web application
 backend/
-  app.py       FastAPI — REST + streaming NDJSON assessment progress
-  workflow.py  Case state machine + the "trust twist" rules enforced ON THE SERVER
-  core.py      4-layer pipeline: RAG → EXTRACT (LLM pass 1) → JUDGE (LLM pass 2) → CITE (code) → GUARD (code)
-  guards.py    False-pass guards: hand-written per fund + a compiler that derives constraints from the verbatim rule
-  casegen.py   AI-generated labelled test sets per fund, anti-leak checks, label review/approval, per-fund evaluation
-  store.py     SQLite: cases, verdicts, post-audit, SHA-256 hash-chained audit log (tamper-evident)
-  auth.py      Login + HMAC-signed sessions + middleware that enforces identity from the session (never from the request body)
-  coi.py       Conflict-of-interest check against the officer register; screening.py  ASIC/DFAT/ABN denied-party screening
-  crosscheck.py Anti-cheating cross-check of figures/dates across the documents of one application
-  feedback.py  Officer decisions -> few-shot corrections + fine-tuning export
-  i18n.py      Optional UI locale layer (locale_vi.py); verbatim content is never translated
-  llm.py       LLM backend: ollama (default) | openai-compatible | mock (tests without a GPU)
-  rag.py       Paragraph chunking (with offsets) + TF-IDF (default) / BGE-M3+FAISS (optional)
-  verify.py    Citation-by-retrieval: code cuts the verbatim sentence + second-layer string match
-  eval.py      Accuracy / citation / bias / false-pass scoring against the ground truth
+  app.py              FastAPI routes, streaming assessment progress (NDJSON)
+  workflow.py         Case state machine and server-side trust rules
+  core.py             Assessment pipeline: RAG -> EXTRACT -> JUDGE -> CITE -> GUARD
+  guards.py           False-pass guards (hand-written per fund + rule compiler)
+  verify.py           Citation by retrieval and string match
+  rag.py              Paragraph chunking with offsets; TF-IDF (default) or BGE-M3 + FAISS
+  llm.py              LLM backend: ollama (default), openai-compatible, or mock
+  store.py            SQLite persistence and hash-chained audit log
+  auth.py             Login, sessions, identity middleware, account CLI
+  coi.py              Conflict-of-interest check against the officer register
+  screening.py        ASIC / DFAT / ABN denied-party screening
+  crosscheck.py       Cross-check of figures and dates across attached documents
+  tables.py           PDF / DOCX extraction with table regions preserved
+  casegen.py          Generated test sets, label review and approval, per-fund evaluation
+  eval.py             Ground-truth evaluation (accuracy, citation, bias, false pass)
+  feedback.py         Officer decisions to few-shot corrections and fine-tuning export
+  i18n.py             Optional UI locale layer (locale_vi.py)
 data/
-  rulesets/    One criteria set per fund (6: NSF 22-586 CAREER + 4 Australian funds + a demo fund), versioned, with approval status
-  applications/ 18 labelled synthetic applications (manifest.json) — 2 bias-test pairs, 2 Australian trap cases, 1 fraud case
-               generated/<fund>/  AI-generated test sets (one clean + N violation cases per fund)
-  labels/      ground-truth.json + generated-<fund>.json (labels with the reviewer's decisions and reasons)
-  officers.json Officer register (roles, affiliations, SLA)   letter-template.txt  Office letter template
-  grantlens.db SQLite created on first run (delete the file to reset the demo data)
-tests/         test_auth_e2e.py · test_i18n.py · scan_en.py (Playwright UI scan)
+  rulesets/           One criteria set per fund, versioned, with approval status
+  applications/       Labelled synthetic applications (manifest.json) and generated test sets
+  labels/             ground-truth.json and generated-<fund>.json
+  officers.json       Officer register (roles, affiliations)
+  letter-template.txt Office letter template
+  external/           Screening lists (ASIC, DFAT, ABN)
+tests/                Automated test suites
 ```
 
-## Workflow (case states)
-`new → assessed → in_review → signed → letter_drafted → letter_approved` (`awaiting_supplement` for supplement rounds; `reopen` with a reason)
+Case states: `new -> assessed -> in_review -> signed -> letter_drafted -> letter_approved`. A case may enter `awaiting_supplement` for a supplement round or be reopened with a reason.
 
-| Step | Who | Mandatory mechanism (checked by the server; the frontend cannot bypass it) |
+| Step | Actor | Mechanism enforced by the server |
 |---|---|---|
-| Run AI assessment | AI | 2 model calls per criterion; results are DRAFTS with a confidence level; code guards block false passes |
-| Start review | Officer | **Blind spot-check**: one random criterion, every AI result hidden until the officer answers |
-| Confirm each criterion | Officer | No "approve all"; overriding the AI or an AI UNCLEAR/NOT ADDRESSED ⇒ reason required; MET on a criterion without a code safety net ⇒ a verbatim quotation from the application, checked by code |
-| Sign off | Officer | Only when every criterion is confirmed; signing faster than 15 s/criterion ⇒ warning, logged, second confirmation |
-| Countersign | Manager | Cases with NOT MET / UNCLEAR criteria need a manager (not the reviewer, COI-checked) before a letter can be issued |
-| Draft the letter | AI | Only after sign-off; B1 English, two-sided verbatim quotations, supplement + 30-day appeal sections |
-| Approve the letter | Officer | Hand edits allowed (logged as "edited"); print / save PDF |
-| Post-audit sampling | Manager / auditor | Random sample of MET confirmations on unguarded criteria; sampling itself is logged |
+| Run AI assessment | AI | Two model calls per criterion; results are drafts with a confidence level; code guards block false passes |
+| Start review | Officer | Blind spot-check on one random criterion; all AI results hidden until the officer answers |
+| Confirm each criterion | Officer | No bulk approval; overriding the AI or an AI UNCLEAR / NOT ADDRESSED requires a reason; MET on a criterion without a code safety net requires a verbatim quotation checked by code |
+| Sign off | Officer | Only when every criterion is confirmed; signing faster than the configured threshold triggers a warning and second confirmation |
+| Countersign | Manager | Required for cases with NOT MET or UNCLEAR criteria; the manager cannot be the reviewer and is COI-checked |
+| Draft the letter | AI | Only after sign-off; plain English, two-sided quotations, supplement and appeal sections |
+| Approve the letter | Officer | Hand edits allowed and logged |
+| Post-audit sampling | Manager / auditor | Random sample of MET confirmations on unguarded criteria; the sampling itself is logged |
 
-## Method
-**Style-bias control (2 real model calls):** pass 1 extracts neutral *facts* only (figures, dates, directorate…) with chunk_id + key_phrase; pass 2 judges **only the fact list**, never the original text ⇒ grammar / fluency cannot influence the verdict. Verified with two bias pairs HS-04A/B and HS-11A/B (Bias Lab + eval).
+## Prerequisites
 
-**Citation-by-retrieval:** the 8B model never generates a quotation. It only points at a chunk + 3–8 key words; code cuts the *verbatim sentence* that best matches and string-matches it against the application ⇒ quotations are verbatim "by construction". Clicking a quotation highlights it in the original text.
+| Requirement | Notes |
+|---|---|
+| Python 3.11 or later | Tested with Python 3.12 |
+| pip | Any recent version |
+| Ollama | Required for real assessments. Not required for the test suites or the mock demo mode. See https://ollama.com |
+| GPU with 8 GB VRAM or more | Recommended for Qwen3-8B. Smaller GPUs can use a quantised variant (see Configuration) |
+| Docker | Optional, for containerised deployment |
 
-**Consistency lock (code, `core.judge_consistency`):** NOT MET must point at a fact stating the violation; a `not_met` with `supporting_fact = 0` or `coverage = none` is downgraded to UNCLEAR and routed to the officer.
+## Installation
 
-**False-pass guards (`backend/guards.py`):** after the LLM, code re-checks quantitative / pattern-checkable rules. Hand guards per fund and a compiler that derives thresholds, prohibitions and exclusion lists from the verbatim rule always **both** run; the LLM saying "met" while code sees a violation ⇒ override to not_met (quantitative) or downgrade to unclear (qualitative). Guards never upgrade to met. Coverage is reported honestly in 3 levels: `code-guarded` / **`needs-manual-guard`** (quantitative logic the compiler cannot express — the riskiest spot) / `llm-only`; `GET /api/guard-backlog` lists what is still open.
+Clone the repository and install the Python dependencies from the `grantlens` directory.
 
-**Hash-chained audit log:** every event carries the SHA-256 of the previous one; editing or deleting a row breaks the chain (`GET /api/audit` returns `chain.ok`).
+```bash
+cd grantlens
+python -m venv .venv
+```
 
-**Identity from the session:** `IdentityMiddleware` rejects unauthenticated `/api/*` calls and overwrites the `officer`/`role` fields of every request with the session identity, so the audit log records authenticated names. Four gates are role-locked (approve criteria set, approve test-set labels, countersign → `manager`; post-audit → `manager`/`auditor`). Auditors can only read and post-audit. Whoever reviewed a label set cannot approve it.
+Activate the virtual environment.
 
-## Install & run
+```bash
+# Windows (PowerShell)
+.venv\Scripts\Activate.ps1
+
+# Linux / macOS
+source .venv/bin/activate
+```
+
+Install dependencies.
+
 ```bash
 pip install -r requirements.txt
-ollama pull qwen3:8b                 # ~6 GB VRAM; smaller GPUs: qwen3:8b-q4_K_M (set GRANTLENS_MODEL)
-python -m backend.auth init-demo     # demo accounts + random passwords -> data/demo-accounts.txt (not committed)
-uvicorn backend.app:app --port 8000
-# open http://localhost:8000 — sign in with an account from data/demo-accounts.txt
 ```
-Accounts: edit `data/officers.json` (name, role `officer|manager|auditor`, affiliations), then `python -m backend.auth set-password <username> <password>`; `python -m backend.auth list` to inspect. **Change the demo passwords and set `GRANTLENS_SECRET` before a real deployment.**
 
-Environment variables: `GRANTLENS_LLM=ollama|openai|mock` (`mock` demos the workflow without a model — clearly labelled in the UI, never for reporting figures), `GRANTLENS_MODEL`, `OLLAMA_URL`, `OPENAI_BASE_URL`, `OPENAI_API_KEY`, `EMBED_BACKEND=bge`, `GRANTLENS_DB`, `GRANTLENS_SECRET`, `GRANTLENS_SESSION_HOURS` (default 8), `GRANTLENS_AUTH=off` (tests only), `GRANTLENS_FEEDBACK=on|off`, `GRANTLENS_MIN_SECONDS_PER_RULE` (default 15), `GRANTLENS_ATTESTATION_MIN_CHARS` (25) / `_LLM` (15) / `GRANTLENS_ATTESTATION_MIN_QUOTE_WORDS` (5). See DEPLOY.md.
+Optional: semantic retrieval with BGE-M3 and FAISS instead of TF-IDF.
 
-## Tests
 ```bash
-python tests/test_auth_e2e.py     # 43 checks: sessions, roles, forged cookies, post-audit, countersignature, consistency lock, audit chain
-python tests/test_i18n.py         # locale layer: English source, no Vietnamese in API output, verbatim regions untouched, VI cookie
-python tests/scan_en.py http://127.0.0.1:8000/   # Playwright scan of every screen for leftover non-English UI text
+pip install sentence-transformers faiss-cpu
 ```
 
-## Measurement — per fund, with human-approved labels
-Each fund runs its own chain: `python -m backend.casegen <fund> --gen --target-only` → a reviewer reads every generated application (`--confirm` / `--confirm-control` / `--dispute` / `--flag-weak`, reasons stored in `data/labels/generated-<fund>.json`) → `--approve` → `--eval`. `GET /api/measurement-status` (and the table on the Criteria sets screen) shows which step each fund is at; an evaluation must match the exact label set that was approved (generation + approval timestamps), otherwise it reads "evaluation must be re-run". **One fund's figure is never used to speak for another.**
+Install Ollama (official HTTPS) and pull the assessment model — or skip this if you only intend to run tests / mock demo:
 
-Why a human reviewer is mandatory: of 18 AI-generated violation cases that had passed **every automated gate**, **9 (50%) were rejected by the reviewer** — 5 wrong labels, 4 ambiguous answers (details and reasons in the label files). Generated tests cannot serve as a benchmark without a person reading each one. The remaining 1–2 violation cases per fund are **preliminary per-fund evidence, not a statistical rate**.
+```bash
+python _install_ollama.py          # downloads from ollama.com + ollama pull qwen3:8b
+# manual alternative:
+#   install from https://ollama.com  then:  ollama pull qwen3:8b
+```
 
-<!-- MEASUREMENT -->
-**Results** — system under test `qwen3:8b` (English-note judgement prompt, feedback store empty, measured 2026-09-26), only on reviewed + approved labels (source: `GET /api/measurement-status`):
+Start with the real model:
 
-| Fund | Violations caught | False pass | Routed to officer (unclear) | Clean application: correct · false alarms |
+```bash
+python _start_ollama.py
+```
+
+Two demo accounts are ready to use for signing in and testing the workflow:
+
+| Username | Password | Role |
+|---|---|---|
+| `sarah.mitchell` | `demo-officer-123` | officer (reviews cases) |
+| `david.thompson` | `demo-manager-123` | manager (countersigns rejections) |
+
+To create random passwords for every account instead, or to reset accounts that have none, run:
+
+```bash
+python -m backend.auth init-demo
+```
+
+Passwords from `init-demo` are written to `data/demo-accounts.txt`, which is excluded from version control.
+
+To manage accounts manually, edit `data/officers.json` (name, role `officer|manager|auditor`, affiliations) and then run:
+
+```bash
+python -m backend.auth set-password <username> <password>
+python -m backend.auth list
+```
+
+Optional: build the ABN index if the ABR bulk extract is present under `data/external/abn/`.
+
+```bash
+python -m backend.abn_index
+```
+
+## Configuration
+
+All settings are read from environment variables. Defaults are suitable for a local workstation.
+
+| Variable | Default | Description |
+|---|---|---|
+| `GRANTLENS_LLM` | `ollama` | LLM backend: `ollama`, `openai`, or `mock`. Mock mode simulates verdicts for workflow demonstrations and is clearly labelled in the UI; it must never be used for reported figures. |
+| `GRANTLENS_MODEL` | `qwen3:8b` | Model name. For GPUs with less VRAM, use for example `qwen3:8b-q4_K_M`. |
+| `OLLAMA_URL` | `http://localhost:11434` | Ollama endpoint |
+| `OPENAI_BASE_URL`, `OPENAI_API_KEY` | — | Used when `GRANTLENS_LLM=openai` |
+| `GRANTLENS_NUM_CTX` | `8192` | Context window passed to the model |
+| `GRANTLENS_LLM_TIMEOUT` | `300` | Seconds to wait for a model response |
+| `EMBED_BACKEND` | `tfidf` | Set to `bge` for BGE-M3 + FAISS retrieval |
+| `GRANTLENS_DB` | `data/grantlens.db` | SQLite path. Delete the file to reset demo data. |
+| `GRANTLENS_SECRET` | generated | Session signing key. Set explicitly before any real deployment. |
+| `GRANTLENS_SESSION_HOURS` | `8` | Session lifetime |
+| `GRANTLENS_AUTH` | `on` | Set to `off` only in tests |
+| `GRANTLENS_ACCESS_KEY` | — | When set, the site requires `/?key=<value>` (private online demo) |
+| `GRANTLENS_FEEDBACK` | `on` | Few-shot feedback store from officer decisions |
+| `GRANTLENS_MIN_SECONDS_PER_RULE` | `15` | Threshold for the fast-signing warning |
+| `GRANTLENS_ATTESTATION_MIN_CHARS` | `25` | Minimum attestation length on criteria without a code safety net |
+| `GRANTLENS_ATTESTATION_MIN_CHARS_LLM` | `15` | Minimum attestation length on LLM-only criteria |
+| `GRANTLENS_ATTESTATION_MIN_QUOTE_WORDS` | `5` | Consecutive words that must exist verbatim in the application |
+| `GRANTLENS_CASEGEN_MODEL`, `GRANTLENS_VERIFIER_MODEL`, `GRANTLENS_PLANNER_MODEL` | system model | Models used to generate and verify test sets; should differ from the system under test |
+
+## Running the application
+
+Start the server from the `grantlens` directory.
+
+```bash
+uvicorn backend.app:app --port 8000
+```
+
+Open http://localhost:8000 and sign in with `sarah.mitchell` / `demo-officer-123` (officer) or `david.thompson` / `demo-manager-123` (manager).
+
+To run the full workflow without a GPU or a model (verdicts are simulated and labelled as such):
+
+```bash
+# Windows (PowerShell)
+$env:GRANTLENS_LLM = "mock"; uvicorn backend.app:app --port 8000
+
+# Linux / macOS
+GRANTLENS_LLM=mock uvicorn backend.app:app --port 8000
+```
+
+Suggested walkthrough once the server is running:
+
+1. Overview: review the queue and key indicators (officer override rate, verbatim citations, spot-checks, audit chain status).
+2. Open an application, run the AI assessment, start the review, complete the blind spot-check, confirm criteria one by one, and sign.
+3. Open an application where the AI returns UNCLEAR or NOT ADDRESSED and observe that a human decision with a reason is required.
+4. Draft the outcome letter, edit it, approve it, and print to PDF.
+5. Bias Lab: compare a bias pair (for example HS-11A and HS-11B) and confirm the verdicts match.
+6. Audit log: open an event and inspect the hash chain.
+7. Data intake: upload your own `.txt`, `.docx`, or `.pdf` application and run it. Uploads default to the Australian demonstration ruleset (`au-demo-fund`). Other funds, including NSF CAREER (`nsf-22-586`), remain selectable in the same dropdown for matching applications.
+
+## Running the tests
+
+The test suites use the mock LLM and a temporary SQLite database. They do not require a GPU or a running model and never write under `data/`.
+
+Run from the `grantlens` directory with the virtual environment activated.
+
+```bash
+python tests/test_auth_e2e.py
+```
+
+Covers authentication, session integrity, forged cookies, role separation, countersignature, post-audit sampling, the consistency lock, and the audit chain. Expected output ends with a summary line and a non-zero exit code if any check fails.
+
+```bash
+python tests/test_i18n.py
+```
+
+Covers the backend locale layer: English is the source language, no Vietnamese in API output by default, and verbatim regions are never translated.
+
+The UI scan requires Playwright and a running server in mock mode with demo accounts created.
+
+```bash
+pip install playwright
+playwright install chromium
+# in a separate terminal: GRANTLENS_LLM=mock uvicorn backend.app:app --port 8000
+python tests/scan_en.py http://127.0.0.1:8000/
+```
+
+The scan lists any UI text that still contains non-English content outside verbatim regions.
+
+A quick smoke check of the running API without authentication:
+
+```bash
+curl http://127.0.0.1:8000/api/meta
+```
+
+## Evaluation and measurement
+
+Two evaluation paths exist. Both require a real model (`GRANTLENS_LLM=ollama`); figures produced in mock mode have no reporting value and are flagged as such.
+
+### Ground-truth evaluation
+
+Scores the pipeline against hand-authored labels in `data/labels/ground-truth.json`. Reports verdict accuracy, citation match rate, bias-pair agreement, and false-pass rate. Results are saved to `eval-results-<model>.json`.
+
+```bash
+python -m backend.eval
+python -m backend.eval --only HS-AU-01,HS-AU-02
+```
+
+### Per-fund generated test sets
+
+Each fund runs its own chain. A human reviewer must read every generated case before the labels can be approved; evaluation results are provisional until approval, and editing labels after approval revokes it.
+
+```bash
+python -m backend.casegen <ruleset_id> --gen [N] [--target-only]
+python -m backend.casegen <ruleset_id> --confirm <case_id> "reason"
+python -m backend.casegen <ruleset_id> --confirm-control <case_id> <rule_id> "reason"
+python -m backend.casegen <ruleset_id> --dispute <case_id> "reason"
+python -m backend.casegen <ruleset_id> --flag-weak <case_id> <rule_id> "reason"
+python -m backend.casegen <ruleset_id> --approve "Reviewer name"
+python -m backend.casegen <ruleset_id> --eval
+```
+
+Available ruleset identifiers: `au-demo-fund` (default for new uploads), `au-cyber-skills-r2`, `au-female-founders-r1`, `au-onfarm-water`, `au-wine-tourism-r8`, and `nsf-22-586` (US reference — selectable on upload, not the default). `GET /api/measurement-status` and the Criteria sets screen show which step each fund has reached.
+
+### Latest results (Australian funds, Qwen3-8B, 7 October 2026)
+
+Target evaluation on reviewed and approved labels. One fund's figure is never used to speak for another, and all sets are small samples.
+
+| Fund | Violations caught | False pass | Routed to officer | Clean control correct / false alarms |
 |---|---|---|---|---|
-| NSF 22-586 CAREER (US) | 1/1 | 0/1 | 0 | 1/1 · 0/1 |
-| Wine Tourism R8 | 2/2 | 0/2 | 0 | 2/2 · 0/2 |
-| Cyber Security Skills R2 | 2/2 | 0/2 | 0 | 2/2 · 0/2 |
-| Boosting Female Founders R1 | 1/2 | 0/2 | 1 | 2/2 · 0/2 |
-| On-farm Water | 1/1 | 0/1 | 0 | 1/1 · 0/1 |
-| Demonstration fund | 1/1 | 0/1 | 0 | 1/1 · 0/1 |
-| **All 6 funds** | **8/9** | **0/9** | 1 | 9/9 · **0/9** |
+| Wine Tourism and Cellar Door R8 | 2/2 | 0/2 | 0 | 2/2 / 0 |
+| Cyber Security Skills R2 | 2/2 | 0/2 | 0 | 2/2 / 0 |
+| Boosting Female Founders R1 | 1/2 | 0/2 | 1 | 2/2 / 0 |
+| On-farm Emergency Water Infrastructure | 1/1 | 0/1 | 0 | 1/1 / 0 |
+| Demonstration fund | 1/1 | 0/1 | 0 | 1/1 / 0 |
+| Total | 7/8 | 0/8 | 1 | 8/8 / 0 |
 
-Same figures as the previous two runs (2026-09-14 and 2026-09-19) despite the prompt change. The one case routed to the officer is Female Founders F05: the model said MET for an income-tax-exempt applicant, the F05 hand guard caught it and downgraded to UNCLEAR with a `[SUSPECTED FALSE PASS]` tag — a real false pass blocked by code.
+The single routed case (Female Founders F05) is one where the model leaned towards MET for an income-tax-exempt applicant; the hand-written guard tagged a suspected false pass and downgraded the verdict to UNCLEAR for the officer.
 
-**NSF subset evaluation (`python -m backend.eval --only HS-02,HS-04A,HS-04B,HS-07`)** — the earlier result files were removed because their AI notes came from the Vietnamese-note prompt. Historical figures for the record: qwen3:8b 24/24 (2026-09-07) and 23/24 (2026-09-19) on HS-02 + HS-07, false pass 0/6 in every run, citation match 100%, bias pairs 12/12; qwen3:4b 83.3% accuracy with 5/6 false passes (unacceptable — the reason 8b is the system model). The 2026-09-26 re-run with the English prompt was aborted: Ollama timed out (5-minute reads) because another training job occupied the 4 GB GPU. Re-run it on a free GPU and commit the new `eval-results-qwen3_8b.json` before quoting a subset figure.
-<!-- /MEASUREMENT -->
-
-**Honest boundaries:** a false-pass figure is only valid for the fund measured with an approved-label test set; a new fund is only guaranteed the basic compiler layer, and `needs-manual-guard` rules still need a hand guard + the officer. The system is **not bit-for-bit reproducible across runs**: qwen3:8b (5.2 GB) on a 4 GB GPU is split between GPU and CPU, the split changes with free VRAM, and at temperature 0 close decisions can still flip (observed: NSF 24/24 on one day, 23/24 on another with identical inputs). The safety metric (false pass) has stayed 0 across every run; differences fall on the false-alarm side, where a human reviews and a manager countersigns. Report ranges from repeated runs, not single numbers; deploy on a GPU that holds the whole model (≥ 8 GB).
+Ground-truth full-matrix evaluation on the Australian trap applications HS-AU-01 and HS-AU-02: exact verdict agreement 14/17 (82.4%), citation match 17/17 (100%), false passes 0/5.
 
 ## Data
-- Guidelines: NSF 22-586 CAREER (verbatim from nsf.gov, public domain); four Australian grant guidelines provided by the customer (Cyber Security Skills R2, Boosting Female Founders R1, On-farm Emergency Water Infrastructure, Wine Tourism and Cellar Door R8) plus a demonstration fund. Denied-party lists: ASIC Banned & Disqualified, DFAT Consolidated List, ABR/ABN bulk extract (index with `python -m backend.abn_index`).
-- Applications: synthetic with ground truth (real applications are not public), labels in `data/labels/ground-truth.json`. Each of the 15 NSF applications targets one business scenario (clear pass, plain-English fail, unclear, bias pairs, competition-limit, foreign institution, BIO budget + letter length, page limit + cost sharing, prior award, missing sections, museum equivalent, community college); HS-14 is a multi-document fraud case; HS-AU-01/02 are Australian fund traps.
-- The old Wine test set (2026-09-09, "3/3") was **withdrawn** because the generated texts leaked the answers (a case literally said "violating W08"); kept under `data/labels/withdrawn/` for traceability only.
 
-## Change history (what the customer's critiques changed)
-1. **Tables in PDF/DOCX** kept as `[TABLE n]` blocks so RAG never splits a financial table; scanned pages flagged for OCR. **Feedback loop** from signed decisions. **Conflict-of-interest** check before taking a case. **Cross-check** of figures/dates across attached documents (`=== DOCUMENT: name ===` marker, `/attach`). Letters follow the office template in `data/letter-template.txt`.
-2. **Multi-fund rulesets with versioning** (each case locks a snapshot at first assessment). **False-pass guards.** **Countersignature** for rejections. **Supplement rounds** with SLA.
-3. **The compiler admits what it cannot express** (derived logic, alternative branches, conditional thresholds) instead of silently skipping it; 3-level coverage; hand guards and compiler run together; **casegen** got an independent verifier, label approval, disputes, and the Wine set was withdrawn for answer leaks; violations are now fixed by code first and inserted verbatim; rule IDs and self-commentary are removed by code; models are separated by role (planner / writer / verifier ≠ system under test); monologue detection; flags never drop cases silently; controls on clean applications; `GET /api/measurement-status`.
-4. **Server-side friction where there is no code safety net**: MET on `needs-manual-guard` criteria requires a self-verified attestation (≥ 25 characters with a verbatim passage); verifier votes never trusted absolutely (two differently phrased votes, code veto); the [TARGET] metric is separated from noisy secondary labels.
-5. **Risk-tiered friction**: `llm-only` criteria also require evidence (≥ 15 characters or confirming the AI's quotation); attestations must contain ≥ 5 consecutive words that really exist in the application and cannot be pasted twice; hand guards W04 and C06 closed the high-priority backlog (now 0); currency normalisation (`A$`, `AUD`, `dollars`); compiler fixes (neither/nor negation, single-word exclusions, conditional exclusion items, `max` constraints only compare figures with ≥ 2 rule keywords right before them).
-6. **Structural closure**: login + HMAC sessions + identity middleware; four role-locked gates; separation of duties on label approval; post-audit sampling; consistency lock on the judgement pass (`supporting_fact or 1` bug fixed). Non-reproducibility across runs documented instead of patched (no guard was added for R07 to chase 24/24).
-7. **English as the source language** (this version): code, comments, data files, labels, README rewritten in English; the judgement prompt now asks for an English note (`note`), so every measurement was re-run; a Vietnamese UI locale remains as an optional display layer. Also fixed: the streamed `verdict` event was overwritten by the rule's own `type` field, so the UI never received it.
+- Guidelines: four Australian grant guidelines (Cyber Security Skills R2, Boosting Female Founders R1, On-farm Emergency Water Infrastructure, Wine Tourism and Cellar Door R8) plus a demonstration fund. Rulesets are stored verbatim in `data/rulesets/`.
+- Applications: synthetic, with ground-truth labels. Real applications are not public. Includes bias-test pairs, Australian trap cases, a multi-document fraud case, and generated per-fund test sets.
+- Screening lists: ASIC Banned and Disqualified Persons, DFAT Consolidated Sanctions List, ABR/ABN bulk extract. See `data/external/README.md`. These are reference data for screening, not training data.
+- A previously generated Wine Tourism test set was withdrawn because the generated texts leaked the answers. It is kept under `data/labels/withdrawn/` for traceability only.
 
-## 10-minute demo script
-1. **Overview** — queue, KPIs: officer override rate, verbatim citations, spot-checks, audit chain intact.
-2. Open **HS-02** → Run AI assessment (per-criterion progress) → Start review → **blind spot-check** → open R04: pass-1 facts, two-sided quotations, click to highlight → confirm line by line → try signing fast (warning) → sign.
-3. Open **HS-03** — AI returns UNCLEAR / NOT ADDRESSED; the system forces a human decision + reason.
-4. Draft the **B1 letter**, edit by hand, approve, print PDF.
-5. **Bias Lab** HS-11A vs HS-11B → 12/12 match.
-6. **Audit log** — open the "details" of an event, show the hash chain.
-7. **Data intake** — upload the customer's own application and run it.
+## Known limitations
+
+- False-pass figures are only valid for the fund measured with an approved-label test set. A new fund is guaranteed only the generic compiler layer; rules marked `needs-manual-guard` still require a hand-written guard and officer attention.
+- Results are not bit-for-bit reproducible across runs. When the model does not fit entirely in GPU memory, the GPU/CPU split changes with free VRAM and close decisions can flip even at temperature 0. The safety metric (false pass) has remained zero across runs; variation falls on the false-alarm side. Report ranges from repeated runs rather than single numbers, and deploy on a GPU that holds the whole model.
+- Sample sizes are small. Per-fund figures are preliminary evidence, not population rates.
+- Screening validity depends on the freshness of the registers and on fuzzy-name matching.
+- The system is an eligibility assistant, not a grants management system. Payment, contracting, and enterprise single sign-on are out of scope.
+
+## Deployment
+
+See `DEPLOY.md` for three scenarios: an online demo in mock mode on a host without a GPU, a GPU VPS running the real model, and on-premises deployment inside an organisation's network.
+
+Build and run with Docker (mock mode by default):
+
+```bash
+docker build -t grantlens .
+docker run -p 8000:8000 grantlens
+```
+
+Before any real deployment: change the demo passwords, set `GRANTLENS_SECRET`, and mount a persistent volume for `GRANTLENS_DB`.
+
+## Project layout
+
+```
+grantlens/
+  backend/          Application code
+  frontend/         Single-page web application
+  data/             Rulesets, applications, labels, screening lists, letter template
+  docs/             System pipeline.html + GrantLens-External-Test-Guide.pdf (UI testing guide)
+  tests/            Automated test suites
+  requirements.txt  Python dependencies
+  Dockerfile        Container image (mock mode by default)
+  DEPLOY.md         Deployment guide
+  eval-generated-*.json  Per-fund measurement results shown in Criteria sets
+```
+
+Challenge report PDFs and other packaging-only material live outside this package (see the sibling `_extras/` folder if present).

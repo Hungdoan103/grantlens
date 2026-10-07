@@ -10,24 +10,24 @@
   },
   "officers": [
     {
-      "name": "Nguyen Van An",
+      "name": "Sarah Mitchell",
       "role": "officer",
       "affiliations": [
         "Grants Office"
       ],
       "notes": "sample reviewing officer",
-      "username": "nguyen.van.an",
-      "password": "pbkdf2_sha256$240000$PfkafyOmzm1uDVUpSg/VyA==$CZHXw246v9pyHEnqTLP49LBfEdQYB+RRPjhpeDMZzls="
+      "username": "sarah.mitchell",
+      "password": "pbkdf2_sha256$240000$zScJ16ADuIoBS/Ls/2bFMg==$DDY+r+D4tlU5E2Y6mi7R1ca3fcrzuCb0i93icbGdsXk="
     },
     {
-      "name": "Tran Thi Binh",
+      "name": "Emily Carter",
       "role": "officer",
       "affiliations": [
         "Grants Office",
         "Riverside State University"
       ],
       "notes": "demo: COI block against HS-01",
-      "username": "tran.thi.binh",
+      "username": "emily.carter",
       "password": "pbkdf2_sha256$240000$dBt88YsItgRloxd9zUm3Mg==$GHuwKWSPihwkhSpJH2GhTa5L7V4dO88JC4z1P8j2NrA="
     },
     {
@@ -41,24 +41,24 @@
       "password": "pbkdf2_sha256$240000$kW8/GbW9uqcD9tS5JGpOZg==$WrWsh013IxF06i85k/fPp57+1Q7IsULxGewLBFHixD0="
     },
     {
-      "name": "Pham Van Quyet",
+      "name": "David Thompson",
       "role": "manager",
       "affiliations": [
         "Grants Office"
       ],
       "notes": "manager — countersigns before a case is rejected",
-      "username": "pham.van.quyet",
-      "password": "pbkdf2_sha256$240000$qvu9lMnnU1EQAsa/xWcxuA==$6+m57qnleY//80ouyvLGN2lcbmEW84Ufs0voXyGyqCU="
+      "username": "david.thompson",
+      "password": "pbkdf2_sha256$240000$/gHXy/06eWMqrmJfhJ9kFA==$3b9vbK8RHkWGdOM+ImvZm0X1l04Nsz4krkMxbRDXuqg="
     },
     {
-      "name": "Le Minh Chau",
+      "name": "Olivia Bennett",
       "role": "auditor",
       "affiliations": [
         "Internal Audit"
       ],
       "notes": "internal auditor — post-audit only, no reviewing",
-      "username": "le.minh.chau",
-      "password": "pbkdf2_sha256$240000$ghotuy6IOyEHrdesB0UGvQ==$yioS4NXS3BTE0bWU4Ag6UqEYbCe9Wxy0bFaU4S5wFY4="
+      "username": "olivia.bennett",
+      "password": "pbkdf2_sha256$240000$pc/rrW6VqeK91QgfUph0qA==$Dt8KBpVUZ/vOvDmQNaNyQRCd7bQ69uK6REEVROyFpaI="
     }
   ]
 }

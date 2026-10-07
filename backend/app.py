@@ -97,12 +97,14 @@ def auth_me(request: Request):
 
 @app.on_event("startup")
 def seed():
+    # Always refresh demo metadata (scenario, applicant, …) from the English manifest.
+    # Existing workflow state / application text are left untouched on conflict.
     for c in core.load_manifest():
-        if not store.case_exists(c["id"]):
-            store.upsert_case({**c, "text": core.load_app_text(c)})
-            if c.get("ruleset"):
-                rs = core.get_ruleset(c["ruleset"])
-                store.update_case(c["id"], ruleset_id=rs["id"], ruleset_version=rs["version"])
+        existed = store.case_exists(c["id"])
+        store.upsert_case({**c, "text": core.load_app_text(c)})
+        if not existed and c.get("ruleset"):
+            rs = core.get_ruleset(c["ruleset"])
+            store.update_case(c["id"], ruleset_id=rs["id"], ruleset_version=rs["version"])
     if not store.audit_events(limit=1):
         store.log("System", "Audit log initialised (genesis)", None, "system")
 

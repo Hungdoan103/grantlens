@@ -1,11 +1,39 @@
+# GrantLens - Python dependencies
+# Install:  pip install -r requirements.txt
+# Python 3.11 or later.
+#
+# NOT installed by this file (host / external apps):
+#   • Ollama — required for real AI assessment (GRANTLENS_LLM=ollama, default).
+#     Helper (downloads official installer over HTTPS + pulls qwen3:8b):
+#       python _install_ollama.py
+#     Then start:  python _start_ollama.py
+#     Or UI-only without Ollama:  python _start_server.py
+#   • Tesseract OCR binary — only if you need OCR on scanned PDFs (see pytesseract below).
+
+# --- Web application ---
 fastapi>=0.110
 uvicorn>=0.29
-requests>=2.31
-scikit-learn>=1.4
+pydantic>=2.0
+python-multipart>=0.0.9        # multipart form uploads (/api/cases/upload, /attach)
+requests>=2.31                 # HTTP client for Ollama / OpenAI-compatible APIs (backend/llm.py)
+
+# --- Retrieval (default TF-IDF backend) ---
 numpy>=1.26
-python-multipart>=0.0.9
-pypdf>=4.0
-pdfplumber>=0.11
-# --- Optional: semantic RAG instead of TF-IDF (set EMBED_BACKEND=bge) ---
+scikit-learn>=1.4
+
+# --- Document extraction (data intake) ---
+pdfplumber>=0.11               # PDF layout analysis, table regions (backend/tables.py)
+python-docx>=1.1               # DOCX paragraphs and tables in document order
+pytesseract>=0.3.10            # OCR fallback for scanned PDF pages; requires the
+                               # Tesseract binary on the host (auto-detected on Windows)
+
+# --- Denied-party screening ---
+openpyxl>=3.1                  # DFAT Consolidated List (.xlsx) (backend/screening.py)
+
+# --- Tests ---
+httpx>=0.27                    # required by fastapi.testclient (tests/test_*.py)
+playwright>=1.44               # tests/scan_en.py; then run:  playwright install chromium
+
+# --- Optional: semantic retrieval instead of TF-IDF (set EMBED_BACKEND=bge) ---
 # sentence-transformers>=3.0
 # faiss-cpu>=1.8

@@ -47,7 +47,7 @@ async def main():
         pg.on("dialog", lambda d: (dialogs.append(d.message), asyncio.ensure_future(d.dismiss())))
         await pg.goto(URL); await pg.wait_for_timeout(1500)
         await grab(pg, "login")
-        await pg.fill("#lg-user", "pham.van.quyet"); await pg.fill("#lg-pass", acc["pham.van.quyet"]); await pg.click("#login button[type=submit]")
+        await pg.fill("#lg-user", "david.thompson"); await pg.fill("#lg-pass", acc["david.thompson"]); await pg.click("#login button[type=submit]")
         await pg.wait_for_timeout(3000)
         await grab(pg, "dash")
         print("title:", await pg.title(), "| lang:", await pg.evaluate("document.documentElement.lang"))

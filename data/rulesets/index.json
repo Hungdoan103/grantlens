@@ -1,13 +1,6 @@
 {
-  "default": "nsf-22-586",
+  "default": "au-demo-fund",
   "rulesets": [
-    {
-      "id": "nsf-22-586",
-      "file": "nsf-22-586.json",
-      "name": "NSF 22-586 CAREER",
-      "region": "US",
-      "version": "2022.1"
-    },
     {
       "id": "au-demo-fund",
       "file": "au-demo-fund.json",
@@ -42,6 +35,13 @@
       "name": "On-farm Emergency Water Infrastructure Rebate Scheme (AU/NSW)",
       "region": "AU",
       "version": "V2.7-2020"
+    },
+    {
+      "id": "nsf-22-586",
+      "file": "nsf-22-586.json",
+      "name": "NSF 22-586 CAREER (US reference)",
+      "region": "US",
+      "version": "2022.1"
     }
   ]
 }
